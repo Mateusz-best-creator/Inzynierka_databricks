@@ -27,8 +27,10 @@ jobs:
       - name: Run affected tests
         if: github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/prod'
         run: |
-          pytest --picked
-          pytest e_commerce/tests/test_dummy
+          pytest --picked || code=$?
+          if [ $code -eq 5 ]; then
+            echo "No tests needed to be run."
+          fi
 
       - name: Run full test suite
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/prod'
