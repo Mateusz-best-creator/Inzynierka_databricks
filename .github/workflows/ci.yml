@@ -26,7 +26,9 @@ jobs:
 
       - name: Run affected tests
         if: github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/prod'
-        run: pytest --picked
+        run: |
+          pytest --picked
+          pytest e_commerce/tests/test_dummy
 
       - name: Run full test suite
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/prod'
