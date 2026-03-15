@@ -26,7 +26,7 @@ jobs:
 
       - name: Run affected tests
         if: github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/prod'
-        run: pytest --picked --mode=unstaged
+        run: pytest --picked
 
       - name: Run full test suite
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/prod'
