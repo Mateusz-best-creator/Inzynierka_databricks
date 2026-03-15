@@ -20,7 +20,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -e "requirements.txt" ]; then python -r requirments.txt;fi
+          if [ -e "requirements.txt" ]; then pip install -r requirements.txt;fi
       - name: Run pre-commit checks
         run: pre-commit run --all-files
 
