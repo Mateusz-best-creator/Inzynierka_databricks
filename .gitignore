@@ -1,5 +1,28 @@
-# Created by https://www.toptal.com/developers/gitignore/api/python
-# Edit at https://www.toptal.com/developers/gitignore?templates=python
+### Terraform ###
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+*.tfvars
+*.tfvars.json
+
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+*.plan
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
@@ -157,7 +180,11 @@ dmypy.json
 cython_debug/
 
 # PyCharm
-.idea/
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+#.idea/
 
 ### Python Patch ###
 # Poetry local configuration file - https://python-poetry.org/docs/configuration/#local-configuration
@@ -169,4 +196,102 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
-# End of https://www.toptal.com/developers/gitignore/api/python
+### Spark ###
+*#*#
+*.#*
+*.iml
+*.ipr
+*.iws
+*.pyc
+*.pyo
+*.swp
+*~
+.DS_Store
+.classpath
+.ensime
+.ensime_cache/
+.ensime_lucene
+.generated-mima*
+.idea/
+.idea_modules/
+.project
+.pydevproject
+.scala_dependencies
+.settings
+/lib/
+R-unit-tests.log
+R/unit-tests.out
+R/cran-check.out
+R/pkg/vignettes/sparkr-vignettes.html
+R/pkg/tests/fulltests/Rplots.pdf
+build/*.jar
+build/apache-maven*
+build/scala*
+build/zinc*
+cache
+checkpoint
+conf/*.cmd
+conf/*.conf
+conf/*.properties
+conf/*.sh
+conf/*.xml
+conf/java-opts
+conf/slaves
+dependency-reduced-pom.xml
+derby.log
+dev/create-release/*final
+dev/create-release/*txt
+dev/pr-deps/
+docs/_site
+docs/api
+sql/docs
+sql/site
+lib_managed/
+lint-r-report.log
+log/
+logs/
+out/
+project/boot/
+project/build/target/
+project/plugins/lib_managed/
+project/plugins/project/build.properties
+project/plugins/src_managed/
+project/plugins/target/
+python/lib/pyspark.zip
+python/deps
+python/test_coverage/coverage_data
+python/test_coverage/htmlcov
+python/pyspark/python
+reports/
+scalastyle-on-compile.generated.xml
+scalastyle-output.xml
+scalastyle.txt
+spark-*-bin-*.tgz
+spark-tests.log
+src_managed/
+streaming-tests.log
+unit-tests.log
+work/
+docs/.jekyll-metadata
+
+# For Hive
+TempStatsStore/
+metastore/
+metastore_db/
+sql/hive-thriftserver/test_warehouses
+warehouse/
+spark-warehouse/
+
+# For R session data
+.RData
+.RHistory
+.Rhistory
+*.Rproj
+*.Rproj.*
+
+.Rproj.user
+
+# For SBT
+.jvmopts
+
+terraform/.terraform.lock.hcl
