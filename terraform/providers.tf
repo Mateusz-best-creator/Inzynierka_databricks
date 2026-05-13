@@ -10,6 +10,13 @@ terraform {
       version = "~> 1.0"
     }
   }
+
+  # backend "azurerm" {
+  #   resource_group_name  = "rg_engthesis_gjnb4"
+  #   storage_account_name = "tfstategjnv3b4o1"
+  #   container_name       = "tfstate"
+  #   key                  = "terraform.tfstate"
+  # }
 }
 
 provider "azurerm" {
