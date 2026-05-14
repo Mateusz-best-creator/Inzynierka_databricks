@@ -18,15 +18,19 @@ resource "azurerm_databricks_workspace" "dev" {
   managed_resource_group_name = "${var.rg_name}-db-managed-jfv8j2"
 }
 
-# # Create the cluster with the "smallest" amount of resources allowed.
-# data "databricks_node_type" "smallest" {
-#   local_disk = true
-# }
+# Create the cluster with the "smallest" amount of resources allowed.
+data "databricks_node_type" "smallest" {
+  local_disk = true
 
-# # Use the latest Databricks Runtime Long Term Support (LTS) version.
-# data "databricks_spark_version" "latest_lts" {
-#   long_term_support = true
-# }
+  category = "General Purpose"
+  min_cores = 1
+  min_memory_gb = 8
+}
+
+# Use the latest Databricks Runtime Long Term Support (LTS) version.
+data "databricks_spark_version" "latest_lts" {
+  long_term_support = true
+}
 
 
 # resource "databricks_cluster" "cluster" {
@@ -40,13 +44,13 @@ resource "azurerm_databricks_workspace" "dev" {
 #     min_workers = var.cluster_min_num_workers
 #     max_workers = var.cluster_max_num_workers
 #   }
-#   # We will use spot instances for the workers to minimize costs, but for the driver we will use on-demand instance
+#   # We will use spot instances for the workers to minimize costs, but for the driver we will always use on-demand instance
 #   azure_attributes {
 #     availability       = "SPOT_WITH_FALLBACK_AZURE"
 #     first_on_demand    = 1
 #   }
-#   # To minimize costs we disable the option to run jobs, we will use job cluster, not this interactive cluster for that,
-#   # job cluster is simply cheaper.
+#   # To minimize costs we disable the option to run jobs, we will use job cluster for thta, 
+#   # not this interactive cluster for that, job cluster is simply cheaper.
 #   workload_type {
 #     clients {
 #       jobs      = false

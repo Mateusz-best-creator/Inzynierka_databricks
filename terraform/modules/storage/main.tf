@@ -6,6 +6,10 @@ resource "azurerm_storage_account" "tfstate" {
   account_replication_type        = "LRS"
   allow_nested_items_to_be_public = false
 
+  # blob_properties {
+  #   versioning_enabled = true
+  # }
+
   tags = {
     environment = "dev"
     purpose     = "state_storage"

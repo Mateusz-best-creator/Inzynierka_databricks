@@ -23,5 +23,5 @@ variable "cluster_min_num_workers" {
 variable "cluster_max_num_workers" {
   description = "The maximum number of workers."
   type        = number
-  default     = 2
+  default     = 1
 }
