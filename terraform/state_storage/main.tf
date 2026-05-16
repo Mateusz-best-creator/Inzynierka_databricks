@@ -1,6 +1,22 @@
+provider "azurerm" {
+  features {}
+}
+
+variable "region" {
+  type = string
+  # Region was chosen to be compliant with the azure students policy: "listOfAllowedLocations"
+  default = "norwayeast"
+}
+
+variable "state_resource_group_name" {
+  type    = string
+  default = "eng_state_km4s2"
+}
+
+
 resource "azurerm_storage_account" "tfstate" {
   name                            = "tfstategjnv3b4o1"
-  resource_group_name             = var.rg_name
+  resource_group_name             = var.state_resource_group_name
   location                        = var.region
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
@@ -22,7 +38,7 @@ resource "azurerm_storage_container" "tfstate" {
   container_access_type = "private"
 }
 
-resource "azurerm_storage_management_policy" "example" {
+resource "azurerm_storage_management_policy" "state_policy" {
   storage_account_id = azurerm_storage_account.tfstate.id
 
   rule {
@@ -36,9 +52,8 @@ resource "azurerm_storage_management_policy" "example" {
     }
 
     actions {
-      # REMOVED base_blob: The active state file must always stay Hot and Live.
+      # do not use base_blob because the active state file must always be in hot tier
 
-      # Cleans up old state history versions after 30 days to save space/costs
       version {
         delete_after_days_since_creation = 30
       }
