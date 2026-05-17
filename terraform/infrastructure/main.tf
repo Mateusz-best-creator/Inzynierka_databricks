@@ -1,6 +1,6 @@
 resource "azurerm_resource_group" "thesis_rg" {
   location = var.region
-  name     = "${var.resource_group_name_prefix}_engthesis_gjnb4"
+  name     = "engthesis_gjnb4"
 }
 
 module "storage" {

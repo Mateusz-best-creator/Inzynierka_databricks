@@ -20,8 +20,8 @@ override.tf.json
 
 
 # Ignore CLI configuration files
-.terraformrc
-terraform.rc
+*/.terraformrc
+*/terraform.rc
 *.plan
 
 ### Python ###
@@ -294,4 +294,4 @@ spark-warehouse/
 # For SBT
 .jvmopts
 
-terraform/.terraform.lock.hcl
+*/.terraform.lock.hcl
