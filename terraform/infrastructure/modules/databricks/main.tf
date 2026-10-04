@@ -18,7 +18,17 @@ resource "azurerm_databricks_workspace" "dev" {
   managed_resource_group_name = "${var.rg_name}-db-managed-jfv8j2"
 }
 
+resource "time_sleep" "wait_5_minutes" {
+  depends_on = [azurerm_databricks_workspace.dev]
+
+  create_duration = "300s"
+}
+
 resource "databricks_cluster" "cluster" {
+  # Use it to prevent race conditions when databricks workspace is initializing
+  # we still need to wait some time before creating a cluster
+  depends_on = [time_sleep.wait_5_minutes]
+
   cluster_name            = var.cluster_name
   node_type_id            = "Standard_D4ds_v4"
   spark_version           = "16.4.x-scala2.13"
