@@ -106,10 +106,12 @@ def choose_next_status(current_status):
             "ACTIVE",
             "ACTIVE",
             "ACTIVE",
+            "ACTIVE",
             "INACTIVE",
             "INACTIVE",
             "SUSPENDED",
             "BANNED",
+            "DELETED",
             "DELETED",
         ]
 
@@ -128,8 +130,12 @@ def choose_next_status(current_status):
             "ACTIVE",
             "ACTIVE",
             "ACTIVE",
+            "ACTIVE",
+            "ACTIVE",
+            "SUSPENDED",
             "SUSPENDED",
             "BANNED",
+            "DELETED",
             "DELETED",
         ]
 
