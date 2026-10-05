@@ -53,4 +53,3 @@ CREATE TABLE IF NOT EXISTS user_location (
     valid_to TIMESTAMP,
     is_current INT
 );
-
