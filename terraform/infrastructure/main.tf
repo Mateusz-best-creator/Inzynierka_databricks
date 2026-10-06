@@ -15,3 +15,9 @@ module "databricks" {
   region                    = var.region
   rg_name                   = azurerm_resource_group.thesis_rg.name
 }
+
+module "key_vault" {
+  source = "./modules/key_vault"
+  region = var.region
+  rg_name = azurerm_resource_group.thesis_rg.name
+}

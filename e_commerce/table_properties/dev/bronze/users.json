@@ -1,0 +1,12 @@
+{
+    "table_list": [
+        "bronze_locations"
+    ],
+    "bronze_locations": {
+      "storage_type": "azure_storage_account",
+      "storage_account_name": "ecommercevj4gm7",
+      "container_name": "rawdatastorage",
+      "file_format": "csv",
+      "file_name": "location_table.csv"
+    }
+}
