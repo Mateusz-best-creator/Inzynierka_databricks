@@ -9,7 +9,7 @@ NUMBER_OF_USERS = 5000
 NUMBER_OF_LOCATIONS = 1000
 OUTPUT_DIRECTORY = "generated_csv_data"
 
-fake = Faker("en_US")
+fake = Faker("pl_PL")
 
 
 def generate_dates(number_of_versions):
@@ -225,12 +225,31 @@ def generate_status_history(number_of_versions):
 def generate_locations(number_of_locations):
     location_table = []
 
+    POLISH_VOIVODESHIPS = [
+        "Dolnośląskie",
+        "Kujawsko-Pomorskie",
+        "Lubelskie",
+        "Lubuskie",
+        "Łódzkie",
+        "Małopolskie",
+        "Mazowieckie",
+        "Opolskie",
+        "Podkarpackie",
+        "Podlaskie",
+        "Pomorskie",
+        "Śląskie",
+        "Świętokrzyskie",
+        "Warmińsko-Mazurskie",
+        "Wielkopolskie",
+        "Zachodniopomorskie",
+    ]
+
     for i in range(number_of_locations):
         location_table.append(
             {
                 "location_id": str(i + 1),
                 "city": fake.city(),
-                "state": fake.state(),
+                "state": fake.random_element(POLISH_VOIVODESHIPS),
                 "zip_code": fake.zipcode(),
                 "country": "United States",
             }
@@ -252,6 +271,78 @@ def generate_number_of_location_versions():
         return 4
 
 
+import random
+
+
+def generate_invalid_email(current_email):
+    if random.random() < 0.1:
+        return None
+    if random.random() < 0.50:
+        # Recoverable corruption
+        mutations = [
+            lambda e: e.upper(),
+            lambda e: f" {e}",
+            lambda e: f"{e} ",
+            lambda e: e.replace(" ", ""),
+            lambda e: e.replace("..", ".", 1),
+            lambda e: e.replace("@@", "@", 1),
+            lambda e: e.replace("googlemail.com.", "googlemail.com"),
+        ]
+    else:
+        # Unrecoverable corruption
+        mutations = [
+            lambda e: "",
+            lambda e: e.split("@")[0],
+            lambda e: e.split("@")[0],
+            lambda e: e.split("@")[0],
+            lambda e: "@" + e.split("@")[-1],
+            lambda e: e.replace("@", ""),
+            lambda e: e.replace("@", ""),
+            lambda e: e.replace("@", ""),
+            lambda e: e.replace("@", "@@", 1),
+            lambda e: e.replace("@", " @", 1),
+            lambda e: e.replace("@", " @", 1),
+            lambda e: e.replace("@", " @", 1),
+            lambda e: e.rsplit("@", 1)[0] + "@.com",
+            lambda e: e.rsplit("@", 1)[0] + "@example..com",
+            lambda e: "." + e,
+            lambda e: e.split("@")[0] + "@",
+            lambda e: e + " <invalid>",
+        ]
+
+    return random.choice(mutations)(current_email)
+
+
+def generate_invalid_phone(current_phone):
+    if random.random() < 0.1:
+        return None
+    if random.random() < 0.50:
+        # These options after cleaning should be kept as valid.
+        mutations = [
+            lambda p: f" {p}",
+            lambda p: f"{p} ",
+            lambda p: f"  {p}  ",
+            lambda p: p.replace(" ", ""),
+            lambda p: p.replace("-", ""),
+            lambda p: p.replace("(", "").replace(")", ""),
+            lambda p: f"+{p}" if not p.startswith("+") else p,
+        ]
+    else:
+        # These options should be discarded during processing
+        mutations = [
+            lambda p: "",
+            lambda p: "123",
+            lambda p: "000000",
+            lambda p: "not-a-phone",
+            lambda p: p + "abc",
+            lambda p: "abc" + p,
+            lambda p: p + "12345678901234567890",
+            lambda p: p.replace("+", "++", 1) if p.startswith("+") else "++" + p,
+        ]
+
+    return random.choice(mutations)(current_phone)
+
+
 def generate_number_of_status_versions():
     choice = random.randint(0, 10)
 
@@ -271,13 +362,14 @@ def generate_data():
     user_contact_table = []
     user_status_history_table = []
     user_location_table = []
-    location_table = []
-
     location_table = generate_locations(NUMBER_OF_LOCATIONS)
 
     for i in range(NUMBER_OF_USERS):
-        # 0000000002
-        user_id = str(i + 1).zfill(10)
+        # Example ID looks like this: 0000000002
+        if i % 40 == 0:
+            user_id = None
+        else:
+            user_id = str(i + 1).zfill(10)
         customer_unique_id = f"CUST-{user_id}"
         created_at = datetime.now()
 
@@ -319,8 +411,27 @@ def generate_data():
             }
         )
 
-        email = fake.email()
+        beginning_format = [
+            f"{first_name}_{last_name}_{random.randint(1, 100)}",
+            f"{first_name[0]}{random.randint(1, 100)}{last_name}",
+            f"{last_name}_{first_name}_{random.randint(1, 10)}{fake.word()}",
+            f"{last_name}{random.randint(0, 10)}_{first_name}{random.randint(0, 10)}",
+            f"{first_name[0]}{last_name[0]}_{random.randint(1, 100)}",
+            f"{fake.word()}_{last_name[0]}{first_name[0]}_{random.randint(1, 100)}",
+        ]
+        end_format = [
+            "gmail.com",
+            "googlemail.com.",
+            "net.com",
+        ]
+        email = f"{random.choice(beginning_format)}@{random.choice(end_format)}"
         phone = fake.phone_number()
+
+        # Some of the data will be not valid
+        if i % 20 == 0:
+            email = generate_invalid_email(current_email=email)
+        if i % 30 == 0:
+            phone = generate_invalid_phone(current_phone=phone)
 
         user_contact_table.append(
             {
