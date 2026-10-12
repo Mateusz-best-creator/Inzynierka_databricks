@@ -7,7 +7,15 @@ from faker import Faker
 
 NUMBER_OF_USERS = 5000
 NUMBER_OF_LOCATIONS = 1000
-OUTPUT_DIRECTORY = "generated_csv_data"
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIRECTORY = os.path.join(SCRIPT_DIR, "generated_csv_data")
+#OUTPUT_DIRECTORY = "generated_csv_data"
+
+# Variables for Marcin's module
+NUMBER_OF_PRODUCTS = 1000
+NUMBER_OF_CATEGORIES = 20
+NUMBER_OF_ORDERS_FOR_PAYMENTS = 3000
 
 fake = Faker("pl_PL")
 
@@ -271,9 +279,6 @@ def generate_number_of_location_versions():
         return 4
 
 
-import random
-
-
 def generate_invalid_email(current_email):
     if random.random() < 0.1:
         return None
@@ -500,6 +505,199 @@ def generate_data():
     )
 
 
+
+
+
+
+
+
+
+# MARCIN CATEGORIES PRODUCTS PAYMENTS
+
+
+
+
+
+
+
+def generate_categories_table(number_of_categories):
+    categories = []
+    
+    for i in range(1, number_of_categories + 1):
+        cat_id = f"CAT-{str(i).zfill(5)}"
+        
+        # parent id is NULL for the first 5 categories
+        if i <= 5:
+            parent_id = None
+        else:
+            parent_id = f"CAT-{str(random.randint(1, 5)).zfill(5)}"
+            
+        categories.append({
+            "category_id": cat_id,
+            "parent_category_id": parent_id,
+            "category_name": fake.word().capitalize(),
+            "category_name_en": fake.word().capitalize(),
+            "updated_at": datetime.now() - timedelta(days=random.randint(1, 200))
+        })
+        
+    return categories
+
+
+def generate_products_domain_tables(number_of_products, categories):
+    catalog = []
+    inventory = []
+    pricing = []
+    now = datetime.now()
+    
+    for i in range(1, number_of_products + 1):
+        prod_id = f"PRD-{str(i).zfill(10)}"
+        cat_id = random.choice(categories)["category_id"]
+        
+        # Product catalog
+        catalog.append({
+            "product_id": prod_id,
+            "category_id": cat_id,
+            "product_name": fake.catch_phrase(),
+            "brand": fake.company(),
+            "description": fake.text(max_nb_chars=150),
+            "is_active": 1 if random.random() > 0.1 else 0,
+            "created_at": now - timedelta(days=random.randint(100, 500))
+        })
+        
+        # inventory SCD2
+        num_inv_versions = random.randint(1, 3)
+        inv_dates = generate_dates(num_inv_versions)
+        
+        weight = random.randint(100, 5000)
+        length = random.randint(10, 100)
+        height = random.randint(10, 100)
+        width = random.randint(10, 100)
+        
+        for j in range(num_inv_versions):
+            stock = random.randint(10, 100)
+            is_current = 1 if j == num_inv_versions - 1 else 0
+            valid_to = inv_dates[j + 1] if not is_current else None
+            
+            inventory.append({
+                "inventory_id": f"INV-{len(inventory) + 1}",
+                "product_id": prod_id,
+                "weight_g": weight,
+                "length_cm": length,
+                "height_cm": height,
+                "width_cm": width,
+                "stock_quantity": stock,
+                "valid_from": inv_dates[j],
+                "valid_to": valid_to,
+                "is_current": is_current
+            })
+            
+        # price scd2
+        num_price_versions = random.randint(1, 3)
+        price_dates = generate_dates(num_price_versions)
+        
+        for j in range(num_price_versions):
+            price = round(random.uniform(10.0, 800.0), 2)
+            is_current = 1 if j == num_price_versions - 1 else 0
+            valid_to = price_dates[j + 1] if not is_current else None
+            
+            pricing.append({
+                "unique_id": f"PRC-{len(pricing) + 1}",
+                "product_id": prod_id,
+                "price": price,
+                "valid_from": price_dates[j],
+                "valid_to": valid_to,
+                "is_current": is_current
+            })
+            
+    return catalog, inventory, pricing
+
+
+def generate_payments_domain_tables(number_of_orders):
+    details = []
+    history = []
+    now = datetime.now()
+    payment_types = ["CREDIT_CARD", "BLIK", "VOUCHER", "BANK_TRANSFER"]
+    
+    for i in range(1, number_of_orders + 1):
+        order_id = str(i).zfill(10)
+        
+        # 80% chance for a single payment 20% for split payments
+        num_payments = 1 if random.random() < 0.8 else 2
+        
+        for seq in range(1, num_payments + 1):
+            pay_id = f"PAY-{len(details) + 1}"
+            p_type = random.choice(payment_types)
+            val = round(random.uniform(20.0, 500.0), 2)
+            
+            installments = 1
+            if p_type == "CREDIT_CARD":
+                installments = random.choice([1, 3, 6, 12])
+                
+            #error injection for payment_details
+            if len(details) % 150 == 0:
+                val = -abs(val) # negative payment value
+                
+            if len(details) % 200 == 0:
+                p_type = "UNKNOWN_OR_NATURE" # invalid payment type
+                
+            if len(details) % 250 == 0 and p_type == "VOUCHER":
+                installments = 12 #installments for a type that shouldnt have them
+                
+            if len(details) % 300 == 0 and seq == 2:
+                seq = 1 #duplicate payment sequential for the same order_id
+            
+            details.append({
+                "payment_id": pay_id,
+                "order_id": order_id,
+                "payment_sequential": seq,
+                "payment_type": p_type,
+                "payment_installments": installments,
+                "payment_value": val
+            })
+            
+            # status scd2
+            start_time = now - timedelta(days=random.randint(1, 30), minutes=random.randint(10, 60))
+            end_time = start_time + timedelta(minutes=random.randint(1, 5))
+            
+            status_final = random.choices(["COMPLETED", "FAILED"], weights=[90, 10])[0]
+            gw_response = "200_OK" if status_final == "COMPLETED" else "400_DECLINED"
+            
+            log1_is_current = 0
+            log2_is_current = 1
+            log1_valid_to = end_time
+            
+            #error injection for payment_status_history
+            if len(history) % 180 == 0:
+                log1_is_current = 1 #two rows with is_current = 1 for the same payment
+                
+            if len(history) % 220 == 0:
+                start_time, end_time = end_time, start_time # valid_from > valid_to
+                log1_valid_to = end_time
+                
+            history.append({
+                "log_id": f"LOG-{len(history) + 1}",
+                "payment_id": pay_id,
+                "status": "PENDING",
+                "gateway_response": "100_INIT",
+                "valid_from": start_time,
+                "valid_to": log1_valid_to,
+                "is_current": log1_is_current
+            })
+            
+            history.append({
+                "log_id": f"LOG-{len(history) + 1}",
+                "payment_id": pay_id,
+                "status": status_final,
+                "gateway_response": gw_response,
+                "valid_from": end_time if start_time <= end_time else start_time,
+                "valid_to": None,
+                "is_current": log2_is_current
+            })
+            
+    return details, history
+
+
+
 def format_csv_value(value):
     if isinstance(value, datetime):
         return value.strftime("%Y-%m-%d %H:%M:%S")
@@ -507,6 +705,9 @@ def format_csv_value(value):
 
 
 def write_csv_file(destination, data):
+    if not data:
+        return
+        
     field_names = data[0].keys()
 
     with open(destination, "w", newline="", encoding="utf-8") as file:
@@ -521,6 +722,8 @@ def write_csv_file(destination, data):
 
 
 if __name__ == "__main__":
+    os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
+
     (
         users_table,
         user_profile_table,
@@ -530,19 +733,31 @@ if __name__ == "__main__":
         user_status_history_table,
     ) = generate_data()
 
-    write_csv_file(f"{OUTPUT_DIRECTORY}/users_table.csv", users_table)
-
-    write_csv_file(f"{OUTPUT_DIRECTORY}/user_profile_table.csv", user_profile_table)
-
-    write_csv_file(f"{OUTPUT_DIRECTORY}/user_contact_table.csv", user_contact_table)
-
-    write_csv_file(f"{OUTPUT_DIRECTORY}/user_location_table.csv", user_location_table)
-
-    write_csv_file(f"{OUTPUT_DIRECTORY}/location_table.csv", location_table)
-
-    write_csv_file(
-        f"{OUTPUT_DIRECTORY}/user_status_history_table.csv", user_status_history_table
+    categories_table = generate_categories_table(NUMBER_OF_CATEGORIES)
+    
+    product_catalog_table, product_inventory_table, product_pricing_history_table = generate_products_domain_tables(
+        NUMBER_OF_PRODUCTS, categories_table
     )
+    
+    payment_details_table, payment_status_history_table = generate_payments_domain_tables(
+        NUMBER_OF_ORDERS_FOR_PAYMENTS
+    )
+
+    # Mateusz
+    write_csv_file(f"{OUTPUT_DIRECTORY}/users_table.csv", users_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/user_profile_table.csv", user_profile_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/user_contact_table.csv", user_contact_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/user_location_table.csv", user_location_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/location_table.csv", location_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/user_status_history_table.csv", user_status_history_table)
+
+    # Marcin
+    write_csv_file(f"{OUTPUT_DIRECTORY}/categories_table.csv", categories_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/product_catalog_table.csv", product_catalog_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/product_inventory_table.csv", product_inventory_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/product_pricing_history_table.csv", product_pricing_history_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/payment_details_table.csv", payment_details_table)
+    write_csv_file(f"{OUTPUT_DIRECTORY}/payment_status_history_table.csv", payment_status_history_table)
 
     print(f"Users: {len(users_table)}")
     print(f"Profiles: {len(user_profile_table)}")
@@ -550,3 +765,11 @@ if __name__ == "__main__":
     print(f"Locations: {len(location_table)}")
     print(f"User location history: {len(user_location_table)}")
     print(f"User status history: {len(user_status_history_table)}")
+    
+
+    print(f"Categories: {len(categories_table)}")
+    print(f"Product Catalog: {len(product_catalog_table)}")
+    print(f"Product Inventory: {len(product_inventory_table)}")
+    print(f"Product Pricing History: {len(product_pricing_history_table)}")
+    print(f"Payment Details: {len(payment_details_table)}")
+    print(f"Payment Status History: {len(payment_status_history_table)}")

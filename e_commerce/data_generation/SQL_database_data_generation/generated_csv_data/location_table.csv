@@ -1,1001 +1,1001 @@
 location_id,city,state,zip_code,country
-1,Pruszków,Dolnośląskie,21-959,United States
-2,Reda,Warmińsko-Mazurskie,60-713,United States
-3,Kluczbork,Śląskie,78-238,United States
-4,Poznań,Podkarpackie,75-696,United States
-5,Zawiercie,Pomorskie,22-961,United States
-6,Łowicz,Zachodniopomorskie,73-903,United States
-7,Ostróda,Dolnośląskie,82-008,United States
-8,Ostrołęka,Lubuskie,34-025,United States
-9,Pruszcz Gdański,Świętokrzyskie,70-166,United States
-10,Wejherowo,Świętokrzyskie,66-975,United States
-11,Zabrze,Śląskie,23-652,United States
-12,Pruszcz Gdański,Świętokrzyskie,45-006,United States
-13,Krotoszyn,Dolnośląskie,89-683,United States
-14,Stalowa Wola,Kujawsko-Pomorskie,48-744,United States
-15,Szczecin,Lubuskie,45-592,United States
-16,Cieszyn,Podlaskie,25-319,United States
-17,Gdynia,Podkarpackie,65-373,United States
-18,Sandomierz,Lubelskie,81-065,United States
-19,Ełk,Opolskie,48-496,United States
-20,Łaziska Górne,Świętokrzyskie,03-652,United States
-21,Wieluń,Kujawsko-Pomorskie,99-946,United States
-22,Grodzisk Mazowiecki,Kujawsko-Pomorskie,62-163,United States
-23,Świebodzice,Kujawsko-Pomorskie,44-932,United States
-24,Lubin,Świętokrzyskie,60-905,United States
-25,Chojnice,Opolskie,28-809,United States
-26,Nowy Targ,Łódzkie,27-119,United States
-27,Wągrowiec,Świętokrzyskie,33-385,United States
-28,Czerwionka-Leszczyny,Warmińsko-Mazurskie,66-633,United States
-29,Stargard Szczeciński,Świętokrzyskie,19-681,United States
-30,Kwidzyn,Śląskie,78-248,United States
-31,Malbork,Wielkopolskie,53-672,United States
-32,Augustów,Łódzkie,77-717,United States
-33,Radomsko,Opolskie,64-036,United States
-34,Kalisz,Warmińsko-Mazurskie,10-828,United States
-35,Skawina,Małopolskie,74-989,United States
-36,Wyszków,Pomorskie,50-623,United States
-37,Pruszków,Świętokrzyskie,25-559,United States
-38,Radom,Podlaskie,45-108,United States
-39,Lublin,Łódzkie,50-865,United States
-40,Cieszyn,Śląskie,61-443,United States
-41,Polkowice,Mazowieckie,90-855,United States
-42,Olkusz,Świętokrzyskie,78-167,United States
-43,Nowy Targ,Mazowieckie,58-897,United States
-44,Bochnia,Opolskie,42-742,United States
-45,Skawina,Dolnośląskie,40-659,United States
-46,Kościan,Podkarpackie,03-188,United States
-47,Starogard Gdański,Śląskie,11-530,United States
-48,Starachowice,Warmińsko-Mazurskie,45-105,United States
-49,Skierniewice,Lubuskie,09-630,United States
-50,Nowy Dwór Mazowiecki,Pomorskie,97-652,United States
-51,Nysa,Łódzkie,77-972,United States
-52,Lubin,Małopolskie,41-794,United States
-53,Opole,Podkarpackie,83-712,United States
-54,Brzeg,Opolskie,17-247,United States
-55,Ostrowiec Świętokrzyski,Opolskie,09-442,United States
-56,Starachowice,Łódzkie,86-066,United States
-57,Nowy Targ,Małopolskie,32-512,United States
-58,Oświęcim,Opolskie,50-342,United States
-59,Czerwionka-Leszczyny,Podkarpackie,81-740,United States
-60,Rzeszów,Lubelskie,19-596,United States
-61,Świdnica,Wielkopolskie,56-856,United States
-62,Śrem,Podlaskie,07-057,United States
-63,Kołobrzeg,Mazowieckie,19-073,United States
-64,Nysa,Kujawsko-Pomorskie,43-204,United States
-65,Bolesławiec,Śląskie,03-465,United States
-66,Świecie,Świętokrzyskie,44-681,United States
-67,Bielsko-Biała,Mazowieckie,33-336,United States
-68,Grodzisk Mazowiecki,Opolskie,22-906,United States
-69,Gdynia,Śląskie,48-884,United States
-70,Starachowice,Lubelskie,02-676,United States
-71,Jasło,Podlaskie,18-461,United States
-72,Świebodzice,Wielkopolskie,60-942,United States
-73,Koło,Pomorskie,44-128,United States
-74,Przemyśl,Świętokrzyskie,17-591,United States
-75,Jelenia Góra,Dolnośląskie,31-237,United States
-76,Żagań,Kujawsko-Pomorskie,38-209,United States
-77,Żywiec,Kujawsko-Pomorskie,34-068,United States
-78,Będzin,Łódzkie,87-426,United States
-79,Czerwionka-Leszczyny,Lubuskie,47-579,United States
-80,Iława,Śląskie,29-178,United States
-81,Świecie,Świętokrzyskie,74-416,United States
-82,Żory,Małopolskie,92-691,United States
-83,Nowy Dwór Mazowiecki,Zachodniopomorskie,98-669,United States
-84,Bytom,Opolskie,89-438,United States
-85,Wejherowo,Łódzkie,52-754,United States
-86,Sopot,Lubuskie,41-118,United States
-87,Bydgoszcz,Kujawsko-Pomorskie,84-103,United States
-88,Sopot,Lubelskie,05-209,United States
-89,Stalowa Wola,Wielkopolskie,51-143,United States
-90,Opole,Dolnośląskie,32-009,United States
-91,Leszno,Warmińsko-Mazurskie,43-164,United States
-92,Rumia,Kujawsko-Pomorskie,81-544,United States
-93,Brzeg,Lubuskie,80-168,United States
-94,Lublin,Kujawsko-Pomorskie,79-270,United States
-95,Jawor,Lubuskie,34-647,United States
-96,Nowa Ruda,Małopolskie,15-889,United States
-97,Żagań,Świętokrzyskie,80-010,United States
-98,Polkowice,Kujawsko-Pomorskie,95-317,United States
-99,Starogard Gdański,Pomorskie,75-947,United States
-100,Gorlice,Kujawsko-Pomorskie,73-631,United States
-101,Ząbki,Śląskie,55-796,United States
-102,Żagań,Lubelskie,37-816,United States
-103,Mielec,Śląskie,04-217,United States
-104,Siedlce,Świętokrzyskie,90-214,United States
-105,Łuków,Śląskie,49-524,United States
-106,Jarosław,Warmińsko-Mazurskie,53-382,United States
-107,Kościerzyna,Świętokrzyskie,45-461,United States
-108,Legionowo,Małopolskie,37-052,United States
-109,Piastów,Wielkopolskie,93-048,United States
-110,Świętochłowice,Świętokrzyskie,52-381,United States
-111,Wołomin,Świętokrzyskie,62-595,United States
-112,Piła,Kujawsko-Pomorskie,02-683,United States
-113,Wołomin,Warmińsko-Mazurskie,17-613,United States
-114,Łomża,Kujawsko-Pomorskie,16-010,United States
-115,Gdańsk,Śląskie,11-749,United States
-116,Katowice,Mazowieckie,45-178,United States
-117,Krotoszyn,Lubuskie,75-619,United States
-118,Lubin,Pomorskie,04-948,United States
-119,Czechowice-Dziedzice,Kujawsko-Pomorskie,16-710,United States
-120,Świdnik,Lubuskie,59-296,United States
-121,Tychy,Opolskie,04-056,United States
-122,Chojnice,Zachodniopomorskie,89-392,United States
-123,Ostrów Wielkopolski,Podlaskie,85-236,United States
-124,Wałbrzych,Małopolskie,41-825,United States
-125,Żyrardów,Świętokrzyskie,34-354,United States
-126,Gliwice,Łódzkie,46-722,United States
-127,Świnoujście,Mazowieckie,97-127,United States
-128,Głogów,Lubuskie,41-808,United States
-129,Augustów,Łódzkie,42-786,United States
-130,Zgierz,Mazowieckie,57-283,United States
-131,Oleśnica,Śląskie,79-736,United States
-132,Kluczbork,Dolnośląskie,79-867,United States
-133,Jelenia Góra,Warmińsko-Mazurskie,08-494,United States
-134,Płock,Kujawsko-Pomorskie,44-158,United States
-135,Nowy Targ,Lubuskie,52-765,United States
-136,Mielec,Lubelskie,45-043,United States
-137,Ząbki,Zachodniopomorskie,73-446,United States
-138,Lubliniec,Mazowieckie,08-110,United States
-139,Mińsk Mazowiecki,Podkarpackie,68-119,United States
-140,Piła,Śląskie,28-827,United States
-141,Lębork,Podkarpackie,66-695,United States
-142,Zgierz,Pomorskie,92-841,United States
-143,Leszno,Łódzkie,04-025,United States
-144,Lębork,Małopolskie,52-261,United States
-145,Kościerzyna,Dolnośląskie,85-227,United States
-146,Lubin,Lubuskie,60-420,United States
-147,Płock,Śląskie,62-186,United States
-148,Kościan,Wielkopolskie,16-229,United States
-149,Bochnia,Kujawsko-Pomorskie,01-668,United States
-150,Szczytno,Małopolskie,15-798,United States
-151,Skierniewice,Małopolskie,83-456,United States
-152,Kielce,Pomorskie,27-969,United States
-153,Czechowice-Dziedzice,Warmińsko-Mazurskie,07-025,United States
-154,Wągrowiec,Dolnośląskie,51-536,United States
-155,Bielsko-Biała,Pomorskie,37-663,United States
-156,Piaseczno,Warmińsko-Mazurskie,97-961,United States
-157,Szczytno,Dolnośląskie,90-055,United States
-158,Kluczbork,Warmińsko-Mazurskie,60-197,United States
-159,Szczecin,Pomorskie,83-291,United States
-160,Czechowice-Dziedzice,Świętokrzyskie,94-697,United States
-161,Lubin,Podlaskie,01-959,United States
-162,Szczecin,Opolskie,38-548,United States
-163,Jastrzębie-Zdrój,Lubelskie,11-153,United States
-164,Wałbrzych,Łódzkie,58-303,United States
-165,Grodzisk Mazowiecki,Mazowieckie,35-164,United States
-166,Jasło,Śląskie,93-775,United States
-167,Zamość,Małopolskie,96-467,United States
-168,Kościerzyna,Dolnośląskie,92-692,United States
-169,Chorzów,Lubelskie,93-410,United States
-170,Bytom,Dolnośląskie,14-847,United States
-171,Krosno,Warmińsko-Mazurskie,57-739,United States
-172,Cieszyn,Świętokrzyskie,18-272,United States
-173,Suwałki,Lubelskie,14-300,United States
-174,Zabrze,Świętokrzyskie,36-306,United States
-175,Kwidzyn,Zachodniopomorskie,05-010,United States
-176,Brodnica,Pomorskie,56-694,United States
-177,Warszawa,Mazowieckie,74-960,United States
-178,Brzeg,Wielkopolskie,03-188,United States
-179,Legnica,Warmińsko-Mazurskie,50-961,United States
-180,Elbląg,Dolnośląskie,18-475,United States
-181,Kutno,Pomorskie,90-553,United States
-182,Gorlice,Świętokrzyskie,90-132,United States
-183,Krotoszyn,Dolnośląskie,53-026,United States
-184,Bielsko-Biała,Śląskie,20-980,United States
-185,Pszczyna,Dolnośląskie,12-717,United States
-186,Świdnica,Kujawsko-Pomorskie,05-669,United States
-187,Bielawa,Mazowieckie,59-877,United States
-188,Tczew,Podlaskie,18-065,United States
-189,Tarnów,Zachodniopomorskie,19-945,United States
-190,Grudziądz,Małopolskie,34-558,United States
-191,Bolesławiec,Warmińsko-Mazurskie,49-278,United States
-192,Zgorzelec,Mazowieckie,14-184,United States
-193,Zgorzelec,Dolnośląskie,69-034,United States
-194,Wołomin,Podlaskie,84-069,United States
-195,Piotrków Trybunalski,Świętokrzyskie,39-668,United States
-196,Pabianice,Lubelskie,74-958,United States
-197,Koło,Podlaskie,30-512,United States
-198,Skierniewice,Kujawsko-Pomorskie,59-189,United States
-199,Polkowice,Warmińsko-Mazurskie,54-241,United States
-200,Sieradz,Lubuskie,22-479,United States
-201,Wrocław,Łódzkie,45-552,United States
-202,Sieradz,Lubuskie,61-460,United States
-203,Stargard Szczeciński,Zachodniopomorskie,41-346,United States
-204,Będzin,Podlaskie,85-019,United States
-205,Otwock,Opolskie,32-783,United States
-206,Nowy Dwór Mazowiecki,Podlaskie,15-964,United States
-207,Zambrów,Łódzkie,28-969,United States
-208,Piotrków Trybunalski,Kujawsko-Pomorskie,61-891,United States
-209,Szczytno,Pomorskie,54-508,United States
-210,Łódź,Podlaskie,05-761,United States
-211,Kielce,Podlaskie,62-631,United States
-212,Lubin,Lubelskie,23-229,United States
-213,Łuków,Lubuskie,92-713,United States
-214,Chełm,Dolnośląskie,95-014,United States
-215,Oświęcim,Świętokrzyskie,68-213,United States
-216,Elbląg,Pomorskie,95-885,United States
-217,Dąbrowa Górnicza,Zachodniopomorskie,37-909,United States
-218,Gorzów Wielkopolski,Lubuskie,97-990,United States
-219,Mińsk Mazowiecki,Kujawsko-Pomorskie,47-173,United States
-220,Chorzów,Łódzkie,73-153,United States
-221,Ostrów Mazowiecka,Dolnośląskie,41-182,United States
-222,Tarnowskie Góry,Śląskie,96-980,United States
-223,Wyszków,Śląskie,64-786,United States
-224,Piła,Kujawsko-Pomorskie,91-999,United States
-225,Białogard,Małopolskie,24-076,United States
-226,Żagań,Dolnośląskie,76-316,United States
-227,Zielona Góra,Kujawsko-Pomorskie,87-701,United States
-228,Dąbrowa Górnicza,Świętokrzyskie,04-401,United States
-229,Rzeszów,Podlaskie,28-924,United States
-230,Knurów,Podkarpackie,90-215,United States
-231,Wałcz,Małopolskie,72-037,United States
-232,Nowa Ruda,Pomorskie,33-717,United States
-233,Ostrów Wielkopolski,Kujawsko-Pomorskie,41-539,United States
-234,Kościerzyna,Świętokrzyskie,10-663,United States
-235,Wyszków,Opolskie,75-932,United States
-236,Radom,Kujawsko-Pomorskie,02-747,United States
-237,Piaseczno,Podlaskie,19-923,United States
-238,Augustów,Kujawsko-Pomorskie,45-049,United States
-239,Lubartów,Dolnośląskie,94-975,United States
-240,Mielec,Mazowieckie,94-852,United States
-241,Zawiercie,Łódzkie,90-081,United States
-242,Starachowice,Wielkopolskie,24-626,United States
-243,Szczecinek,Podkarpackie,96-781,United States
-244,Polkowice,Zachodniopomorskie,23-807,United States
-245,Nowa Sól,Podlaskie,44-132,United States
-246,Mikołów,Mazowieckie,88-513,United States
-247,Zielona Góra,Śląskie,95-953,United States
-248,Krotoszyn,Pomorskie,74-215,United States
-249,Świnoujście,Warmińsko-Mazurskie,22-378,United States
-250,Kwidzyn,Kujawsko-Pomorskie,81-042,United States
-251,Chełm,Łódzkie,36-854,United States
-252,Wałcz,Kujawsko-Pomorskie,55-787,United States
-253,Bielsk Podlaski,Mazowieckie,65-924,United States
-254,Kłodzko,Mazowieckie,07-197,United States
-255,Olsztyn,Śląskie,01-431,United States
-256,Gniezno,Warmińsko-Mazurskie,74-412,United States
-257,Szczecinek,Pomorskie,06-888,United States
-258,Sieradz,Świętokrzyskie,59-197,United States
-259,Tarnów,Pomorskie,79-347,United States
-260,Głogów,Zachodniopomorskie,50-079,United States
-261,Lubin,Zachodniopomorskie,30-076,United States
-262,Kalisz,Zachodniopomorskie,13-459,United States
-263,Kielce,Łódzkie,88-729,United States
-264,Leszno,Warmińsko-Mazurskie,42-208,United States
-265,Zgierz,Podlaskie,81-338,United States
-266,Koło,Śląskie,61-706,United States
-267,Ostrowiec Świętokrzyski,Podlaskie,97-443,United States
-268,Świnoujście,Świętokrzyskie,23-452,United States
-269,Tczew,Opolskie,82-719,United States
-270,Reda,Kujawsko-Pomorskie,18-710,United States
-271,Białystok,Warmińsko-Mazurskie,43-158,United States
-272,Czechowice-Dziedzice,Podkarpackie,14-956,United States
-273,Marki,Pomorskie,50-218,United States
-274,Zamość,Kujawsko-Pomorskie,92-816,United States
-275,Marki,Pomorskie,66-327,United States
-276,Pszczyna,Warmińsko-Mazurskie,63-023,United States
-277,Piotrków Trybunalski,Dolnośląskie,27-629,United States
-278,Luboń,Lubuskie,26-664,United States
-279,Zgorzelec,Dolnośląskie,48-011,United States
-280,Toruń,Małopolskie,10-857,United States
-281,Zielona Góra,Łódzkie,54-771,United States
-282,Sochaczew,Lubelskie,26-463,United States
-283,Piekary Śląskie,Lubelskie,95-946,United States
-284,Otwock,Pomorskie,03-780,United States
-285,Myszków,Kujawsko-Pomorskie,63-051,United States
-286,Stargard Szczeciński,Warmińsko-Mazurskie,28-717,United States
-287,Ciechanów,Śląskie,56-267,United States
-288,Zawiercie,Kujawsko-Pomorskie,54-159,United States
-289,Poznań,Lubelskie,02-388,United States
-290,Żary,Opolskie,02-500,United States
-291,Dąbrowa Górnicza,Dolnośląskie,06-514,United States
-292,Skarżysko-Kamienna,Opolskie,59-605,United States
-293,Jasło,Warmińsko-Mazurskie,61-326,United States
-294,Czechowice-Dziedzice,Lubuskie,65-770,United States
-295,Suwałki,Lubuskie,89-297,United States
-296,Września,Mazowieckie,49-051,United States
-297,Polkowice,Łódzkie,52-272,United States
-298,Ostróda,Podkarpackie,64-136,United States
-299,Giżycko,Łódzkie,71-504,United States
-300,Świnoujście,Opolskie,89-054,United States
-301,Rybnik,Pomorskie,79-206,United States
-302,Ostrów Mazowiecka,Podlaskie,83-354,United States
-303,Łuków,Warmińsko-Mazurskie,75-654,United States
-304,Jarocin,Małopolskie,17-348,United States
-305,Szczytno,Wielkopolskie,81-607,United States
-306,Lębork,Łódzkie,93-982,United States
-307,Bytom,Lubelskie,80-579,United States
-308,Wyszków,Dolnośląskie,30-229,United States
-309,Zgierz,Dolnośląskie,74-727,United States
-310,Opole,Kujawsko-Pomorskie,59-510,United States
-311,Śrem,Małopolskie,84-720,United States
-312,Kościan,Mazowieckie,22-597,United States
-313,Nowy Sącz,Śląskie,51-083,United States
-314,Kędzierzyn-Koźle,Kujawsko-Pomorskie,12-602,United States
-315,Bochnia,Łódzkie,21-248,United States
-316,Ciechanów,Mazowieckie,16-789,United States
-317,Bydgoszcz,Małopolskie,47-355,United States
-318,Ostrów Wielkopolski,Łódzkie,25-344,United States
-319,Kędzierzyn-Koźle,Kujawsko-Pomorskie,94-287,United States
-320,Knurów,Lubelskie,15-572,United States
-321,Jarosław,Małopolskie,12-304,United States
-322,Dębica,Wielkopolskie,71-698,United States
-323,Piastów,Zachodniopomorskie,58-533,United States
-324,Czeladź,Lubuskie,05-240,United States
-325,Świebodzice,Łódzkie,55-578,United States
-326,Grudziądz,Warmińsko-Mazurskie,29-389,United States
-327,Pruszków,Podlaskie,58-328,United States
-328,Kościan,Podlaskie,03-052,United States
-329,Radom,Podlaskie,21-091,United States
-330,Kołobrzeg,Śląskie,76-993,United States
-331,Krosno,Małopolskie,03-810,United States
-332,Sanok,Łódzkie,20-680,United States
-333,Katowice,Małopolskie,37-684,United States
-334,Pszczyna,Małopolskie,58-531,United States
-335,Stargard Szczeciński,Lubelskie,63-701,United States
-336,Bełchatów,Dolnośląskie,06-554,United States
-337,Kędzierzyn-Koźle,Małopolskie,75-962,United States
-338,Wrocław,Lubuskie,41-422,United States
-339,Zabrze,Pomorskie,68-082,United States
-340,Bolesławiec,Śląskie,32-672,United States
-341,Sieradz,Podlaskie,09-769,United States
-342,Puławy,Mazowieckie,79-985,United States
-343,Lublin,Warmińsko-Mazurskie,87-175,United States
-344,Lębork,Mazowieckie,20-838,United States
-345,Kalisz,Dolnośląskie,97-804,United States
-346,Ciechanów,Zachodniopomorskie,01-779,United States
-347,Biłgoraj,Podkarpackie,45-299,United States
-348,Nowy Targ,Opolskie,71-113,United States
-349,Piastów,Dolnośląskie,65-173,United States
-350,Siemianowice Śląskie,Lubuskie,49-805,United States
-351,Sandomierz,Kujawsko-Pomorskie,66-206,United States
-352,Ruda Śląska,Łódzkie,71-020,United States
-353,Piastów,Wielkopolskie,33-633,United States
-354,Jasło,Pomorskie,68-133,United States
-355,Nowy Dwór Mazowiecki,Podkarpackie,57-600,United States
-356,Turek,Kujawsko-Pomorskie,26-625,United States
-357,Police,Śląskie,83-210,United States
-358,Płońsk,Warmińsko-Mazurskie,04-342,United States
-359,Ostrów Wielkopolski,Podlaskie,69-600,United States
-360,Cieszyn,Dolnośląskie,38-881,United States
-361,Bartoszyce,Świętokrzyskie,41-980,United States
-362,Wałcz,Lubelskie,06-365,United States
-363,Olsztyn,Dolnośląskie,05-817,United States
-364,Poznań,Śląskie,69-633,United States
-365,Wejherowo,Lubelskie,29-739,United States
-366,Wyszków,Wielkopolskie,22-523,United States
-367,Ostrów Wielkopolski,Kujawsko-Pomorskie,21-123,United States
-368,Słupsk,Zachodniopomorskie,80-803,United States
-369,Ostrołęka,Śląskie,55-946,United States
-370,Ostrów Mazowiecka,Opolskie,81-126,United States
-371,Iława,Lubelskie,97-646,United States
-372,Gdańsk,Wielkopolskie,52-641,United States
-373,Częstochowa,Podlaskie,80-937,United States
-374,Sieradz,Lubuskie,19-733,United States
-375,Radomsko,Dolnośląskie,42-457,United States
-376,Chorzów,Pomorskie,93-574,United States
-377,Kraśnik,Lubelskie,82-745,United States
-378,Piotrków Trybunalski,Lubuskie,19-825,United States
-379,Olkusz,Dolnośląskie,71-848,United States
-380,Biłgoraj,Śląskie,38-221,United States
-381,Poznań,Mazowieckie,96-824,United States
-382,Stalowa Wola,Lubelskie,25-864,United States
-383,Siedlce,Kujawsko-Pomorskie,97-686,United States
-384,Wieluń,Lubelskie,80-278,United States
-385,Mielec,Podkarpackie,36-920,United States
-386,Knurów,Pomorskie,48-453,United States
-387,Świdnica,Warmińsko-Mazurskie,44-703,United States
-388,Kętrzyn,Podkarpackie,39-689,United States
-389,Włocławek,Śląskie,19-382,United States
-390,Zduńska Wola,Podkarpackie,11-401,United States
-391,Jaworzno,Opolskie,25-072,United States
-392,Luboń,Mazowieckie,12-245,United States
-393,Tarnowskie Góry,Opolskie,22-764,United States
-394,Wągrowiec,Opolskie,13-806,United States
-395,Świdnica,Opolskie,92-402,United States
-396,Środa Wielkopolska,Mazowieckie,69-494,United States
-397,Cieszyn,Wielkopolskie,17-367,United States
-398,Ełk,Świętokrzyskie,28-281,United States
-399,Katowice,Mazowieckie,16-331,United States
-400,Sopot,Wielkopolskie,03-048,United States
-401,Świdnik,Podkarpackie,89-256,United States
-402,Sandomierz,Podlaskie,78-906,United States
-403,Czerwionka-Leszczyny,Opolskie,15-513,United States
-404,Kłodzko,Pomorskie,27-873,United States
-405,Świdnica,Wielkopolskie,75-929,United States
-406,Lubliniec,Małopolskie,35-803,United States
-407,Wałbrzych,Opolskie,85-103,United States
-408,Czechowice-Dziedzice,Podlaskie,48-189,United States
-409,Tarnowskie Góry,Dolnośląskie,54-995,United States
-410,Dąbrowa Górnicza,Łódzkie,92-086,United States
-411,Piła,Podlaskie,08-761,United States
-412,Świętochłowice,Warmińsko-Mazurskie,80-349,United States
-413,Skierniewice,Śląskie,54-121,United States
-414,Bolesławiec,Łódzkie,53-354,United States
-415,Luboń,Opolskie,07-745,United States
-416,Bielsk Podlaski,Dolnośląskie,41-080,United States
-417,Ostrów Wielkopolski,Warmińsko-Mazurskie,74-414,United States
-418,Jarocin,Podlaskie,48-160,United States
-419,Lubartów,Lubuskie,85-945,United States
-420,Jelenia Góra,Zachodniopomorskie,51-313,United States
-421,Ostrów Wielkopolski,Warmińsko-Mazurskie,95-218,United States
-422,Dąbrowa Górnicza,Pomorskie,51-608,United States
-423,Tarnów,Świętokrzyskie,13-440,United States
-424,Radom,Mazowieckie,31-511,United States
-425,Łuków,Opolskie,23-832,United States
-426,Czeladź,Wielkopolskie,86-477,United States
-427,Kędzierzyn-Koźle,Łódzkie,21-641,United States
-428,Gdańsk,Podlaskie,79-494,United States
-429,Dąbrowa Górnicza,Podlaskie,87-961,United States
-430,Łowicz,Pomorskie,87-791,United States
-431,Suwałki,Wielkopolskie,56-121,United States
-432,Reda,Warmińsko-Mazurskie,54-045,United States
-433,Gniezno,Zachodniopomorskie,51-529,United States
-434,Koszalin,Lubuskie,14-131,United States
-435,Tarnobrzeg,Wielkopolskie,69-579,United States
-436,Myszków,Pomorskie,78-674,United States
-437,Czerwionka-Leszczyny,Lubelskie,45-706,United States
-438,Luboń,Zachodniopomorskie,54-832,United States
-439,Kluczbork,Śląskie,41-425,United States
-440,Skawina,Łódzkie,25-639,United States
-441,Kalisz,Lubelskie,43-437,United States
-442,Piaseczno,Lubelskie,33-318,United States
-443,Świdnik,Lubelskie,82-737,United States
-444,Koło,Łódzkie,83-980,United States
-445,Bydgoszcz,Małopolskie,87-493,United States
-446,Środa Wielkopolska,Wielkopolskie,77-413,United States
-447,Swarzędz,Dolnośląskie,72-083,United States
-448,Przemyśl,Kujawsko-Pomorskie,84-257,United States
-449,Żyrardów,Pomorskie,10-711,United States
-450,Pruszcz Gdański,Świętokrzyskie,14-176,United States
-451,Kraków,Świętokrzyskie,95-931,United States
-452,Żywiec,Opolskie,02-498,United States
-453,Ostrów Mazowiecka,Wielkopolskie,74-965,United States
-454,Września,Świętokrzyskie,88-686,United States
-455,Radom,Wielkopolskie,56-012,United States
-456,Koło,Opolskie,29-122,United States
-457,Szczytno,Mazowieckie,14-196,United States
-458,Koło,Pomorskie,56-539,United States
-459,Łuków,Pomorskie,03-615,United States
-460,Wodzisław Śląski,Opolskie,34-108,United States
-461,Knurów,Kujawsko-Pomorskie,10-886,United States
-462,Świebodzice,Małopolskie,96-527,United States
-463,Legnica,Pomorskie,49-185,United States
-464,Luboń,Dolnośląskie,36-464,United States
-465,Grudziądz,Łódzkie,59-925,United States
-466,Krotoszyn,Warmińsko-Mazurskie,82-619,United States
-467,Świebodzice,Dolnośląskie,54-208,United States
-468,Grudziądz,Kujawsko-Pomorskie,71-826,United States
-469,Racibórz,Dolnośląskie,67-895,United States
-470,Ostrowiec Świętokrzyski,Lubuskie,63-885,United States
-471,Lublin,Dolnośląskie,89-032,United States
-472,Tarnobrzeg,Podlaskie,12-969,United States
-473,Puławy,Warmińsko-Mazurskie,71-404,United States
-474,Brodnica,Opolskie,13-001,United States
-475,Tczew,Małopolskie,24-974,United States
-476,Goleniów,Świętokrzyskie,54-524,United States
-477,Elbląg,Opolskie,01-274,United States
-478,Reda,Mazowieckie,75-461,United States
-479,Żywiec,Lubuskie,96-277,United States
-480,Gdynia,Warmińsko-Mazurskie,90-523,United States
-481,Zgierz,Dolnośląskie,25-051,United States
-482,Siemianowice Śląskie,Dolnośląskie,89-153,United States
-483,Warszawa,Warmińsko-Mazurskie,85-720,United States
-484,Nysa,Pomorskie,76-893,United States
-485,Szczytno,Mazowieckie,23-670,United States
-486,Kalisz,Łódzkie,69-064,United States
-487,Giżycko,Zachodniopomorskie,93-186,United States
-488,Pruszcz Gdański,Mazowieckie,83-499,United States
-489,Starogard Gdański,Kujawsko-Pomorskie,15-855,United States
-490,Rybnik,Śląskie,36-115,United States
-491,Ełk,Łódzkie,32-080,United States
-492,Leszno,Lubuskie,45-194,United States
-493,Radom,Dolnośląskie,76-280,United States
-494,Zgorzelec,Pomorskie,83-167,United States
-495,Żagań,Podlaskie,11-185,United States
-496,Głogów,Pomorskie,57-687,United States
-497,Bielawa,Małopolskie,53-398,United States
-498,Żary,Świętokrzyskie,73-058,United States
-499,Białystok,Mazowieckie,49-279,United States
-500,Toruń,Lubelskie,25-215,United States
-501,Piekary Śląskie,Warmińsko-Mazurskie,22-943,United States
-502,Konin,Opolskie,86-659,United States
-503,Gorzów Wielkopolski,Małopolskie,67-099,United States
-504,Nowa Ruda,Śląskie,06-798,United States
-505,Warszawa,Podkarpackie,81-441,United States
-506,Wrocław,Podkarpackie,36-374,United States
-507,Kłodzko,Pomorskie,74-441,United States
-508,Grodzisk Mazowiecki,Kujawsko-Pomorskie,33-659,United States
-509,Dzierżoniów,Wielkopolskie,11-963,United States
-510,Bielsk Podlaski,Dolnośląskie,17-276,United States
-511,Toruń,Zachodniopomorskie,84-769,United States
-512,Radom,Świętokrzyskie,43-430,United States
-513,Tarnów,Opolskie,26-443,United States
-514,Świdnica,Pomorskie,05-093,United States
-515,Oława,Świętokrzyskie,78-155,United States
-516,Bytom,Pomorskie,03-532,United States
-517,Giżycko,Kujawsko-Pomorskie,93-326,United States
-518,Kędzierzyn-Koźle,Opolskie,77-369,United States
-519,Bielsko-Biała,Podkarpackie,09-837,United States
-520,Świebodzice,Warmińsko-Mazurskie,19-516,United States
-521,Pruszków,Warmińsko-Mazurskie,28-309,United States
-522,Tarnobrzeg,Lubelskie,30-544,United States
-523,Wrocław,Warmińsko-Mazurskie,16-897,United States
-524,Tczew,Zachodniopomorskie,60-471,United States
-525,Zakopane,Mazowieckie,26-464,United States
-526,Siemianowice Śląskie,Opolskie,65-261,United States
-527,Chełm,Wielkopolskie,54-773,United States
-528,Malbork,Zachodniopomorskie,63-226,United States
-529,Wrocław,Śląskie,17-258,United States
-530,Suwałki,Małopolskie,19-065,United States
-531,Skierniewice,Wielkopolskie,10-537,United States
-532,Jawor,Kujawsko-Pomorskie,09-125,United States
-533,Legnica,Warmińsko-Mazurskie,57-690,United States
-534,Lębork,Opolskie,08-156,United States
-535,Dębica,Łódzkie,81-475,United States
-536,Kutno,Śląskie,96-496,United States
-537,Jarocin,Warmińsko-Mazurskie,62-549,United States
-538,Nowa Ruda,Lubuskie,72-439,United States
-539,Starogard Gdański,Lubelskie,51-085,United States
-540,Legnica,Śląskie,08-257,United States
-541,Dąbrowa Górnicza,Mazowieckie,70-487,United States
-542,Konin,Małopolskie,10-299,United States
-543,Zgorzelec,Śląskie,62-412,United States
-544,Chorzów,Pomorskie,32-405,United States
-545,Nowy Dwór Mazowiecki,Śląskie,08-223,United States
-546,Otwock,Podlaskie,11-269,United States
-547,Pszczyna,Dolnośląskie,29-355,United States
-548,Kłodzko,Małopolskie,94-809,United States
-549,Białystok,Podlaskie,11-472,United States
-550,Czeladź,Warmińsko-Mazurskie,66-942,United States
-551,Stargard Szczeciński,Podlaskie,02-514,United States
-552,Oświęcim,Lubelskie,49-282,United States
-553,Kraśnik,Mazowieckie,01-769,United States
-554,Gorzów Wielkopolski,Wielkopolskie,40-514,United States
-555,Nowa Ruda,Wielkopolskie,24-827,United States
-556,Jarosław,Mazowieckie,44-144,United States
-557,Kutno,Pomorskie,32-673,United States
-558,Świecie,Podlaskie,58-657,United States
-559,Jelenia Góra,Mazowieckie,96-285,United States
-560,Gorzów Wielkopolski,Śląskie,57-441,United States
-561,Nowy Targ,Kujawsko-Pomorskie,88-448,United States
-562,Starachowice,Łódzkie,78-608,United States
-563,Żywiec,Mazowieckie,54-024,United States
-564,Chorzów,Pomorskie,52-112,United States
-565,Kielce,Śląskie,23-921,United States
-566,Zawiercie,Wielkopolskie,53-437,United States
-567,Sandomierz,Warmińsko-Mazurskie,95-558,United States
-568,Świdnik,Kujawsko-Pomorskie,58-527,United States
-569,Wołomin,Lubelskie,65-741,United States
-570,Malbork,Małopolskie,47-821,United States
-571,Pruszków,Pomorskie,57-751,United States
-572,Chełm,Świętokrzyskie,79-847,United States
-573,Czeladź,Lubelskie,45-871,United States
-574,Sochaczew,Śląskie,44-164,United States
-575,Głogów,Mazowieckie,23-650,United States
-576,Knurów,Śląskie,74-608,United States
-577,Police,Dolnośląskie,47-189,United States
-578,Sochaczew,Zachodniopomorskie,09-497,United States
-579,Lubin,Lubelskie,36-981,United States
-580,Piła,Pomorskie,61-852,United States
-581,Czechowice-Dziedzice,Kujawsko-Pomorskie,29-803,United States
-582,Augustów,Wielkopolskie,78-925,United States
-583,Mława,Podlaskie,16-395,United States
-584,Giżycko,Śląskie,85-066,United States
-585,Brodnica,Kujawsko-Pomorskie,31-614,United States
-586,Ełk,Warmińsko-Mazurskie,86-974,United States
-587,Czechowice-Dziedzice,Podlaskie,13-858,United States
-588,Przemyśl,Dolnośląskie,19-312,United States
-589,Warszawa,Pomorskie,15-002,United States
-590,Chorzów,Małopolskie,77-988,United States
-591,Ostrów Mazowiecka,Wielkopolskie,74-602,United States
-592,Gdańsk,Podkarpackie,54-573,United States
-593,Piastów,Pomorskie,18-428,United States
-594,Nowy Dwór Mazowiecki,Pomorskie,44-270,United States
-595,Radomsko,Kujawsko-Pomorskie,28-548,United States
-596,Mińsk Mazowiecki,Dolnośląskie,55-805,United States
-597,Elbląg,Dolnośląskie,87-168,United States
-598,Skierniewice,Małopolskie,47-224,United States
-599,Ostrowiec Świętokrzyski,Łódzkie,62-267,United States
-600,Olsztyn,Opolskie,68-671,United States
-601,Tarnowskie Góry,Zachodniopomorskie,21-478,United States
-602,Skarżysko-Kamienna,Podkarpackie,63-384,United States
-603,Chełm,Podlaskie,51-965,United States
-604,Olsztyn,Kujawsko-Pomorskie,55-286,United States
-605,Bolesławiec,Mazowieckie,93-702,United States
-606,Czerwionka-Leszczyny,Śląskie,90-268,United States
-607,Cieszyn,Łódzkie,79-578,United States
-608,Sieradz,Podlaskie,41-225,United States
-609,Piastów,Łódzkie,86-281,United States
-610,Lębork,Łódzkie,83-037,United States
-611,Opole,Podkarpackie,59-082,United States
-612,Ostrów Wielkopolski,Lubuskie,64-121,United States
-613,Lubin,Mazowieckie,79-017,United States
-614,Wałcz,Opolskie,75-581,United States
-615,Sosnowiec,Świętokrzyskie,14-103,United States
-616,Gorzów Wielkopolski,Zachodniopomorskie,28-467,United States
-617,Nowa Sól,Warmińsko-Mazurskie,22-388,United States
-618,Goleniów,Podlaskie,56-677,United States
-619,Czerwionka-Leszczyny,Podkarpackie,10-734,United States
-620,Wodzisław Śląski,Podkarpackie,72-011,United States
-621,Oleśnica,Warmińsko-Mazurskie,14-802,United States
-622,Piła,Śląskie,38-837,United States
-623,Zielona Góra,Lubelskie,43-811,United States
-624,Radom,Śląskie,66-082,United States
-625,Krotoszyn,Małopolskie,57-427,United States
-626,Bytom,Mazowieckie,90-178,United States
-627,Zgorzelec,Lubuskie,96-470,United States
-628,Swarzędz,Małopolskie,05-161,United States
-629,Września,Mazowieckie,68-025,United States
-630,Świebodzice,Podkarpackie,43-859,United States
-631,Grudziądz,Zachodniopomorskie,87-616,United States
-632,Jarosław,Opolskie,43-734,United States
-633,Koszalin,Warmińsko-Mazurskie,29-510,United States
-634,Biała Podlaska,Małopolskie,23-798,United States
-635,Lublin,Małopolskie,05-151,United States
-636,Wągrowiec,Śląskie,76-282,United States
-637,Kwidzyn,Opolskie,29-065,United States
-638,Śrem,Świętokrzyskie,59-930,United States
-639,Tomaszów Mazowiecki,Małopolskie,67-416,United States
-640,Jaworzno,Podkarpackie,71-264,United States
-641,Inowrocław,Świętokrzyskie,65-920,United States
-642,Dzierżoniów,Wielkopolskie,19-716,United States
-643,Ostrołęka,Dolnośląskie,02-438,United States
-644,Lębork,Lubelskie,36-466,United States
-645,Brzeg,Warmińsko-Mazurskie,78-788,United States
-646,Chełm,Małopolskie,85-652,United States
-647,Mysłowice,Kujawsko-Pomorskie,57-982,United States
-648,Bochnia,Dolnośląskie,23-586,United States
-649,Bielsko-Biała,Podkarpackie,86-289,United States
-650,Ostrołęka,Wielkopolskie,01-946,United States
-651,Białogard,Pomorskie,86-191,United States
-652,Świdnik,Warmińsko-Mazurskie,40-877,United States
-653,Zambrów,Zachodniopomorskie,42-500,United States
-654,Legionowo,Wielkopolskie,26-464,United States
-655,Knurów,Podkarpackie,65-993,United States
-656,Sandomierz,Kujawsko-Pomorskie,59-957,United States
-657,Mielec,Pomorskie,28-644,United States
-658,Police,Podlaskie,83-678,United States
-659,Mysłowice,Kujawsko-Pomorskie,95-679,United States
-660,Pruszcz Gdański,Świętokrzyskie,74-668,United States
-661,Ostrołęka,Mazowieckie,38-351,United States
-662,Dzierżoniów,Lubuskie,79-611,United States
-663,Żory,Lubelskie,54-196,United States
-664,Myszków,Podlaskie,69-559,United States
-665,Częstochowa,Warmińsko-Mazurskie,52-322,United States
-666,Czerwionka-Leszczyny,Łódzkie,24-864,United States
-667,Kłodzko,Warmińsko-Mazurskie,93-265,United States
-668,Tychy,Zachodniopomorskie,58-004,United States
-669,Śrem,Łódzkie,65-141,United States
-670,Tarnobrzeg,Podlaskie,55-522,United States
-671,Wągrowiec,Kujawsko-Pomorskie,09-123,United States
-672,Świętochłowice,Śląskie,72-025,United States
-673,Nowa Sól,Świętokrzyskie,15-404,United States
-674,Siedlce,Kujawsko-Pomorskie,70-733,United States
-675,Marki,Lubuskie,24-974,United States
-676,Police,Dolnośląskie,74-130,United States
-677,Piaseczno,Lubuskie,48-487,United States
-678,Grodzisk Mazowiecki,Łódzkie,89-561,United States
-679,Bydgoszcz,Zachodniopomorskie,38-900,United States
-680,Ostróda,Lubuskie,01-243,United States
-681,Włocławek,Zachodniopomorskie,41-681,United States
-682,Radomsko,Lubelskie,77-418,United States
-683,Piastów,Kujawsko-Pomorskie,48-293,United States
-684,Szczytno,Mazowieckie,42-966,United States
-685,Grodzisk Mazowiecki,Wielkopolskie,90-930,United States
-686,Lubliniec,Mazowieckie,38-750,United States
-687,Zambrów,Łódzkie,11-897,United States
-688,Zambrów,Wielkopolskie,99-770,United States
-689,Żary,Małopolskie,36-189,United States
-690,Sosnowiec,Wielkopolskie,83-797,United States
-691,Kwidzyn,Lubuskie,44-305,United States
-692,Kwidzyn,Małopolskie,20-289,United States
-693,Elbląg,Dolnośląskie,59-958,United States
-694,Chrzanów,Lubelskie,95-502,United States
-695,Skawina,Pomorskie,24-849,United States
-696,Police,Mazowieckie,36-163,United States
-697,Świdnica,Podlaskie,23-701,United States
-698,Słupsk,Dolnośląskie,68-772,United States
-699,Nowa Sól,Mazowieckie,14-363,United States
-700,Sanok,Zachodniopomorskie,19-420,United States
-701,Tomaszów Mazowiecki,Lubuskie,27-305,United States
-702,Kościan,Dolnośląskie,52-045,United States
-703,Gdańsk,Łódzkie,79-638,United States
-704,Tomaszów Mazowiecki,Podlaskie,52-279,United States
-705,Wyszków,Pomorskie,95-047,United States
-706,Zawiercie,Pomorskie,85-288,United States
-707,Skarżysko-Kamienna,Małopolskie,84-328,United States
-708,Kwidzyn,Zachodniopomorskie,77-054,United States
-709,Słupsk,Małopolskie,99-712,United States
-710,Sandomierz,Podlaskie,78-096,United States
-711,Lubartów,Lubuskie,42-466,United States
-712,Gdynia,Podkarpackie,57-111,United States
-713,Gorzów Wielkopolski,Zachodniopomorskie,22-386,United States
-714,Ostrów Mazowiecka,Świętokrzyskie,93-260,United States
-715,Ostrołęka,Małopolskie,63-029,United States
-716,Myszków,Opolskie,19-975,United States
-717,Turek,Podlaskie,86-573,United States
-718,Ostrów Wielkopolski,Pomorskie,60-195,United States
-719,Będzin,Warmińsko-Mazurskie,24-474,United States
-720,Płock,Opolskie,45-694,United States
-721,Zambrów,Dolnośląskie,81-998,United States
-722,Augustów,Opolskie,30-280,United States
-723,Ostrów Wielkopolski,Wielkopolskie,84-540,United States
-724,Legionowo,Pomorskie,94-013,United States
-725,Świebodzice,Łódzkie,75-147,United States
-726,Puławy,Opolskie,02-264,United States
-727,Puławy,Opolskie,85-198,United States
-728,Bielawa,Zachodniopomorskie,71-735,United States
-729,Kołobrzeg,Zachodniopomorskie,98-296,United States
-730,Goleniów,Zachodniopomorskie,60-137,United States
-731,Biłgoraj,Śląskie,74-815,United States
-732,Rzeszów,Pomorskie,79-315,United States
-733,Biłgoraj,Podlaskie,26-385,United States
-734,Biała Podlaska,Pomorskie,29-237,United States
-735,Żory,Opolskie,23-698,United States
-736,Gorzów Wielkopolski,Warmińsko-Mazurskie,92-056,United States
-737,Otwock,Opolskie,69-893,United States
-738,Wałbrzych,Lubelskie,87-046,United States
-739,Piła,Łódzkie,19-803,United States
-740,Ostrołęka,Zachodniopomorskie,01-487,United States
-741,Mińsk Mazowiecki,Podlaskie,91-978,United States
-742,Bielsk Podlaski,Lubuskie,42-686,United States
-743,Lubin,Świętokrzyskie,85-226,United States
-744,Nowy Dwór Mazowiecki,Łódzkie,51-706,United States
-745,Żory,Lubuskie,39-854,United States
-746,Biała Podlaska,Małopolskie,10-544,United States
-747,Lębork,Lubelskie,89-158,United States
-748,Goleniów,Małopolskie,98-505,United States
-749,Czeladź,Pomorskie,09-151,United States
-750,Kielce,Dolnośląskie,28-039,United States
-751,Piastów,Lubelskie,29-632,United States
-752,Tomaszów Mazowiecki,Świętokrzyskie,50-070,United States
-753,Tarnobrzeg,Zachodniopomorskie,52-976,United States
-754,Lubin,Opolskie,76-916,United States
-755,Goleniów,Pomorskie,58-167,United States
-756,Jarosław,Wielkopolskie,27-049,United States
-757,Starachowice,Podkarpackie,42-128,United States
-758,Gliwice,Warmińsko-Mazurskie,29-174,United States
-759,Bełchatów,Małopolskie,24-955,United States
-760,Ostrowiec Świętokrzyski,Lubuskie,72-946,United States
-761,Cieszyn,Opolskie,41-412,United States
-762,Głogów,Kujawsko-Pomorskie,91-859,United States
-763,Koszalin,Wielkopolskie,93-508,United States
-764,Płock,Lubuskie,87-326,United States
-765,Starogard Gdański,Lubuskie,56-781,United States
-766,Świętochłowice,Warmińsko-Mazurskie,05-981,United States
-767,Piekary Śląskie,Świętokrzyskie,85-477,United States
-768,Ruda Śląska,Kujawsko-Pomorskie,22-093,United States
-769,Luboń,Lubuskie,71-645,United States
-770,Lębork,Zachodniopomorskie,52-890,United States
-771,Oleśnica,Lubelskie,69-715,United States
-772,Chorzów,Śląskie,81-168,United States
-773,Lębork,Podkarpackie,82-886,United States
-774,Sanok,Zachodniopomorskie,61-868,United States
-775,Żary,Kujawsko-Pomorskie,21-480,United States
-776,Lubartów,Zachodniopomorskie,10-672,United States
-777,Zambrów,Podkarpackie,78-367,United States
-778,Szczytno,Małopolskie,65-913,United States
-779,Legionowo,Lubelskie,25-167,United States
-780,Płock,Zachodniopomorskie,78-438,United States
-781,Olkusz,Śląskie,85-738,United States
-782,Ełk,Małopolskie,42-314,United States
-783,Goleniów,Śląskie,87-728,United States
-784,Mława,Śląskie,39-691,United States
-785,Zabrze,Małopolskie,47-852,United States
-786,Zduńska Wola,Lubelskie,67-650,United States
-787,Starogard Gdański,Opolskie,11-643,United States
-788,Chrzanów,Opolskie,74-252,United States
-789,Łaziska Górne,Małopolskie,15-171,United States
-790,Łódź,Zachodniopomorskie,27-802,United States
-791,Piastów,Kujawsko-Pomorskie,04-459,United States
-792,Kwidzyn,Dolnośląskie,70-399,United States
-793,Czerwionka-Leszczyny,Śląskie,41-531,United States
-794,Piaseczno,Wielkopolskie,76-025,United States
-795,Piotrków Trybunalski,Dolnośląskie,43-297,United States
-796,Lublin,Podlaskie,10-721,United States
-797,Kościan,Lubuskie,58-339,United States
-798,Szczytno,Opolskie,51-171,United States
-799,Luboń,Dolnośląskie,98-833,United States
-800,Kwidzyn,Wielkopolskie,34-038,United States
-801,Ruda Śląska,Mazowieckie,10-827,United States
-802,Ząbki,Łódzkie,85-260,United States
-803,Rumia,Świętokrzyskie,88-845,United States
-804,Ostrów Mazowiecka,Pomorskie,50-169,United States
-805,Żagań,Podlaskie,90-627,United States
-806,Wałbrzych,Małopolskie,61-741,United States
-807,Piekary Śląskie,Opolskie,32-717,United States
-808,Jawor,Mazowieckie,62-969,United States
-809,Szczytno,Śląskie,99-774,United States
-810,Lubliniec,Pomorskie,68-821,United States
-811,Skierniewice,Śląskie,49-271,United States
-812,Mińsk Mazowiecki,Łódzkie,68-777,United States
-813,Wołomin,Małopolskie,16-507,United States
-814,Bielsko-Biała,Podkarpackie,92-870,United States
-815,Bochnia,Wielkopolskie,10-090,United States
-816,Siedlce,Podkarpackie,24-064,United States
-817,Giżycko,Śląskie,75-810,United States
-818,Nysa,Podlaskie,19-509,United States
-819,Racibórz,Łódzkie,44-781,United States
-820,Kwidzyn,Lubelskie,29-511,United States
-821,Jelenia Góra,Wielkopolskie,26-919,United States
-822,Ostrów Wielkopolski,Podlaskie,47-882,United States
-823,Stargard Szczeciński,Śląskie,64-229,United States
-824,Dzierżoniów,Dolnośląskie,20-802,United States
-825,Nowy Dwór Mazowiecki,Małopolskie,58-322,United States
-826,Poznań,Opolskie,44-008,United States
-827,Chojnice,Śląskie,44-036,United States
-828,Szczecin,Pomorskie,80-940,United States
-829,Zielona Góra,Podkarpackie,73-808,United States
-830,Tczew,Lubuskie,28-480,United States
-831,Płońsk,Świętokrzyskie,55-205,United States
-832,Września,Śląskie,15-529,United States
-833,Słupsk,Śląskie,39-401,United States
-834,Koło,Małopolskie,17-517,United States
-835,Żary,Śląskie,23-416,United States
-836,Ostrołęka,Łódzkie,14-257,United States
-837,Bielawa,Śląskie,11-896,United States
-838,Brodnica,Lubuskie,59-868,United States
-839,Sochaczew,Podlaskie,88-347,United States
-840,Augustów,Lubelskie,37-096,United States
-841,Oława,Małopolskie,70-554,United States
-842,Suwałki,Podlaskie,68-460,United States
-843,Żyrardów,Opolskie,57-830,United States
-844,Legionowo,Małopolskie,67-506,United States
-845,Goleniów,Mazowieckie,45-840,United States
-846,Pruszcz Gdański,Świętokrzyskie,73-360,United States
-847,Marki,Wielkopolskie,75-551,United States
-848,Świdnica,Zachodniopomorskie,46-964,United States
-849,Brzeg,Wielkopolskie,14-931,United States
-850,Zgierz,Łódzkie,36-641,United States
-851,Ostróda,Opolskie,03-323,United States
-852,Kędzierzyn-Koźle,Śląskie,09-040,United States
-853,Świebodzice,Małopolskie,25-392,United States
-854,Pruszków,Lubuskie,85-893,United States
-855,Śrem,Małopolskie,66-459,United States
-856,Marki,Śląskie,06-128,United States
-857,Reda,Podlaskie,39-906,United States
-858,Nowa Ruda,Wielkopolskie,54-765,United States
-859,Mikołów,Podlaskie,28-235,United States
-860,Piła,Lubuskie,95-514,United States
-861,Nowy Sącz,Łódzkie,58-023,United States
-862,Jasło,Zachodniopomorskie,89-277,United States
-863,Ostrowiec Świętokrzyski,Lubelskie,19-658,United States
-864,Żyrardów,Małopolskie,80-278,United States
-865,Stalowa Wola,Zachodniopomorskie,43-465,United States
-866,Zawiercie,Mazowieckie,88-171,United States
-867,Łowicz,Opolskie,60-102,United States
-868,Przemyśl,Lubelskie,06-506,United States
-869,Łomża,Lubuskie,23-718,United States
-870,Łuków,Podlaskie,92-508,United States
-871,Pruszcz Gdański,Kujawsko-Pomorskie,07-767,United States
-872,Warszawa,Świętokrzyskie,18-508,United States
-873,Elbląg,Pomorskie,57-303,United States
-874,Sosnowiec,Lubelskie,68-778,United States
-875,Sanok,Warmińsko-Mazurskie,63-294,United States
-876,Elbląg,Łódzkie,59-262,United States
-877,Żary,Lubelskie,73-352,United States
-878,Białystok,Pomorskie,53-759,United States
-879,Puławy,Lubuskie,29-080,United States
-880,Tarnobrzeg,Warmińsko-Mazurskie,42-733,United States
-881,Kielce,Wielkopolskie,73-191,United States
-882,Polkowice,Mazowieckie,87-864,United States
-883,Elbląg,Podkarpackie,24-735,United States
-884,Gliwice,Lubuskie,08-058,United States
-885,Wyszków,Podkarpackie,01-488,United States
-886,Police,Lubelskie,40-871,United States
-887,Jarocin,Wielkopolskie,29-963,United States
-888,Tarnobrzeg,Podkarpackie,18-645,United States
-889,Koło,Dolnośląskie,21-130,United States
-890,Ruda Śląska,Mazowieckie,51-395,United States
-891,Bolesławiec,Dolnośląskie,89-971,United States
-892,Stalowa Wola,Śląskie,65-637,United States
-893,Piła,Lubuskie,60-140,United States
-894,Mielec,Podkarpackie,47-647,United States
-895,Zambrów,Opolskie,52-418,United States
-896,Gorzów Wielkopolski,Zachodniopomorskie,06-799,United States
-897,Kołobrzeg,Świętokrzyskie,13-400,United States
-898,Wyszków,Pomorskie,86-479,United States
-899,Tczew,Lubelskie,53-351,United States
-900,Kalisz,Opolskie,12-791,United States
-901,Starogard Gdański,Podlaskie,69-806,United States
-902,Tomaszów Mazowiecki,Śląskie,57-375,United States
-903,Słupsk,Podkarpackie,88-198,United States
-904,Pabianice,Małopolskie,14-668,United States
-905,Swarzędz,Warmińsko-Mazurskie,74-540,United States
-906,Mińsk Mazowiecki,Świętokrzyskie,16-191,United States
-907,Sieradz,Kujawsko-Pomorskie,21-198,United States
-908,Zduńska Wola,Małopolskie,51-119,United States
-909,Kłodzko,Wielkopolskie,65-669,United States
-910,Bielsk Podlaski,Wielkopolskie,35-880,United States
-911,Swarzędz,Zachodniopomorskie,83-610,United States
-912,Jelenia Góra,Lubelskie,87-415,United States
-913,Świdnik,Kujawsko-Pomorskie,71-959,United States
-914,Bytom,Opolskie,54-345,United States
-915,Wągrowiec,Wielkopolskie,06-989,United States
-916,Leszno,Warmińsko-Mazurskie,38-434,United States
-917,Konin,Świętokrzyskie,59-122,United States
-918,Jawor,Lubuskie,73-190,United States
-919,Jastrzębie-Zdrój,Dolnośląskie,27-458,United States
-920,Płock,Świętokrzyskie,75-822,United States
-921,Gorzów Wielkopolski,Pomorskie,14-018,United States
-922,Legionowo,Opolskie,53-780,United States
-923,Iława,Dolnośląskie,07-833,United States
-924,Lubartów,Warmińsko-Mazurskie,03-931,United States
-925,Krosno,Dolnośląskie,37-620,United States
-926,Legnica,Pomorskie,98-651,United States
-927,Piła,Zachodniopomorskie,87-248,United States
-928,Swarzędz,Kujawsko-Pomorskie,91-294,United States
-929,Wałcz,Warmińsko-Mazurskie,33-982,United States
-930,Sanok,Wielkopolskie,42-658,United States
-931,Białystok,Kujawsko-Pomorskie,59-404,United States
-932,Świnoujście,Małopolskie,90-729,United States
-933,Kędzierzyn-Koźle,Zachodniopomorskie,55-514,United States
-934,Kluczbork,Opolskie,71-362,United States
-935,Lublin,Świętokrzyskie,29-912,United States
-936,Jarocin,Pomorskie,59-569,United States
-937,Skawina,Śląskie,32-362,United States
-938,Łuków,Zachodniopomorskie,23-569,United States
-939,Pruszków,Dolnośląskie,82-451,United States
-940,Gorlice,Małopolskie,13-815,United States
-941,Sieradz,Zachodniopomorskie,45-601,United States
-942,Chełm,Opolskie,19-522,United States
-943,Bochnia,Śląskie,67-385,United States
-944,Bolesławiec,Dolnośląskie,12-212,United States
-945,Żywiec,Wielkopolskie,81-789,United States
-946,Giżycko,Opolskie,63-281,United States
-947,Leszno,Małopolskie,69-436,United States
-948,Sopot,Mazowieckie,11-811,United States
-949,Łomża,Mazowieckie,57-135,United States
-950,Siedlce,Podlaskie,63-465,United States
-951,Sosnowiec,Świętokrzyskie,80-208,United States
-952,Radomsko,Lubelskie,71-642,United States
-953,Ostróda,Warmińsko-Mazurskie,67-212,United States
-954,Skarżysko-Kamienna,Lubuskie,38-966,United States
-955,Starachowice,Pomorskie,20-954,United States
-956,Koło,Podkarpackie,06-664,United States
-957,Nowy Dwór Mazowiecki,Lubelskie,37-116,United States
-958,Jarocin,Podlaskie,90-748,United States
-959,Marki,Opolskie,97-660,United States
-960,Kielce,Mazowieckie,06-721,United States
-961,Oława,Świętokrzyskie,37-034,United States
-962,Olkusz,Kujawsko-Pomorskie,19-264,United States
-963,Żywiec,Łódzkie,41-979,United States
-964,Wieluń,Śląskie,29-297,United States
-965,Mikołów,Lubelskie,50-022,United States
-966,Rumia,Małopolskie,49-141,United States
-967,Police,Śląskie,81-782,United States
-968,Radom,Kujawsko-Pomorskie,68-707,United States
-969,Wągrowiec,Pomorskie,34-713,United States
-970,Pruszków,Kujawsko-Pomorskie,73-317,United States
-971,Opole,Wielkopolskie,71-336,United States
-972,Płock,Opolskie,80-050,United States
-973,Stalowa Wola,Podlaskie,65-350,United States
-974,Kędzierzyn-Koźle,Warmińsko-Mazurskie,68-554,United States
-975,Piaseczno,Lubuskie,45-590,United States
-976,Bielsko-Biała,Kujawsko-Pomorskie,84-993,United States
-977,Szczecinek,Dolnośląskie,43-308,United States
-978,Kwidzyn,Łódzkie,46-903,United States
-979,Wałcz,Podlaskie,83-986,United States
-980,Wałbrzych,Wielkopolskie,74-886,United States
-981,Zgorzelec,Opolskie,61-857,United States
-982,Mława,Mazowieckie,85-749,United States
-983,Jastrzębie-Zdrój,Lubelskie,48-514,United States
-984,Sieradz,Łódzkie,14-271,United States
-985,Rumia,Warmińsko-Mazurskie,67-402,United States
-986,Stalowa Wola,Świętokrzyskie,21-656,United States
-987,Legionowo,Opolskie,01-114,United States
-988,Ostróda,Podlaskie,22-121,United States
-989,Wodzisław Śląski,Małopolskie,70-029,United States
-990,Zgorzelec,Kujawsko-Pomorskie,25-431,United States
-991,Gorzów Wielkopolski,Lubuskie,15-125,United States
-992,Łaziska Górne,Kujawsko-Pomorskie,05-192,United States
-993,Czeladź,Lubuskie,52-436,United States
-994,Jawor,Warmińsko-Mazurskie,40-946,United States
-995,Bytom,Świętokrzyskie,26-906,United States
-996,Wałbrzych,Świętokrzyskie,96-549,United States
-997,Piekary Śląskie,Dolnośląskie,36-112,United States
-998,Żory,Mazowieckie,91-864,United States
-999,Kołobrzeg,Pomorskie,06-158,United States
-1000,Biała Podlaska,Mazowieckie,45-610,United States
+1,Kędzierzyn-Koźle,Warmińsko-Mazurskie,36-118,United States
+2,Kwidzyn,Śląskie,74-078,United States
+3,Jarocin,Opolskie,32-902,United States
+4,Jastrzębie-Zdrój,Kujawsko-Pomorskie,79-363,United States
+5,Wołomin,Mazowieckie,30-803,United States
+6,Rumia,Podlaskie,71-685,United States
+7,Pabianice,Mazowieckie,62-021,United States
+8,Kutno,Śląskie,52-027,United States
+9,Legnica,Wielkopolskie,78-630,United States
+10,Zgorzelec,Podlaskie,91-568,United States
+11,Koło,Mazowieckie,41-334,United States
+12,Kędzierzyn-Koźle,Lubuskie,25-153,United States
+13,Nowy Dwór Mazowiecki,Warmińsko-Mazurskie,91-001,United States
+14,Radomsko,Zachodniopomorskie,13-879,United States
+15,Łowicz,Kujawsko-Pomorskie,22-630,United States
+16,Wodzisław Śląski,Śląskie,15-330,United States
+17,Nowa Ruda,Zachodniopomorskie,37-029,United States
+18,Zgorzelec,Opolskie,72-204,United States
+19,Stargard Szczeciński,Podkarpackie,97-922,United States
+20,Szczytno,Podkarpackie,58-904,United States
+21,Środa Wielkopolska,Śląskie,25-598,United States
+22,Żyrardów,Opolskie,73-111,United States
+23,Luboń,Pomorskie,15-906,United States
+24,Legnica,Małopolskie,87-037,United States
+25,Turek,Świętokrzyskie,48-446,United States
+26,Kościan,Łódzkie,24-804,United States
+27,Starogard Gdański,Świętokrzyskie,24-793,United States
+28,Gorzów Wielkopolski,Warmińsko-Mazurskie,32-735,United States
+29,Lubliniec,Świętokrzyskie,43-759,United States
+30,Myszków,Lubuskie,93-347,United States
+31,Stargard Szczeciński,Podkarpackie,16-099,United States
+32,Ostrów Mazowiecka,Łódzkie,18-105,United States
+33,Ostrów Mazowiecka,Dolnośląskie,08-734,United States
+34,Skarżysko-Kamienna,Lubelskie,22-859,United States
+35,Wągrowiec,Warmińsko-Mazurskie,51-332,United States
+36,Tarnów,Mazowieckie,31-447,United States
+37,Piotrków Trybunalski,Lubelskie,23-841,United States
+38,Zambrów,Podkarpackie,10-110,United States
+39,Czeladź,Podlaskie,80-439,United States
+40,Bielsko-Biała,Mazowieckie,60-342,United States
+41,Chojnice,Lubuskie,46-695,United States
+42,Tychy,Łódzkie,86-450,United States
+43,Skarżysko-Kamienna,Małopolskie,94-796,United States
+44,Bartoszyce,Śląskie,45-022,United States
+45,Gdynia,Śląskie,35-970,United States
+46,Konin,Lubelskie,93-730,United States
+47,Kołobrzeg,Łódzkie,52-331,United States
+48,Jarocin,Podlaskie,96-164,United States
+49,Elbląg,Łódzkie,79-655,United States
+50,Siemianowice Śląskie,Podlaskie,18-401,United States
+51,Otwock,Łódzkie,06-823,United States
+52,Piastów,Lubuskie,76-502,United States
+53,Gdańsk,Warmińsko-Mazurskie,14-880,United States
+54,Reda,Zachodniopomorskie,73-470,United States
+55,Tychy,Kujawsko-Pomorskie,93-443,United States
+56,Grudziądz,Małopolskie,77-391,United States
+57,Nowy Dwór Mazowiecki,Kujawsko-Pomorskie,78-513,United States
+58,Grodzisk Mazowiecki,Podlaskie,16-050,United States
+59,Tczew,Zachodniopomorskie,45-146,United States
+60,Jasło,Małopolskie,32-433,United States
+61,Lubliniec,Podkarpackie,89-433,United States
+62,Starogard Gdański,Podkarpackie,40-795,United States
+63,Płock,Świętokrzyskie,74-200,United States
+64,Częstochowa,Opolskie,14-386,United States
+65,Sosnowiec,Dolnośląskie,04-119,United States
+66,Biłgoraj,Pomorskie,29-167,United States
+67,Piekary Śląskie,Małopolskie,56-883,United States
+68,Ostróda,Kujawsko-Pomorskie,25-016,United States
+69,Pabianice,Dolnośląskie,52-711,United States
+70,Ząbki,Podlaskie,81-493,United States
+71,Myszków,Śląskie,67-231,United States
+72,Wołomin,Lubuskie,82-274,United States
+73,Kraśnik,Śląskie,99-011,United States
+74,Leszno,Wielkopolskie,44-224,United States
+75,Knurów,Śląskie,02-032,United States
+76,Tomaszów Mazowiecki,Warmińsko-Mazurskie,18-623,United States
+77,Żagań,Warmińsko-Mazurskie,25-422,United States
+78,Tarnów,Świętokrzyskie,12-589,United States
+79,Giżycko,Świętokrzyskie,55-131,United States
+80,Jelenia Góra,Dolnośląskie,87-735,United States
+81,Nowy Sącz,Lubelskie,70-553,United States
+82,Ruda Śląska,Świętokrzyskie,21-356,United States
+83,Jarosław,Dolnośląskie,46-122,United States
+84,Stalowa Wola,Łódzkie,11-730,United States
+85,Chełm,Pomorskie,85-303,United States
+86,Jarosław,Dolnośląskie,02-583,United States
+87,Grodzisk Mazowiecki,Mazowieckie,36-700,United States
+88,Świętochłowice,Śląskie,93-204,United States
+89,Sochaczew,Wielkopolskie,80-179,United States
+90,Łomża,Lubelskie,54-887,United States
+91,Czeladź,Lubuskie,78-449,United States
+92,Oława,Opolskie,77-262,United States
+93,Goleniów,Pomorskie,07-436,United States
+94,Pruszcz Gdański,Pomorskie,75-317,United States
+95,Września,Małopolskie,85-550,United States
+96,Elbląg,Warmińsko-Mazurskie,27-126,United States
+97,Pszczyna,Dolnośląskie,44-297,United States
+98,Bochnia,Lubuskie,24-257,United States
+99,Elbląg,Podlaskie,68-649,United States
+100,Tomaszów Mazowiecki,Wielkopolskie,89-336,United States
+101,Zgierz,Warmińsko-Mazurskie,49-428,United States
+102,Swarzędz,Lubuskie,47-226,United States
+103,Sanok,Podkarpackie,54-931,United States
+104,Puławy,Łódzkie,97-301,United States
+105,Legionowo,Łódzkie,17-766,United States
+106,Zduńska Wola,Mazowieckie,57-961,United States
+107,Będzin,Warmińsko-Mazurskie,33-407,United States
+108,Rybnik,Wielkopolskie,19-059,United States
+109,Turek,Łódzkie,66-259,United States
+110,Starogard Gdański,Dolnośląskie,84-286,United States
+111,Piastów,Dolnośląskie,83-548,United States
+112,Mielec,Wielkopolskie,68-378,United States
+113,Zielona Góra,Podkarpackie,07-118,United States
+114,Wałbrzych,Warmińsko-Mazurskie,09-301,United States
+115,Włocławek,Dolnośląskie,30-228,United States
+116,Myszków,Warmińsko-Mazurskie,15-498,United States
+117,Pruszków,Mazowieckie,01-306,United States
+118,Inowrocław,Śląskie,52-258,United States
+119,Olkusz,Lubuskie,23-881,United States
+120,Ostrowiec Świętokrzyski,Podkarpackie,24-370,United States
+121,Nowa Sól,Świętokrzyskie,23-044,United States
+122,Siemianowice Śląskie,Pomorskie,49-795,United States
+123,Ząbki,Wielkopolskie,03-068,United States
+124,Goleniów,Lubelskie,80-606,United States
+125,Szczytno,Warmińsko-Mazurskie,07-779,United States
+126,Łowicz,Lubuskie,76-551,United States
+127,Goleniów,Podlaskie,30-545,United States
+128,Oświęcim,Lubelskie,56-188,United States
+129,Dębica,Lubelskie,20-858,United States
+130,Wałbrzych,Dolnośląskie,45-242,United States
+131,Kościan,Podkarpackie,24-130,United States
+132,Kołobrzeg,Śląskie,66-907,United States
+133,Giżycko,Warmińsko-Mazurskie,32-271,United States
+134,Marki,Podkarpackie,22-099,United States
+135,Polkowice,Świętokrzyskie,28-683,United States
+136,Skarżysko-Kamienna,Wielkopolskie,66-691,United States
+137,Ostróda,Łódzkie,05-392,United States
+138,Ostrów Mazowiecka,Podkarpackie,14-199,United States
+139,Gniezno,Lubelskie,84-390,United States
+140,Wałbrzych,Podlaskie,53-372,United States
+141,Sochaczew,Łódzkie,25-417,United States
+142,Reda,Opolskie,19-986,United States
+143,Środa Wielkopolska,Mazowieckie,94-891,United States
+144,Bydgoszcz,Dolnośląskie,88-813,United States
+145,Zabrze,Łódzkie,56-840,United States
+146,Ostrołęka,Opolskie,46-761,United States
+147,Kłodzko,Podkarpackie,61-319,United States
+148,Zduńska Wola,Śląskie,38-781,United States
+149,Mielec,Lubuskie,18-210,United States
+150,Gliwice,Opolskie,95-904,United States
+151,Kielce,Warmińsko-Mazurskie,86-506,United States
+152,Jastrzębie-Zdrój,Dolnośląskie,61-312,United States
+153,Gorzów Wielkopolski,Łódzkie,04-667,United States
+154,Koło,Mazowieckie,73-035,United States
+155,Piaseczno,Świętokrzyskie,02-369,United States
+156,Jasło,Mazowieckie,62-993,United States
+157,Bochnia,Mazowieckie,73-120,United States
+158,Siemianowice Śląskie,Opolskie,43-090,United States
+159,Koło,Zachodniopomorskie,22-300,United States
+160,Otwock,Pomorskie,08-768,United States
+161,Legionowo,Świętokrzyskie,33-658,United States
+162,Bochnia,Mazowieckie,75-285,United States
+163,Ełk,Wielkopolskie,78-615,United States
+164,Gorzów Wielkopolski,Warmińsko-Mazurskie,34-646,United States
+165,Częstochowa,Lubelskie,66-261,United States
+166,Łuków,Dolnośląskie,92-013,United States
+167,Bytom,Podkarpackie,57-830,United States
+168,Zgorzelec,Podlaskie,71-934,United States
+169,Nowy Dwór Mazowiecki,Opolskie,94-061,United States
+170,Płock,Pomorskie,23-208,United States
+171,Ełk,Kujawsko-Pomorskie,91-659,United States
+172,Grudziądz,Małopolskie,50-311,United States
+173,Jasło,Lubuskie,37-126,United States
+174,Bydgoszcz,Świętokrzyskie,22-404,United States
+175,Siemianowice Śląskie,Dolnośląskie,88-143,United States
+176,Chełm,Wielkopolskie,65-861,United States
+177,Bielsk Podlaski,Wielkopolskie,99-095,United States
+178,Bełchatów,Mazowieckie,51-513,United States
+179,Krosno,Mazowieckie,69-231,United States
+180,Olkusz,Świętokrzyskie,26-382,United States
+181,Wałcz,Podkarpackie,88-812,United States
+182,Słupsk,Mazowieckie,24-367,United States
+183,Lubartów,Kujawsko-Pomorskie,67-517,United States
+184,Wyszków,Łódzkie,66-651,United States
+185,Tarnobrzeg,Pomorskie,68-075,United States
+186,Iława,Dolnośląskie,58-684,United States
+187,Rumia,Śląskie,33-776,United States
+188,Konin,Podlaskie,49-877,United States
+189,Nysa,Pomorskie,44-180,United States
+190,Radomsko,Świętokrzyskie,31-704,United States
+191,Augustów,Małopolskie,30-574,United States
+192,Poznań,Lubelskie,89-816,United States
+193,Lębork,Podkarpackie,98-520,United States
+194,Wrocław,Wielkopolskie,92-830,United States
+195,Iława,Dolnośląskie,91-677,United States
+196,Zamość,Opolskie,92-657,United States
+197,Świecie,Zachodniopomorskie,39-489,United States
+198,Kielce,Podkarpackie,75-400,United States
+199,Tomaszów Mazowiecki,Podkarpackie,71-947,United States
+200,Ostrowiec Świętokrzyski,Śląskie,20-159,United States
+201,Lubartów,Podlaskie,38-317,United States
+202,Lębork,Wielkopolskie,42-884,United States
+203,Tarnów,Małopolskie,38-354,United States
+204,Ruda Śląska,Kujawsko-Pomorskie,40-546,United States
+205,Ostrów Wielkopolski,Pomorskie,56-955,United States
+206,Skarżysko-Kamienna,Podlaskie,53-253,United States
+207,Tarnowskie Góry,Podkarpackie,13-508,United States
+208,Białogard,Łódzkie,87-360,United States
+209,Mysłowice,Mazowieckie,67-226,United States
+210,Jarocin,Świętokrzyskie,76-287,United States
+211,Łomża,Opolskie,10-145,United States
+212,Brzeg,Świętokrzyskie,11-586,United States
+213,Częstochowa,Opolskie,47-576,United States
+214,Giżycko,Pomorskie,42-592,United States
+215,Oława,Świętokrzyskie,21-945,United States
+216,Puławy,Świętokrzyskie,87-472,United States
+217,Łowicz,Małopolskie,36-274,United States
+218,Zgorzelec,Podkarpackie,04-298,United States
+219,Katowice,Dolnośląskie,98-726,United States
+220,Sopot,Śląskie,57-013,United States
+221,Wołomin,Lubuskie,67-328,United States
+222,Legnica,Łódzkie,07-733,United States
+223,Sandomierz,Kujawsko-Pomorskie,58-236,United States
+224,Katowice,Mazowieckie,99-198,United States
+225,Łowicz,Małopolskie,53-162,United States
+226,Nowa Ruda,Podlaskie,17-131,United States
+227,Inowrocław,Podlaskie,30-079,United States
+228,Będzin,Dolnośląskie,35-604,United States
+229,Sochaczew,Lubuskie,74-316,United States
+230,Marki,Podkarpackie,92-379,United States
+231,Łódź,Śląskie,66-772,United States
+232,Łuków,Wielkopolskie,49-314,United States
+233,Legnica,Zachodniopomorskie,40-719,United States
+234,Mińsk Mazowiecki,Podlaskie,18-502,United States
+235,Wodzisław Śląski,Lubelskie,49-458,United States
+236,Lublin,Zachodniopomorskie,23-206,United States
+237,Zakopane,Opolskie,10-028,United States
+238,Głogów,Dolnośląskie,68-822,United States
+239,Chorzów,Opolskie,01-844,United States
+240,Rumia,Zachodniopomorskie,45-742,United States
+241,Grodzisk Mazowiecki,Podlaskie,54-285,United States
+242,Grudziądz,Lubuskie,27-576,United States
+243,Starachowice,Dolnośląskie,30-869,United States
+244,Nowa Sól,Zachodniopomorskie,65-424,United States
+245,Zduńska Wola,Warmińsko-Mazurskie,56-516,United States
+246,Kraśnik,Lubuskie,73-293,United States
+247,Tomaszów Mazowiecki,Dolnośląskie,14-856,United States
+248,Jelenia Góra,Mazowieckie,60-773,United States
+249,Białogard,Małopolskie,18-463,United States
+250,Puławy,Podlaskie,52-680,United States
+251,Cieszyn,Łódzkie,64-441,United States
+252,Szczecin,Lubuskie,06-562,United States
+253,Wałcz,Zachodniopomorskie,84-728,United States
+254,Kościerzyna,Świętokrzyskie,64-420,United States
+255,Gorzów Wielkopolski,Dolnośląskie,57-599,United States
+256,Łuków,Świętokrzyskie,75-247,United States
+257,Gdynia,Warmińsko-Mazurskie,83-533,United States
+258,Jawor,Zachodniopomorskie,64-700,United States
+259,Nysa,Śląskie,29-762,United States
+260,Kielce,Podkarpackie,82-947,United States
+261,Piekary Śląskie,Zachodniopomorskie,47-067,United States
+262,Szczytno,Łódzkie,12-954,United States
+263,Bielsk Podlaski,Świętokrzyskie,63-021,United States
+264,Puławy,Łódzkie,99-798,United States
+265,Jasło,Pomorskie,51-899,United States
+266,Luboń,Podkarpackie,38-403,United States
+267,Stargard Szczeciński,Warmińsko-Mazurskie,03-579,United States
+268,Płock,Lubelskie,28-655,United States
+269,Krotoszyn,Podlaskie,93-525,United States
+270,Szczecinek,Śląskie,10-905,United States
+271,Ostrołęka,Zachodniopomorskie,19-088,United States
+272,Tczew,Zachodniopomorskie,02-064,United States
+273,Ząbki,Lubuskie,26-705,United States
+274,Suwałki,Podlaskie,27-305,United States
+275,Żary,Kujawsko-Pomorskie,88-760,United States
+276,Kluczbork,Podkarpackie,35-953,United States
+277,Dąbrowa Górnicza,Kujawsko-Pomorskie,72-677,United States
+278,Grodzisk Mazowiecki,Lubelskie,41-977,United States
+279,Kutno,Pomorskie,76-691,United States
+280,Kluczbork,Podlaskie,47-071,United States
+281,Ostrowiec Świętokrzyski,Zachodniopomorskie,48-625,United States
+282,Cieszyn,Małopolskie,80-168,United States
+283,Ełk,Świętokrzyskie,78-488,United States
+284,Biłgoraj,Świętokrzyskie,88-519,United States
+285,Kraśnik,Świętokrzyskie,46-303,United States
+286,Chrzanów,Śląskie,23-646,United States
+287,Tomaszów Mazowiecki,Lubelskie,46-374,United States
+288,Ostrowiec Świętokrzyski,Dolnośląskie,46-020,United States
+289,Brodnica,Opolskie,98-343,United States
+290,Dzierżoniów,Lubuskie,33-393,United States
+291,Augustów,Świętokrzyskie,82-018,United States
+292,Pruszcz Gdański,Mazowieckie,28-147,United States
+293,Kwidzyn,Zachodniopomorskie,38-347,United States
+294,Kutno,Śląskie,40-907,United States
+295,Skarżysko-Kamienna,Dolnośląskie,72-179,United States
+296,Rumia,Pomorskie,60-490,United States
+297,Koszalin,Lubelskie,85-757,United States
+298,Ząbki,Śląskie,25-419,United States
+299,Jarosław,Opolskie,70-623,United States
+300,Kalisz,Zachodniopomorskie,32-589,United States
+301,Bielawa,Warmińsko-Mazurskie,10-083,United States
+302,Chełm,Śląskie,32-354,United States
+303,Jasło,Lubuskie,98-180,United States
+304,Wejherowo,Małopolskie,39-959,United States
+305,Płońsk,Łódzkie,79-418,United States
+306,Piaseczno,Podkarpackie,70-096,United States
+307,Lębork,Podlaskie,96-436,United States
+308,Świdnik,Świętokrzyskie,37-831,United States
+309,Wałcz,Mazowieckie,02-029,United States
+310,Słupsk,Opolskie,16-992,United States
+311,Jarocin,Warmińsko-Mazurskie,76-335,United States
+312,Żagań,Lubelskie,85-325,United States
+313,Ciechanów,Świętokrzyskie,50-142,United States
+314,Oświęcim,Podkarpackie,66-831,United States
+315,Nowy Dwór Mazowiecki,Małopolskie,51-374,United States
+316,Nowa Sól,Opolskie,61-410,United States
+317,Marki,Świętokrzyskie,01-568,United States
+318,Oświęcim,Łódzkie,82-178,United States
+319,Lublin,Podlaskie,73-478,United States
+320,Chorzów,Warmińsko-Mazurskie,96-888,United States
+321,Pruszcz Gdański,Wielkopolskie,98-861,United States
+322,Ostróda,Wielkopolskie,82-525,United States
+323,Kościan,Mazowieckie,29-577,United States
+324,Iława,Pomorskie,11-204,United States
+325,Sandomierz,Łódzkie,28-289,United States
+326,Gdańsk,Zachodniopomorskie,64-495,United States
+327,Gorlice,Podlaskie,19-173,United States
+328,Mielec,Opolskie,27-271,United States
+329,Stalowa Wola,Wielkopolskie,61-373,United States
+330,Legnica,Wielkopolskie,62-340,United States
+331,Bytom,Pomorskie,96-756,United States
+332,Pabianice,Opolskie,26-520,United States
+333,Siedlce,Mazowieckie,88-679,United States
+334,Iława,Kujawsko-Pomorskie,70-406,United States
+335,Świebodzice,Łódzkie,03-174,United States
+336,Będzin,Dolnośląskie,16-351,United States
+337,Piła,Świętokrzyskie,80-932,United States
+338,Bydgoszcz,Śląskie,38-419,United States
+339,Chojnice,Zachodniopomorskie,06-649,United States
+340,Grudziądz,Mazowieckie,54-925,United States
+341,Warszawa,Śląskie,47-496,United States
+342,Nowy Targ,Łódzkie,92-553,United States
+343,Dąbrowa Górnicza,Małopolskie,52-211,United States
+344,Opole,Świętokrzyskie,98-842,United States
+345,Gniezno,Dolnośląskie,23-063,United States
+346,Zabrze,Warmińsko-Mazurskie,60-257,United States
+347,Grodzisk Mazowiecki,Zachodniopomorskie,87-253,United States
+348,Września,Mazowieckie,19-705,United States
+349,Luboń,Małopolskie,50-810,United States
+350,Łaziska Górne,Lubelskie,83-181,United States
+351,Piaseczno,Warmińsko-Mazurskie,29-785,United States
+352,Bochnia,Świętokrzyskie,16-512,United States
+353,Lębork,Podlaskie,08-361,United States
+354,Grudziądz,Małopolskie,53-695,United States
+355,Świebodzice,Zachodniopomorskie,60-374,United States
+356,Środa Wielkopolska,Śląskie,27-819,United States
+357,Gliwice,Świętokrzyskie,33-839,United States
+358,Sosnowiec,Pomorskie,93-096,United States
+359,Wejherowo,Lubuskie,71-833,United States
+360,Nowy Dwór Mazowiecki,Lubelskie,48-062,United States
+361,Goleniów,Podkarpackie,78-447,United States
+362,Olkusz,Kujawsko-Pomorskie,43-596,United States
+363,Będzin,Kujawsko-Pomorskie,97-631,United States
+364,Lubin,Świętokrzyskie,91-504,United States
+365,Kraków,Podkarpackie,74-696,United States
+366,Ostrów Mazowiecka,Wielkopolskie,20-160,United States
+367,Białogard,Podlaskie,16-172,United States
+368,Skarżysko-Kamienna,Opolskie,34-507,United States
+369,Szczytno,Zachodniopomorskie,97-043,United States
+370,Kościan,Podlaskie,69-659,United States
+371,Police,Lubuskie,03-083,United States
+372,Bielsko-Biała,Śląskie,71-109,United States
+373,Łowicz,Małopolskie,88-025,United States
+374,Żary,Lubuskie,69-799,United States
+375,Inowrocław,Wielkopolskie,54-885,United States
+376,Tarnowskie Góry,Lubelskie,98-651,United States
+377,Legionowo,Podkarpackie,76-987,United States
+378,Środa Wielkopolska,Pomorskie,52-716,United States
+379,Lublin,Lubelskie,61-459,United States
+380,Nowy Dwór Mazowiecki,Zachodniopomorskie,78-342,United States
+381,Olkusz,Lubelskie,18-849,United States
+382,Czeladź,Opolskie,54-852,United States
+383,Świnoujście,Zachodniopomorskie,85-154,United States
+384,Zamość,Wielkopolskie,47-624,United States
+385,Zielona Góra,Wielkopolskie,94-780,United States
+386,Jarocin,Łódzkie,72-587,United States
+387,Sieradz,Pomorskie,63-561,United States
+388,Warszawa,Warmińsko-Mazurskie,64-983,United States
+389,Brzeg,Podkarpackie,89-491,United States
+390,Sieradz,Wielkopolskie,01-763,United States
+391,Ząbki,Świętokrzyskie,77-649,United States
+392,Starachowice,Lubuskie,35-847,United States
+393,Wieluń,Opolskie,31-625,United States
+394,Oświęcim,Lubelskie,51-967,United States
+395,Jelenia Góra,Podkarpackie,14-194,United States
+396,Ostróda,Podlaskie,82-385,United States
+397,Kętrzyn,Śląskie,47-090,United States
+398,Koszalin,Pomorskie,12-679,United States
+399,Jawor,Lubuskie,35-643,United States
+400,Sanok,Dolnośląskie,74-289,United States
+401,Sosnowiec,Dolnośląskie,54-883,United States
+402,Otwock,Lubuskie,74-132,United States
+403,Police,Łódzkie,45-561,United States
+404,Zawiercie,Dolnośląskie,75-712,United States
+405,Świecie,Opolskie,37-013,United States
+406,Ostrołęka,Łódzkie,98-681,United States
+407,Kielce,Wielkopolskie,77-016,United States
+408,Sieradz,Łódzkie,80-150,United States
+409,Kętrzyn,Mazowieckie,17-691,United States
+410,Bielsk Podlaski,Kujawsko-Pomorskie,75-883,United States
+411,Żagań,Lubelskie,13-312,United States
+412,Sieradz,Opolskie,46-140,United States
+413,Łódź,Lubelskie,82-095,United States
+414,Środa Wielkopolska,Zachodniopomorskie,45-512,United States
+415,Nowy Sącz,Zachodniopomorskie,24-305,United States
+416,Ostrołęka,Mazowieckie,06-100,United States
+417,Leszno,Opolskie,70-320,United States
+418,Wieluń,Wielkopolskie,65-665,United States
+419,Goleniów,Lubuskie,67-960,United States
+420,Nysa,Warmińsko-Mazurskie,86-545,United States
+421,Jastrzębie-Zdrój,Lubuskie,44-141,United States
+422,Jaworzno,Lubelskie,16-571,United States
+423,Grudziądz,Lubelskie,11-107,United States
+424,Lębork,Śląskie,24-814,United States
+425,Świdnik,Łódzkie,94-149,United States
+426,Lubliniec,Świętokrzyskie,07-574,United States
+427,Białystok,Warmińsko-Mazurskie,99-444,United States
+428,Nowy Dwór Mazowiecki,Śląskie,92-143,United States
+429,Rybnik,Warmińsko-Mazurskie,49-749,United States
+430,Jarocin,Dolnośląskie,68-334,United States
+431,Chojnice,Mazowieckie,38-565,United States
+432,Płońsk,Łódzkie,84-168,United States
+433,Krosno,Opolskie,37-807,United States
+434,Śrem,Zachodniopomorskie,56-546,United States
+435,Grudziądz,Wielkopolskie,13-800,United States
+436,Szczecin,Warmińsko-Mazurskie,61-600,United States
+437,Będzin,Podkarpackie,53-414,United States
+438,Nowy Targ,Pomorskie,72-462,United States
+439,Inowrocław,Świętokrzyskie,59-986,United States
+440,Gdynia,Małopolskie,45-145,United States
+441,Mińsk Mazowiecki,Łódzkie,57-887,United States
+442,Konin,Podkarpackie,13-509,United States
+443,Sandomierz,Podkarpackie,25-594,United States
+444,Kętrzyn,Mazowieckie,74-546,United States
+445,Starogard Gdański,Wielkopolskie,20-813,United States
+446,Ełk,Świętokrzyskie,62-793,United States
+447,Malbork,Pomorskie,99-474,United States
+448,Śrem,Dolnośląskie,23-525,United States
+449,Lubartów,Łódzkie,88-446,United States
+450,Częstochowa,Podlaskie,58-518,United States
+451,Swarzędz,Kujawsko-Pomorskie,73-885,United States
+452,Rybnik,Kujawsko-Pomorskie,86-570,United States
+453,Iława,Zachodniopomorskie,89-155,United States
+454,Ząbki,Mazowieckie,84-840,United States
+455,Wałcz,Dolnośląskie,88-538,United States
+456,Toruń,Kujawsko-Pomorskie,60-435,United States
+457,Reda,Świętokrzyskie,62-455,United States
+458,Świętochłowice,Śląskie,59-067,United States
+459,Chełm,Kujawsko-Pomorskie,24-143,United States
+460,Koszalin,Lubelskie,51-843,United States
+461,Białystok,Małopolskie,86-753,United States
+462,Lębork,Pomorskie,11-788,United States
+463,Jawor,Śląskie,19-919,United States
+464,Bielsk Podlaski,Małopolskie,88-215,United States
+465,Siemianowice Śląskie,Podkarpackie,63-924,United States
+466,Bytom,Zachodniopomorskie,78-126,United States
+467,Kędzierzyn-Koźle,Mazowieckie,72-215,United States
+468,Kłodzko,Zachodniopomorskie,51-395,United States
+469,Bolesławiec,Śląskie,32-060,United States
+470,Kłodzko,Pomorskie,64-507,United States
+471,Oława,Lubuskie,22-592,United States
+472,Chorzów,Łódzkie,65-145,United States
+473,Kłodzko,Świętokrzyskie,64-178,United States
+474,Tarnobrzeg,Śląskie,25-453,United States
+475,Szczecinek,Świętokrzyskie,48-215,United States
+476,Płock,Dolnośląskie,35-063,United States
+477,Oleśnica,Pomorskie,24-739,United States
+478,Inowrocław,Śląskie,96-973,United States
+479,Łódź,Warmińsko-Mazurskie,34-139,United States
+480,Gdańsk,Podkarpackie,86-029,United States
+481,Świecie,Pomorskie,20-934,United States
+482,Turek,Warmińsko-Mazurskie,06-242,United States
+483,Ciechanów,Wielkopolskie,83-739,United States
+484,Bydgoszcz,Wielkopolskie,91-965,United States
+485,Kościan,Mazowieckie,04-449,United States
+486,Jastrzębie-Zdrój,Mazowieckie,74-006,United States
+487,Skarżysko-Kamienna,Pomorskie,70-526,United States
+488,Jastrzębie-Zdrój,Pomorskie,99-252,United States
+489,Płońsk,Wielkopolskie,44-047,United States
+490,Zgorzelec,Mazowieckie,18-876,United States
+491,Giżycko,Lubuskie,61-786,United States
+492,Ostrołęka,Wielkopolskie,86-337,United States
+493,Głogów,Małopolskie,94-015,United States
+494,Gdańsk,Łódzkie,72-115,United States
+495,Piła,Mazowieckie,61-730,United States
+496,Nowy Sącz,Podlaskie,63-848,United States
+497,Czechowice-Dziedzice,Warmińsko-Mazurskie,21-628,United States
+498,Zielona Góra,Podlaskie,68-727,United States
+499,Krosno,Podlaskie,91-774,United States
+500,Białogard,Lubelskie,04-270,United States
+501,Żory,Pomorskie,91-890,United States
+502,Piotrków Trybunalski,Mazowieckie,15-173,United States
+503,Pruszków,Opolskie,37-393,United States
+504,Ostrów Wielkopolski,Lubuskie,06-088,United States
+505,Starogard Gdański,Mazowieckie,01-655,United States
+506,Świdnica,Lubelskie,81-134,United States
+507,Skierniewice,Lubuskie,06-642,United States
+508,Dąbrowa Górnicza,Wielkopolskie,31-561,United States
+509,Rybnik,Śląskie,51-158,United States
+510,Radom,Podlaskie,83-594,United States
+511,Mysłowice,Wielkopolskie,37-978,United States
+512,Stalowa Wola,Lubuskie,70-418,United States
+513,Kluczbork,Świętokrzyskie,32-355,United States
+514,Zduńska Wola,Świętokrzyskie,56-151,United States
+515,Łowicz,Świętokrzyskie,18-342,United States
+516,Czechowice-Dziedzice,Mazowieckie,92-221,United States
+517,Nowy Targ,Lubuskie,40-419,United States
+518,Pszczyna,Lubelskie,35-276,United States
+519,Radomsko,Śląskie,42-658,United States
+520,Piotrków Trybunalski,Pomorskie,44-227,United States
+521,Konin,Podlaskie,09-914,United States
+522,Zabrze,Świętokrzyskie,28-788,United States
+523,Oświęcim,Kujawsko-Pomorskie,54-570,United States
+524,Sanok,Lubuskie,65-848,United States
+525,Mikołów,Świętokrzyskie,33-351,United States
+526,Pszczyna,Łódzkie,86-351,United States
+527,Września,Zachodniopomorskie,11-859,United States
+528,Gliwice,Pomorskie,63-344,United States
+529,Brodnica,Śląskie,80-928,United States
+530,Bolesławiec,Lubelskie,77-499,United States
+531,Pruszków,Małopolskie,69-689,United States
+532,Kościerzyna,Mazowieckie,75-954,United States
+533,Kutno,Łódzkie,49-078,United States
+534,Bolesławiec,Lubelskie,56-473,United States
+535,Pszczyna,Dolnośląskie,88-935,United States
+536,Łomża,Mazowieckie,02-374,United States
+537,Mikołów,Lubuskie,12-173,United States
+538,Tarnobrzeg,Zachodniopomorskie,37-276,United States
+539,Mielec,Kujawsko-Pomorskie,67-809,United States
+540,Żagań,Opolskie,39-116,United States
+541,Zamość,Opolskie,51-296,United States
+542,Dąbrowa Górnicza,Pomorskie,40-989,United States
+543,Kościan,Zachodniopomorskie,92-796,United States
+544,Police,Świętokrzyskie,76-881,United States
+545,Jarocin,Podkarpackie,40-165,United States
+546,Toruń,Wielkopolskie,41-835,United States
+547,Poznań,Pomorskie,69-663,United States
+548,Łowicz,Lubuskie,29-476,United States
+549,Zgorzelec,Małopolskie,70-262,United States
+550,Dębica,Opolskie,42-286,United States
+551,Będzin,Łódzkie,17-200,United States
+552,Nowy Sącz,Zachodniopomorskie,35-479,United States
+553,Iława,Świętokrzyskie,99-481,United States
+554,Wejherowo,Zachodniopomorskie,51-084,United States
+555,Kościerzyna,Małopolskie,50-363,United States
+556,Ciechanów,Łódzkie,71-979,United States
+557,Chojnice,Opolskie,88-300,United States
+558,Częstochowa,Podkarpackie,89-472,United States
+559,Cieszyn,Lubelskie,68-909,United States
+560,Łuków,Pomorskie,60-794,United States
+561,Sandomierz,Mazowieckie,33-856,United States
+562,Starogard Gdański,Pomorskie,01-293,United States
+563,Goleniów,Śląskie,85-340,United States
+564,Katowice,Podkarpackie,61-116,United States
+565,Świętochłowice,Mazowieckie,52-442,United States
+566,Piastów,Warmińsko-Mazurskie,62-323,United States
+567,Świebodzice,Wielkopolskie,46-095,United States
+568,Pruszków,Dolnośląskie,58-986,United States
+569,Grodzisk Mazowiecki,Łódzkie,39-991,United States
+570,Lubin,Kujawsko-Pomorskie,06-569,United States
+571,Wieluń,Wielkopolskie,56-514,United States
+572,Śrem,Opolskie,50-446,United States
+573,Jelenia Góra,Dolnośląskie,84-692,United States
+574,Dzierżoniów,Warmińsko-Mazurskie,54-022,United States
+575,Starachowice,Łódzkie,05-718,United States
+576,Inowrocław,Podkarpackie,27-455,United States
+577,Gniezno,Kujawsko-Pomorskie,37-083,United States
+578,Mikołów,Łódzkie,13-967,United States
+579,Ełk,Małopolskie,96-308,United States
+580,Bielawa,Śląskie,63-251,United States
+581,Koszalin,Łódzkie,05-461,United States
+582,Bochnia,Kujawsko-Pomorskie,92-947,United States
+583,Jasło,Zachodniopomorskie,65-089,United States
+584,Inowrocław,Podkarpackie,82-065,United States
+585,Turek,Małopolskie,35-434,United States
+586,Zambrów,Łódzkie,02-062,United States
+587,Starachowice,Małopolskie,95-914,United States
+588,Rybnik,Świętokrzyskie,72-166,United States
+589,Żary,Małopolskie,12-064,United States
+590,Świdnica,Podkarpackie,20-720,United States
+591,Nowa Sól,Warmińsko-Mazurskie,66-196,United States
+592,Warszawa,Lubuskie,29-747,United States
+593,Zakopane,Warmińsko-Mazurskie,72-579,United States
+594,Iława,Lubuskie,42-866,United States
+595,Świnoujście,Kujawsko-Pomorskie,44-092,United States
+596,Jastrzębie-Zdrój,Lubelskie,46-539,United States
+597,Żory,Opolskie,06-707,United States
+598,Koło,Mazowieckie,82-087,United States
+599,Wejherowo,Śląskie,19-517,United States
+600,Kołobrzeg,Małopolskie,10-677,United States
+601,Chorzów,Mazowieckie,56-158,United States
+602,Bytom,Wielkopolskie,41-901,United States
+603,Świecie,Świętokrzyskie,27-392,United States
+604,Legnica,Pomorskie,40-958,United States
+605,Świecie,Wielkopolskie,51-062,United States
+606,Chrzanów,Łódzkie,56-408,United States
+607,Bielsko-Biała,Małopolskie,15-820,United States
+608,Dębica,Podkarpackie,99-276,United States
+609,Tarnobrzeg,Lubelskie,94-724,United States
+610,Ostrów Mazowiecka,Mazowieckie,40-065,United States
+611,Konin,Świętokrzyskie,99-733,United States
+612,Leszno,Mazowieckie,88-625,United States
+613,Bielsko-Biała,Podlaskie,82-830,United States
+614,Ruda Śląska,Wielkopolskie,20-727,United States
+615,Gdynia,Podkarpackie,87-665,United States
+616,Sanok,Świętokrzyskie,69-621,United States
+617,Brodnica,Dolnośląskie,66-276,United States
+618,Rumia,Kujawsko-Pomorskie,73-185,United States
+619,Skierniewice,Dolnośląskie,09-132,United States
+620,Stargard Szczeciński,Pomorskie,22-366,United States
+621,Warszawa,Zachodniopomorskie,41-165,United States
+622,Jaworzno,Zachodniopomorskie,18-968,United States
+623,Siemianowice Śląskie,Wielkopolskie,75-728,United States
+624,Kętrzyn,Lubuskie,41-085,United States
+625,Piotrków Trybunalski,Lubelskie,92-629,United States
+626,Kalisz,Warmińsko-Mazurskie,94-570,United States
+627,Kielce,Pomorskie,64-027,United States
+628,Ciechanów,Podkarpackie,92-737,United States
+629,Sieradz,Warmińsko-Mazurskie,53-013,United States
+630,Kielce,Podlaskie,80-195,United States
+631,Pszczyna,Dolnośląskie,41-340,United States
+632,Tarnów,Pomorskie,01-984,United States
+633,Myszków,Mazowieckie,94-930,United States
+634,Kętrzyn,Śląskie,70-499,United States
+635,Lubliniec,Mazowieckie,69-902,United States
+636,Starogard Gdański,Łódzkie,11-950,United States
+637,Włocławek,Kujawsko-Pomorskie,11-686,United States
+638,Mielec,Mazowieckie,53-987,United States
+639,Września,Lubuskie,70-501,United States
+640,Bielsk Podlaski,Łódzkie,42-885,United States
+641,Opole,Śląskie,79-539,United States
+642,Chełm,Wielkopolskie,12-586,United States
+643,Malbork,Świętokrzyskie,32-959,United States
+644,Chorzów,Zachodniopomorskie,50-602,United States
+645,Stalowa Wola,Podlaskie,34-014,United States
+646,Radomsko,Warmińsko-Mazurskie,36-428,United States
+647,Turek,Opolskie,06-401,United States
+648,Iława,Podlaskie,31-337,United States
+649,Legnica,Zachodniopomorskie,78-171,United States
+650,Środa Wielkopolska,Podkarpackie,50-602,United States
+651,Czechowice-Dziedzice,Wielkopolskie,65-060,United States
+652,Zduńska Wola,Łódzkie,67-228,United States
+653,Olsztyn,Podlaskie,33-749,United States
+654,Giżycko,Mazowieckie,09-895,United States
+655,Opole,Podkarpackie,34-294,United States
+656,Września,Pomorskie,35-129,United States
+657,Zgorzelec,Małopolskie,27-231,United States
+658,Wodzisław Śląski,Podlaskie,07-607,United States
+659,Luboń,Kujawsko-Pomorskie,42-980,United States
+660,Biała Podlaska,Zachodniopomorskie,62-743,United States
+661,Szczecinek,Opolskie,40-984,United States
+662,Ostrołęka,Kujawsko-Pomorskie,06-446,United States
+663,Bełchatów,Podlaskie,79-961,United States
+664,Ostrów Mazowiecka,Łódzkie,89-980,United States
+665,Lubin,Warmińsko-Mazurskie,13-441,United States
+666,Police,Świętokrzyskie,46-069,United States
+667,Ciechanów,Opolskie,20-649,United States
+668,Krotoszyn,Kujawsko-Pomorskie,41-046,United States
+669,Mielec,Lubelskie,52-272,United States
+670,Cieszyn,Świętokrzyskie,98-542,United States
+671,Turek,Łódzkie,16-957,United States
+672,Ząbki,Łódzkie,26-443,United States
+673,Turek,Świętokrzyskie,59-589,United States
+674,Września,Pomorskie,49-818,United States
+675,Inowrocław,Opolskie,74-703,United States
+676,Dzierżoniów,Świętokrzyskie,41-158,United States
+677,Puławy,Świętokrzyskie,38-284,United States
+678,Gniezno,Kujawsko-Pomorskie,55-069,United States
+679,Gorzów Wielkopolski,Podkarpackie,22-918,United States
+680,Ostrów Mazowiecka,Wielkopolskie,24-561,United States
+681,Zielona Góra,Podkarpackie,51-158,United States
+682,Zambrów,Wielkopolskie,16-724,United States
+683,Myszków,Podlaskie,41-117,United States
+684,Sosnowiec,Łódzkie,60-711,United States
+685,Leszno,Pomorskie,25-279,United States
+686,Chojnice,Lubelskie,38-265,United States
+687,Rumia,Mazowieckie,40-938,United States
+688,Przemyśl,Podlaskie,17-611,United States
+689,Wyszków,Dolnośląskie,84-667,United States
+690,Zambrów,Pomorskie,43-967,United States
+691,Ostróda,Lubuskie,42-451,United States
+692,Grodzisk Mazowiecki,Wielkopolskie,97-598,United States
+693,Kraśnik,Dolnośląskie,46-557,United States
+694,Szczytno,Mazowieckie,34-224,United States
+695,Żywiec,Podkarpackie,93-908,United States
+696,Kraśnik,Małopolskie,49-037,United States
+697,Świebodzice,Lubelskie,24-079,United States
+698,Sieradz,Kujawsko-Pomorskie,76-781,United States
+699,Piotrków Trybunalski,Zachodniopomorskie,85-371,United States
+700,Świnoujście,Podkarpackie,15-358,United States
+701,Warszawa,Lubelskie,58-320,United States
+702,Szczytno,Opolskie,13-672,United States
+703,Szczytno,Dolnośląskie,12-215,United States
+704,Kutno,Wielkopolskie,62-019,United States
+705,Zielona Góra,Opolskie,02-402,United States
+706,Chrzanów,Dolnośląskie,92-608,United States
+707,Żory,Warmińsko-Mazurskie,35-294,United States
+708,Ciechanów,Lubelskie,09-873,United States
+709,Chełm,Łódzkie,52-873,United States
+710,Kutno,Podlaskie,07-412,United States
+711,Tczew,Śląskie,39-304,United States
+712,Tomaszów Mazowiecki,Pomorskie,01-017,United States
+713,Malbork,Zachodniopomorskie,45-630,United States
+714,Nowy Targ,Podkarpackie,66-586,United States
+715,Gorzów Wielkopolski,Opolskie,46-819,United States
+716,Siedlce,Warmińsko-Mazurskie,62-245,United States
+717,Nowa Sól,Lubuskie,04-677,United States
+718,Bielsk Podlaski,Łódzkie,03-115,United States
+719,Gniezno,Mazowieckie,16-551,United States
+720,Wodzisław Śląski,Kujawsko-Pomorskie,64-409,United States
+721,Wodzisław Śląski,Zachodniopomorskie,52-929,United States
+722,Jelenia Góra,Podkarpackie,36-395,United States
+723,Bydgoszcz,Lubuskie,80-111,United States
+724,Krotoszyn,Opolskie,15-188,United States
+725,Piotrków Trybunalski,Podkarpackie,87-248,United States
+726,Płock,Śląskie,20-318,United States
+727,Wągrowiec,Łódzkie,30-435,United States
+728,Sosnowiec,Zachodniopomorskie,96-895,United States
+729,Ostrów Wielkopolski,Śląskie,96-268,United States
+730,Brodnica,Lubuskie,57-681,United States
+731,Dębica,Świętokrzyskie,69-957,United States
+732,Jastrzębie-Zdrój,Wielkopolskie,19-832,United States
+733,Nowy Sącz,Pomorskie,69-351,United States
+734,Jarosław,Kujawsko-Pomorskie,50-141,United States
+735,Grudziądz,Wielkopolskie,54-216,United States
+736,Wrocław,Lubelskie,73-154,United States
+737,Żywiec,Kujawsko-Pomorskie,67-527,United States
+738,Rzeszów,Wielkopolskie,73-036,United States
+739,Świdnik,Śląskie,29-918,United States
+740,Gorlice,Podlaskie,64-090,United States
+741,Pszczyna,Podkarpackie,43-404,United States
+742,Mińsk Mazowiecki,Mazowieckie,96-576,United States
+743,Lubliniec,Dolnośląskie,22-391,United States
+744,Mława,Opolskie,15-322,United States
+745,Marki,Wielkopolskie,72-737,United States
+746,Biała Podlaska,Świętokrzyskie,74-646,United States
+747,Gliwice,Podlaskie,28-352,United States
+748,Olkusz,Zachodniopomorskie,28-236,United States
+749,Płońsk,Wielkopolskie,60-301,United States
+750,Iława,Lubuskie,27-682,United States
+751,Radomsko,Łódzkie,60-640,United States
+752,Pszczyna,Podkarpackie,55-677,United States
+753,Bydgoszcz,Zachodniopomorskie,13-579,United States
+754,Otwock,Lubuskie,34-856,United States
+755,Radom,Lubuskie,72-446,United States
+756,Żory,Świętokrzyskie,68-691,United States
+757,Skierniewice,Opolskie,91-980,United States
+758,Polkowice,Pomorskie,28-045,United States
+759,Cieszyn,Wielkopolskie,45-636,United States
+760,Oleśnica,Dolnośląskie,06-915,United States
+761,Włocławek,Zachodniopomorskie,26-331,United States
+762,Lublin,Lubelskie,98-459,United States
+763,Rzeszów,Świętokrzyskie,89-921,United States
+764,Łowicz,Świętokrzyskie,31-911,United States
+765,Łódź,Lubuskie,49-096,United States
+766,Poznań,Dolnośląskie,38-349,United States
+767,Płock,Wielkopolskie,77-727,United States
+768,Wałbrzych,Podlaskie,25-240,United States
+769,Stalowa Wola,Zachodniopomorskie,19-222,United States
+770,Wyszków,Lubelskie,50-151,United States
+771,Giżycko,Podlaskie,81-066,United States
+772,Płock,Lubelskie,62-012,United States
+773,Grodzisk Mazowiecki,Dolnośląskie,50-981,United States
+774,Racibórz,Podlaskie,10-558,United States
+775,Żary,Śląskie,47-285,United States
+776,Żywiec,Mazowieckie,29-507,United States
+777,Bełchatów,Lubuskie,64-581,United States
+778,Biała Podlaska,Pomorskie,92-044,United States
+779,Szczytno,Lubelskie,15-106,United States
+780,Będzin,Zachodniopomorskie,55-928,United States
+781,Częstochowa,Łódzkie,79-758,United States
+782,Wałbrzych,Wielkopolskie,14-760,United States
+783,Bielsko-Biała,Dolnośląskie,08-464,United States
+784,Przemyśl,Podkarpackie,56-023,United States
+785,Sochaczew,Podkarpackie,94-452,United States
+786,Bochnia,Łódzkie,48-847,United States
+787,Tomaszów Mazowiecki,Kujawsko-Pomorskie,05-921,United States
+788,Pruszków,Kujawsko-Pomorskie,10-502,United States
+789,Kutno,Łódzkie,87-210,United States
+790,Włocławek,Podlaskie,94-234,United States
+791,Łuków,Kujawsko-Pomorskie,38-723,United States
+792,Oświęcim,Opolskie,69-268,United States
+793,Skierniewice,Wielkopolskie,53-606,United States
+794,Zambrów,Pomorskie,75-799,United States
+795,Płock,Świętokrzyskie,43-081,United States
+796,Mińsk Mazowiecki,Lubelskie,89-791,United States
+797,Żywiec,Pomorskie,32-121,United States
+798,Bartoszyce,Małopolskie,59-487,United States
+799,Kościerzyna,Wielkopolskie,82-871,United States
+800,Kalisz,Podkarpackie,90-495,United States
+801,Sanok,Wielkopolskie,18-287,United States
+802,Grudziądz,Podlaskie,55-762,United States
+803,Świnoujście,Lubuskie,26-093,United States
+804,Lębork,Pomorskie,79-604,United States
+805,Ząbki,Podlaskie,61-511,United States
+806,Siemianowice Śląskie,Podkarpackie,13-100,United States
+807,Gdynia,Opolskie,83-838,United States
+808,Piaseczno,Lubelskie,11-826,United States
+809,Wejherowo,Świętokrzyskie,15-353,United States
+810,Chrzanów,Dolnośląskie,48-852,United States
+811,Goleniów,Kujawsko-Pomorskie,59-115,United States
+812,Konin,Małopolskie,35-596,United States
+813,Reda,Podlaskie,83-928,United States
+814,Wołomin,Pomorskie,79-225,United States
+815,Świdnik,Podlaskie,21-862,United States
+816,Pruszków,Zachodniopomorskie,32-727,United States
+817,Łódź,Śląskie,91-030,United States
+818,Żary,Wielkopolskie,92-499,United States
+819,Siedlce,Lubelskie,37-590,United States
+820,Włocławek,Podlaskie,14-238,United States
+821,Żory,Śląskie,49-468,United States
+822,Wieluń,Pomorskie,10-766,United States
+823,Radomsko,Kujawsko-Pomorskie,13-944,United States
+824,Starogard Gdański,Podkarpackie,06-880,United States
+825,Gniezno,Lubuskie,88-155,United States
+826,Płońsk,Podlaskie,44-894,United States
+827,Kościerzyna,Opolskie,46-965,United States
+828,Biała Podlaska,Małopolskie,19-162,United States
+829,Kluczbork,Małopolskie,93-919,United States
+830,Brzeg,Podkarpackie,87-697,United States
+831,Wałbrzych,Wielkopolskie,31-984,United States
+832,Piaseczno,Opolskie,76-805,United States
+833,Jelenia Góra,Podkarpackie,77-188,United States
+834,Kościan,Łódzkie,10-189,United States
+835,Dzierżoniów,Łódzkie,52-909,United States
+836,Przemyśl,Opolskie,39-788,United States
+837,Starogard Gdański,Wielkopolskie,45-958,United States
+838,Płońsk,Podlaskie,81-297,United States
+839,Police,Łódzkie,27-644,United States
+840,Sieradz,Warmińsko-Mazurskie,57-923,United States
+841,Iława,Zachodniopomorskie,85-591,United States
+842,Otwock,Podlaskie,06-778,United States
+843,Legnica,Śląskie,97-662,United States
+844,Sochaczew,Opolskie,07-370,United States
+845,Skawina,Warmińsko-Mazurskie,43-279,United States
+846,Brodnica,Dolnośląskie,62-060,United States
+847,Radom,Lubelskie,28-275,United States
+848,Pabianice,Świętokrzyskie,85-107,United States
+849,Rzeszów,Lubelskie,72-881,United States
+850,Nysa,Opolskie,08-377,United States
+851,Szczecin,Pomorskie,97-702,United States
+852,Głogów,Kujawsko-Pomorskie,62-041,United States
+853,Biała Podlaska,Dolnośląskie,51-273,United States
+854,Opole,Małopolskie,73-655,United States
+855,Gdynia,Podlaskie,29-909,United States
+856,Tarnowskie Góry,Wielkopolskie,76-099,United States
+857,Pszczyna,Wielkopolskie,41-722,United States
+858,Starogard Gdański,Świętokrzyskie,41-872,United States
+859,Żyrardów,Lubelskie,28-746,United States
+860,Konin,Świętokrzyskie,08-358,United States
+861,Ostróda,Opolskie,32-390,United States
+862,Mikołów,Wielkopolskie,96-123,United States
+863,Puławy,Podlaskie,66-876,United States
+864,Marki,Dolnośląskie,79-599,United States
+865,Oleśnica,Śląskie,63-793,United States
+866,Lubartów,Podlaskie,35-572,United States
+867,Kraśnik,Podkarpackie,14-436,United States
+868,Rzeszów,Opolskie,47-450,United States
+869,Łaziska Górne,Świętokrzyskie,23-485,United States
+870,Gorlice,Kujawsko-Pomorskie,07-823,United States
+871,Otwock,Małopolskie,46-719,United States
+872,Świdnica,Dolnośląskie,63-051,United States
+873,Nowa Sól,Kujawsko-Pomorskie,48-250,United States
+874,Koło,Łódzkie,29-086,United States
+875,Łódź,Śląskie,31-566,United States
+876,Świebodzice,Kujawsko-Pomorskie,09-736,United States
+877,Łuków,Świętokrzyskie,24-878,United States
+878,Wieluń,Pomorskie,62-040,United States
+879,Skierniewice,Dolnośląskie,71-827,United States
+880,Czechowice-Dziedzice,Łódzkie,83-521,United States
+881,Świdnica,Lubelskie,11-933,United States
+882,Gdańsk,Kujawsko-Pomorskie,44-921,United States
+883,Sopot,Podkarpackie,82-823,United States
+884,Sopot,Pomorskie,70-326,United States
+885,Kutno,Podlaskie,39-091,United States
+886,Rumia,Zachodniopomorskie,13-098,United States
+887,Żory,Dolnośląskie,69-938,United States
+888,Brodnica,Mazowieckie,52-547,United States
+889,Sieradz,Mazowieckie,87-593,United States
+890,Czerwionka-Leszczyny,Łódzkie,82-245,United States
+891,Świnoujście,Pomorskie,83-587,United States
+892,Świnoujście,Podlaskie,22-297,United States
+893,Jaworzno,Małopolskie,31-054,United States
+894,Olkusz,Łódzkie,65-744,United States
+895,Katowice,Lubuskie,08-473,United States
+896,Kościerzyna,Podlaskie,40-159,United States
+897,Mława,Lubuskie,69-880,United States
+898,Ząbki,Opolskie,63-840,United States
+899,Tomaszów Mazowiecki,Śląskie,81-062,United States
+900,Leszno,Mazowieckie,41-814,United States
+901,Nowy Targ,Opolskie,65-542,United States
+902,Kłodzko,Mazowieckie,75-213,United States
+903,Grodzisk Mazowiecki,Łódzkie,56-273,United States
+904,Jastrzębie-Zdrój,Pomorskie,39-005,United States
+905,Nowa Ruda,Świętokrzyskie,08-276,United States
+906,Kalisz,Zachodniopomorskie,80-273,United States
+907,Czerwionka-Leszczyny,Dolnośląskie,03-020,United States
+908,Świdnica,Dolnośląskie,26-662,United States
+909,Szczecin,Podkarpackie,77-871,United States
+910,Turek,Lubelskie,96-576,United States
+911,Nowy Sącz,Wielkopolskie,48-748,United States
+912,Zgierz,Pomorskie,16-687,United States
+913,Świdnica,Lubuskie,04-660,United States
+914,Żyrardów,Warmińsko-Mazurskie,66-537,United States
+915,Słupsk,Lubelskie,63-682,United States
+916,Nowy Dwór Mazowiecki,Warmińsko-Mazurskie,23-443,United States
+917,Tarnów,Lubuskie,11-836,United States
+918,Żagań,Mazowieckie,10-457,United States
+919,Białystok,Warmińsko-Mazurskie,29-572,United States
+920,Biłgoraj,Zachodniopomorskie,97-811,United States
+921,Legnica,Małopolskie,10-990,United States
+922,Rybnik,Wielkopolskie,07-304,United States
+923,Dębica,Lubuskie,01-613,United States
+924,Jawor,Zachodniopomorskie,44-721,United States
+925,Brzeg,Podlaskie,86-986,United States
+926,Jaworzno,Śląskie,05-296,United States
+927,Grodzisk Mazowiecki,Podkarpackie,43-065,United States
+928,Stalowa Wola,Świętokrzyskie,71-366,United States
+929,Suwałki,Opolskie,15-317,United States
+930,Zawiercie,Łódzkie,22-023,United States
+931,Myszków,Świętokrzyskie,96-016,United States
+932,Malbork,Dolnośląskie,31-398,United States
+933,Swarzędz,Warmińsko-Mazurskie,92-206,United States
+934,Gdynia,Małopolskie,25-508,United States
+935,Lubin,Mazowieckie,79-404,United States
+936,Brodnica,Wielkopolskie,68-077,United States
+937,Ostrowiec Świętokrzyski,Łódzkie,86-753,United States
+938,Racibórz,Pomorskie,01-274,United States
+939,Nowa Sól,Małopolskie,03-676,United States
+940,Iława,Opolskie,47-762,United States
+941,Nowy Sącz,Kujawsko-Pomorskie,85-934,United States
+942,Marki,Dolnośląskie,41-048,United States
+943,Nowy Dwór Mazowiecki,Podlaskie,38-967,United States
+944,Opole,Opolskie,29-822,United States
+945,Rybnik,Dolnośląskie,43-831,United States
+946,Sieradz,Kujawsko-Pomorskie,56-681,United States
+947,Zduńska Wola,Pomorskie,60-711,United States
+948,Wągrowiec,Podlaskie,14-985,United States
+949,Jawor,Dolnośląskie,08-789,United States
+950,Radomsko,Podkarpackie,27-556,United States
+951,Pabianice,Małopolskie,86-336,United States
+952,Puławy,Zachodniopomorskie,49-758,United States
+953,Żywiec,Łódzkie,13-526,United States
+954,Pszczyna,Opolskie,49-352,United States
+955,Chełm,Wielkopolskie,53-508,United States
+956,Knurów,Dolnośląskie,76-867,United States
+957,Oława,Pomorskie,37-014,United States
+958,Zambrów,Lubelskie,45-289,United States
+959,Police,Małopolskie,60-515,United States
+960,Cieszyn,Lubelskie,50-936,United States
+961,Stalowa Wola,Lubuskie,72-082,United States
+962,Cieszyn,Śląskie,35-212,United States
+963,Olkusz,Śląskie,02-172,United States
+964,Jastrzębie-Zdrój,Kujawsko-Pomorskie,21-738,United States
+965,Stargard Szczeciński,Łódzkie,37-433,United States
+966,Oleśnica,Podlaskie,98-170,United States
+967,Gniezno,Podlaskie,70-446,United States
+968,Wrocław,Małopolskie,42-269,United States
+969,Stargard Szczeciński,Podkarpackie,53-872,United States
+970,Lublin,Małopolskie,43-795,United States
+971,Turek,Dolnośląskie,35-780,United States
+972,Lubartów,Łódzkie,21-194,United States
+973,Brodnica,Lubuskie,55-930,United States
+974,Leszno,Opolskie,06-694,United States
+975,Ostróda,Podkarpackie,43-589,United States
+976,Gorlice,Łódzkie,19-369,United States
+977,Gdynia,Małopolskie,06-813,United States
+978,Pruszków,Lubelskie,37-400,United States
+979,Żywiec,Warmińsko-Mazurskie,67-390,United States
+980,Czeladź,Świętokrzyskie,10-684,United States
+981,Reda,Małopolskie,75-462,United States
+982,Ostrów Mazowiecka,Łódzkie,22-739,United States
+983,Wałbrzych,Opolskie,80-435,United States
+984,Kościerzyna,Śląskie,32-458,United States
+985,Gorlice,Świętokrzyskie,63-842,United States
+986,Kędzierzyn-Koźle,Łódzkie,41-371,United States
+987,Świętochłowice,Podlaskie,16-045,United States
+988,Kościan,Wielkopolskie,20-724,United States
+989,Świebodzice,Łódzkie,10-134,United States
+990,Kielce,Podkarpackie,93-407,United States
+991,Krosno,Warmińsko-Mazurskie,94-563,United States
+992,Rumia,Świętokrzyskie,18-924,United States
+993,Mysłowice,Małopolskie,51-315,United States
+994,Brodnica,Lubelskie,39-540,United States
+995,Jasło,Łódzkie,84-044,United States
+996,Czechowice-Dziedzice,Lubuskie,69-395,United States
+997,Radom,Świętokrzyskie,75-270,United States
+998,Olkusz,Śląskie,74-887,United States
+999,Bytom,Lubelskie,32-147,United States
+1000,Jaworzno,Świętokrzyskie,29-890,United States
