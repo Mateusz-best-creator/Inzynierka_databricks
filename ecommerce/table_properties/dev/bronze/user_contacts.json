@@ -1,0 +1,28 @@
+{
+    "table_name": "user_contacts",
+    "storage_type": "azure_storage_account",
+    "storage_account_name": "ecommercevj4gm7",
+    "container_name": "rawdatastorage",
+    "file_format": "csv",
+    "container_folder_path": "users_data",
+    "file_name": "user_contact_table.csv",
+    "partition_key": [],
+
+    "schema": [
+        {
+            "source_col_name": "user_id",
+            "target_col_name": "USER_ID",
+            "target_datatype": "string"
+        },
+        {
+            "source_col_name": "email",
+            "target_col_name": "EMAIL",
+            "target_datatype": "string"
+        },
+        {
+            "source_col_name": "phone",
+            "target_col_name": "PHONE",
+            "target_datatype": "string"
+        }
+    ]
+}
