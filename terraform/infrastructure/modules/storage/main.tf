@@ -13,6 +13,13 @@ resource "azurerm_storage_account" "data" {
   }
 }
 
+resource "azurerm_storage_container" "raw_data" {
+  # In this container we store data that is yet to be ingested into databricks as bronze tables.
+  name = "rawdatastorage"
+  storage_account_id = azurerm_storage_account.data.id
+  container_access_type = "private"
+}
+
 resource "azurerm_storage_container" "table_data" {
   # We will create one container for each layer
   for_each = toset(["bronze", "silver", "gold"])
@@ -39,7 +46,7 @@ resource "azurerm_storage_management_policy" "state_policy" {
         tier_to_archive_after_days_since_modification_greater_than = 30
         delete_after_days_since_modification_greater_than          = 50
       }
-      # In case we take snapshots we want to delete them afer one month
+      # In case we take snapshots we want to delete them after one month
       snapshot {
         delete_after_days_since_creation_greater_than = 30
       }

@@ -38,6 +38,10 @@ resource "databricks_cluster" "cluster" {
   kind           = "CLASSIC_PREVIEW"
   is_single_node = true
 
+  # Add Unity Catalog Access Mode properties
+  data_security_mode = "SINGLE_USER"
+  single_user_name   = var.admin_email
+
   # We will use spot instances for the workers to minimize costs
   azure_attributes {
     availability = "SPOT_WITH_FALLBACK_AZURE"

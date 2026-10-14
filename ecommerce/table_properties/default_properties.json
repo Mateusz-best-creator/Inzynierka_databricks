@@ -1,0 +1,22 @@
+{
+  "all_layers": {
+    "bronze_schema": "ecommmerce_bronze",
+    "silver_schema": "ecommmerce_silver",
+    "gold_schema": "ecommmerce_gold",
+    "endpoint": "dfs.core.windows.net",
+    "blob_file_system_azure": "abfss"
+  },
+  "bronze": {
+    "dev": {
+      "catalog": "databricks_dev_domain",
+      "external_storage_account": "ecommercevj4gm7",
+      "external_container": "bronzelayer"
+    }
+  },
+  "silver": {
+
+  },
+  "gold": {
+
+  }
+}
