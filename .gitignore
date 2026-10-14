@@ -297,3 +297,5 @@ spark-warehouse/
 .jvmopts
 
 */.terraform.lock.hcl
+
+*.csv
