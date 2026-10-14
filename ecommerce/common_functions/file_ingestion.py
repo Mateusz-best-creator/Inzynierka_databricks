@@ -11,7 +11,7 @@ from pyspark.sql.types import (
 
 from ecommerce.common_functions.config_utils import get_config, set_logger
 from ecommerce.common_functions.delta_utils import (
-    create_external_table,
+    create_table,
     optimize_vacuum_table,
 )
 
@@ -54,23 +54,27 @@ def entry_point_file_ingestion(
     spark: SparkSession, env: str, layer: str, config_filename: str
 ) -> None:
     """"""
+    logger = set_logger()
+    logger.info(
+        f"Running entry_point for the bronze table with given config: {config_filename}"
+    )
+
     env = env.lower()
     layer = layer.lower()
     config_filename = config_filename.lower()
 
     config = get_config(env=env, layer=layer, config_filename=config_filename)
-    logger = set_logger()
 
     table_name_uc = config["table_name_uc"]
     file_cloud_loc = config["file_cloud_loc"]
-    table_cloud_loc = config["table_cloud_loc"]
+    # Path if we would like to create an external table
+    # table_cloud_loc = config["table_cloud_loc"]
     partition_key = config["partition_key"]
 
     df = read_file(spark=spark, file_cloud_loc=file_cloud_loc, schema=config["schema"])
 
-    create_external_table(
+    create_table(
         source_data=df,
-        path=table_cloud_loc,
         table_name_uc=table_name_uc,
         partition_key=partition_key,
     )

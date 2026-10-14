@@ -3,26 +3,41 @@ from ecommerce.common_functions.config_utils import set_logger
 from delta.tables import DeltaTable
 
 
-def create_external_table(
+def create_table(
     source_data: DataFrame,
-    path: str,
     table_name_uc: str,
     overwrite_schema: bool = True,
     partition_key: str | None = None,
+    path: str | None = None,
+    external_table: bool = False,
 ) -> None:
     """"""
+    logger = set_logger()
     partition_key_value = [] if not partition_key else [str(partition_key)]
 
-    (
-        source_data.write.format("delta")
-        .option("path", path)
-        .option("overwriteSchema", overwrite_schema)
-        .partitionBy(*partition_key_value)
-        .saveAsTable(table_name_uc)
-    )
+    if external_table:
+        if path is None:
+            raise ValueError(
+                f"You need to provide external path to create external table."
+            )
+        (
+            source_data.write.format("delta")
+            .option("path", path)
+            .option("overwriteSchema", overwrite_schema)
+            .partitionBy(*partition_key_value)
+            .saveAsTable(table_name_uc)
+        )
+        logger.info(f"Creating external delta table ath path: {path}.")
+    else:
+        (
+            source_data.write.format("delta")
+            .option("overwriteSchema", overwrite_schema)
+            .partitionBy(*partition_key_value)
+            .saveAsTable(table_name_uc)
+        )
+        logger.info("Creating managed delta table.")
 
-    logger = set_logger()
-    logger.info(f"Created external table: {table_name_uc} on path: {path}")
+    logger.info(f"Created table: {table_name_uc}")
 
 
 def optimize_vacuum_table(
