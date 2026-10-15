@@ -24,6 +24,7 @@ def create_table(
             source_data.write.format("delta")
             .option("path", path)
             .option("overwriteSchema", overwrite_schema)
+            .mode("overwrite")
             .partitionBy(*partition_key_value)
             .saveAsTable(table_name_uc)
         )
@@ -32,6 +33,7 @@ def create_table(
         (
             source_data.write.format("delta")
             .option("overwriteSchema", overwrite_schema)
+            .mode("overwrite")
             .partitionBy(*partition_key_value)
             .saveAsTable(table_name_uc)
         )

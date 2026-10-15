@@ -1,8 +1,8 @@
 {
   "all_layers": {
-    "bronze_schema": "ecommmerce_bronze",
-    "silver_schema": "ecommmerce_silver",
-    "gold_schema": "ecommmerce_gold",
+    "bronze_schema": "ecommerce_bronze",
+    "silver_schema": "ecommerce_silver",
+    "gold_schema": "ecommerce_gold",
     "endpoint": "dfs.core.windows.net",
     "blob_file_system_azure": "abfss"
   },
@@ -14,9 +14,13 @@
     }
   },
   "silver": {
-
+    "dev": {
+      "catalog": "databricks_dev_domain"
+    }
   },
   "gold": {
-
+    "dev": {
+      "catalog": "databricks_dev_domain"
+    }
   }
 }
