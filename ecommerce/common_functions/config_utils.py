@@ -85,11 +85,26 @@ def get_bronze_config(
         table_name = file_config[table_name]["table_name"]
         table_name_uc = f"{catalog}.{bronze_schema}.{table_name}"
         schema = file_config[table_name]["schema"]
+        file_format = (file_config[table_name]["file_format"]).lower()
 
         if storage_type == "azure_storage_account":
             file_cloud_loc = f"{blob_file_system_azure}://{container_name}@{storage_account_name}.{endpoint}/{container_folder_path}/{file_name}"
 
         table_cloud_loc = f"{blob_file_system_azure}://{external_container}@{external_storage_account}.{endpoint}/{table_name}"
+
+        if file_format not in ["csv", "json", "parquet", "excel"]:
+            raise ValueError(f"Specified file format is not supported: {file_format}.")
+
+        excel_properties = None
+        if file_format == "excel":
+            sheet_name = file_config[table_name]["sheet_name"]
+            blob_path = file_config[table_name]["blob_name"]
+            excel_properties = {
+                "sheet_name": sheet_name,
+                "STORAGE_ACCOUNT_NAME": "ecommercevj4gm7",
+                "CONTAINER_NAME": container_name,
+                "BLOB_NAME": blob_path,
+            }
 
         config.append(
             {
@@ -103,6 +118,10 @@ def get_bronze_config(
                 "partition_key": partition_key,
                 # Schema of the bronze table
                 "schema": schema,
+                # File format of the input file
+                "file_format": file_format,
+                # Special properties for reading excel files
+                "excel_properties": excel_properties,
             }
         )
 

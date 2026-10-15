@@ -33,5 +33,5 @@ spark.conf.set(
 # COMMAND ----------
 
 entry_point_file_ingestion(
-    spark=spark, env=env, layer=layer, config_filename=config_filename
+    spark=spark, dbutils=dbutils, env=env, layer=layer, config_filename=config_filename
 )

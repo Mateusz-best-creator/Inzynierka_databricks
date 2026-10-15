@@ -1,3 +1,9 @@
+from pandas import read_excel as pd_read_excel
+import io
+from typing import Any
+
+from azure.storage.blob import BlobServiceClient
+
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import (
     StructType,
@@ -16,7 +22,66 @@ from ecommerce.common_functions.delta_utils import (
 )
 
 
-def read_file(spark: SparkSession, file_cloud_loc: str, schema: dict) -> DataFrame:
+def read_csv_file(spark: SparkSession, schema: StructType, path: str) -> DataFrame:
+    return (
+        spark.read.format("csv")
+        .option("header", "true")
+        .option("sep", ",")
+        .schema(schema)
+        .load(path)
+    )
+
+
+def read_json_file(spark: SparkSession, schema: StructType, path: str) -> DataFrame:
+    return (
+        spark.read.format("json").option("multiline", "true").schema(schema).load(path)
+    )
+
+
+def read_parquet_file(spark: SparkSession, schema: StructType, path: str) -> DataFrame:
+    return spark.read.format("parquet").schema(schema).load(path)
+
+
+def read_excel_file(
+    spark: SparkSession,
+    dbutils: Any,
+    schema: StructType,
+    path: str,
+    excel_properties: dict,
+) -> DataFrame:
+    """"""
+
+    STORAGE_ACCOUNT_NAME = excel_properties["STORAGE_ACCOUNT_NAME"]
+    ACCESS_KEY = dbutils.secrets.get(scope="secret-keys", key="storageaccountaccesskey")
+    CONTAINER_NAME = excel_properties["CONTAINER_NAME"]
+    BLOB_NAME = excel_properties["BLOB_NAME"]
+
+    CONNECTION_STRING = (
+        f"DefaultEndpointsProtocol=https;"
+        f"AccountName={STORAGE_ACCOUNT_NAME};"
+        f"AccountKey={ACCESS_KEY};"
+        f"EndpointSuffix=core.windows.net"
+    )
+
+    blob_service_client = BlobServiceClient.from_connection_string(CONNECTION_STRING)
+
+    blob_client = blob_service_client.get_blob_client(
+        container=CONTAINER_NAME, blob=BLOB_NAME
+    )
+    stream = io.BytesIO(blob_client.download_blob().readall())
+
+    df = pd_read_excel(stream)
+    return spark.CreateDataFrame(data=df, schema=schema)
+
+
+def read_file(
+    spark: SparkSession,
+    dbutils: Any,
+    file_cloud_loc: str,
+    schema: dict,
+    file_format: str,
+    excel_properties: dict | None = None,
+) -> DataFrame:
     """"""
     final_schema = StructType()
     for struct in schema:
@@ -36,13 +101,27 @@ def read_file(spark: SparkSession, file_cloud_loc: str, schema: dict) -> DataFra
             )
         final_schema.add(StructField(struct["source_col_name"], target_datatype, True))
 
-    df = (
-        spark.read.format("csv")
-        .option("header", "true")
-        .option("sep", ",")
-        .schema(final_schema)
-        .load(file_cloud_loc)
-    )
+    if file_format == "csv":
+        df = read_csv_file(spark=spark, schema=schema, path=file_cloud_loc)
+    elif file_format == "json":
+        df = read_json_file(spark=spark, schema=schema, path=file_cloud_loc)
+    elif file_format == "parquet":
+        df = read_parquet_file(spark=spark, schema=schema, path=file_cloud_loc)
+    elif file_format == "excel":
+        if not excel_properties:
+            raise ValueError(
+                f"Properties needed for reading excel files are not specified."
+            )
+
+        df = read_excel_file(
+            spark=spark,
+            dbutils=dbutils,
+            schema=schema,
+            path=file_cloud_loc,
+            excel_properties=excel_properties,
+        )
+    else:
+        raise ValueError(f"Invalid file format specified: {file_format}")
 
     for struct in schema:
         df = df.withColumnRenamed(struct["source_col_name"], struct["target_col_name"])
@@ -51,7 +130,7 @@ def read_file(spark: SparkSession, file_cloud_loc: str, schema: dict) -> DataFra
 
 
 def entry_point_file_ingestion(
-    spark: SparkSession, env: str, layer: str, config_filename: str
+    spark: SparkSession, dbutils: Any, env: str, layer: str, config_filename: str
 ) -> None:
     """"""
     logger = set_logger()
@@ -70,9 +149,18 @@ def entry_point_file_ingestion(
         # Path if we would like to create an external table
         # table_cloud_loc = config_set["table_cloud_loc"]
         partition_key = config_set["partition_key"]
+        file_format = config_set["file_format"]
+        excel_properties = None
+        if file_format == "excel":
+            excel_properties = config_set["excel_properties"]
 
         df = read_file(
-            spark=spark, file_cloud_loc=file_cloud_loc, schema=config_set["schema"]
+            spark=spark,
+            dbutils=dbutils,
+            file_cloud_loc=file_cloud_loc,
+            schema=config_set["schema"],
+            file_format=file_format,
+            excel_properties=excel_properties,
         )
 
         create_table(
