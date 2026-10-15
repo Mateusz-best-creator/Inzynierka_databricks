@@ -14,9 +14,13 @@
     }
   },
   "silver": {
-
+    "dev": {
+      "catalog": "databricks_silver_domain"
+    }
   },
   "gold": {
-
+    "dev": {
+      "catalog": "databricks_gold_domain"
+    }
   }
 }
