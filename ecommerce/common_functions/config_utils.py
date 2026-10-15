@@ -54,54 +54,76 @@ def get_default_config_path(root_path: str, config_filename: str):
 
 
 def get_bronze_config(
-    env: str, layer: str, file_config: dict, default_config: dict
-) -> dict:
+    env: str,
+    layer: str,
+    file_config: dict,
+    default_config: dict,
+    logger: logging.Logger,
+) -> list[dict]:
     """"""
-    storage_type = file_config["storage_type"]
-    bronze_schema = default_config["all_layers"]["bronze_schema"]
-    endpoint = default_config["all_layers"]["endpoint"]
-    blob_file_system_azure = default_config["all_layers"]["blob_file_system_azure"]
-    catalog = default_config[layer][env]["catalog"]
-    external_container = default_config[layer][env]["external_container"]
-    external_storage_account = default_config[layer][env]["external_storage_account"]
+    table_list = file_config["table_list"]
+    config = []
 
-    container_name = file_config["container_name"]
-    storage_account_name = file_config["storage_account_name"]
-    container_folder_path = file_config["container_folder_path"]
-    file_name = file_config["file_name"]
-    partition_key = file_config.get("partition_key", None)
-    table_name = file_config["table_name"]
-    table_name_uc = f"{catalog}.{bronze_schema}.{table_name}"
-    schema = file_config["schema"]
+    for table_name in table_list:
+        logger.info(f"Processing configuration for table: {table_name}")
 
-    if storage_type == "azure_storage_account":
-        file_cloud_loc = f"{blob_file_system_azure}://{container_name}@{storage_account_name}.{endpoint}/{container_folder_path}/{file_name}"
+        storage_type = file_config["storage_type"]
+        bronze_schema = default_config["all_layers"]["bronze_schema"]
+        endpoint = default_config["all_layers"]["endpoint"]
+        blob_file_system_azure = default_config["all_layers"]["blob_file_system_azure"]
+        catalog = default_config[layer][env]["catalog"]
+        external_container = default_config[layer][env]["external_container"]
+        external_storage_account = default_config[layer][env][
+            "external_storage_account"
+        ]
 
-    table_cloud_loc = f"{blob_file_system_azure}://{external_container}@{external_storage_account}.{endpoint}/{table_name}"
+        container_name = file_config["container_name"]
+        storage_account_name = file_config["storage_account_name"]
+        container_folder_path = file_config["container_folder_path"]
+        file_name = file_config["file_name"]
+        partition_key = file_config.get("partition_key", None)
+        table_name = file_config["table_name"]
+        table_name_uc = f"{catalog}.{bronze_schema}.{table_name}"
+        schema = file_config["schema"]
 
-    return {
-        # Table name in UC: catalog.schema.table_name
-        "table_name_uc": table_name_uc,
-        # File path in storage account from where we download the data
-        "file_cloud_loc": file_cloud_loc,
-        # External location where table will be saved
-        "table_cloud_loc": table_cloud_loc,
-        # Optional partition key
-        "partition_key": partition_key,
-        # Schema of the bronze table
-        "schema": schema,
-    }
+        if storage_type == "azure_storage_account":
+            file_cloud_loc = f"{blob_file_system_azure}://{container_name}@{storage_account_name}.{endpoint}/{container_folder_path}/{file_name}"
+
+        table_cloud_loc = f"{blob_file_system_azure}://{external_container}@{external_storage_account}.{endpoint}/{table_name}"
+
+        config.append(
+            {
+                # Table name in UC: catalog.schema.table_name
+                "table_name_uc": table_name_uc,
+                # File path in storage account from where we download the data
+                "file_cloud_loc": file_cloud_loc,
+                # External location where table will be saved
+                "table_cloud_loc": table_cloud_loc,
+                # Optional partition key
+                "partition_key": partition_key,
+                # Schema of the bronze table
+                "schema": schema,
+            }
+        )
+
+    return config
 
 
 def get_silver_gold_config(
-    env: str, layer: str, json_configuration: dict, default_json_configuration: dict
-) -> dict:
+    env: str,
+    layer: str,
+    json_configuration: dict,
+    default_json_configuration: dict,
+    logger: logging.Logger,
+) -> list[dict]:
     """"""
 
     catalog = default_json_configuration[layer][env]["catalog"]
     schema = default_json_configuration["all_layers"][f"{layer}_schema"]
     partition_key = json_configuration.get("partition_key", None)
     table_name = json_configuration["table_name"]
+
+    logger.info(f"Processing configuration for {layer} table: {table_name}")
 
     # if json_configuration.get("table_name", None):
     #     object_name = json_configuration["table_name"]
@@ -110,12 +132,13 @@ def get_silver_gold_config(
 
     table_name_uc = f"{catalog}.{schema}.{table_name}"
 
-    return {"table_name_uc": table_name_uc, "partition_key": partition_key}
+    return [{"table_name_uc": table_name_uc, "partition_key": partition_key}]
 
 
-def get_config(env: str, layer: str, config_filename: str) -> dict:
+def get_config(env: str, layer: str, config_filename: str) -> list[dict]:
     """"""
 
+    logger = set_logger()
     root_project_path = get_root_path(__name__)
     config_path = get_config_path(root_project_path, layer, env, config_filename)
     default_config_path = get_default_config_path(
@@ -131,6 +154,7 @@ def get_config(env: str, layer: str, config_filename: str) -> dict:
             layer=layer,
             file_config=json_configuration,
             default_config=default_json_configuration,
+            logger=logger,
         )
     else:
         config = get_silver_gold_config(
@@ -138,6 +162,7 @@ def get_config(env: str, layer: str, config_filename: str) -> dict:
             layer=layer,
             json_configuration=json_configuration,
             default_json_configuration=default_json_configuration,
+            logger=logger,
         )
 
     return config

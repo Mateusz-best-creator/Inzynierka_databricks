@@ -1,28 +1,233 @@
 {
-    "table_name": "users",
-    "storage_type": "azure_storage_account",
-    "storage_account_name": "ecommercevj4gm7",
-    "container_name": "rawdatastorage",
-    "file_format": "csv",
-    "container_folder_path": "users_data",
-    "file_name": "users_table.csv",
-    "partition_key": [],
+    "table_list": [
+        "locations",
+        "user_contacts",
+        "user_locations",
+        "user_profiles",
+        "user_status_history",
+        "users"
+    ],
+    "locations": {
+        "table_name": "locations",
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "location_table.csv",
+        "partition_key": [],
 
-    "schema": [
-        {
-            "source_col_name": "user_id",
-            "target_col_name": "USER_ID",
-            "target_datatype": "string"
-        },
-        {
-            "source_col_name": "customer_unique_id",
-            "target_col_name": "CUSTOMER_UNIQUE_ID",
-            "target_datatype": "string"
-        },
-        {
-            "source_col_name": "created_at",
-            "target_col_name": "CREATED_AT",
-            "target_datatype": "timestamp"
-        }
-    ]
+        "schema": [
+            {
+                "source_col_name": "location_id",
+                "target_col_name": "LOCATION_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "city",
+                "target_col_name": "CITY",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "state",
+                "target_col_name": "STATE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "zip_code",
+                "target_col_name": "ZIP_CODE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "country",
+                "target_col_name": "COUNTRY",
+                "target_datatype": "string"
+            }
+        ]
+    },
+    "user_contacts": {
+        "table_name": "user_contacts",
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "user_contact_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "email",
+                "target_col_name": "EMAIL",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "phone",
+                "target_col_name": "PHONE",
+                "target_datatype": "string"
+            }
+        ]
+    },
+    "user_locations": {
+        "table_name": "user_locations",
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "user_location_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "id",
+                "target_col_name": "SYSTEM_GENERATED_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "location_id",
+                "target_col_name": "LOCATION_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "user_profiles": {
+        "table_name": "user_profiles",
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "user_profile_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "first_name",
+                "target_col_name": "FIRST_NAME",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "last_name",
+                "target_col_name": "LAST_NAME",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "birth_date",
+                "target_col_name": "BIRTH_DATE",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "gender",
+                "target_col_name": "GENDER",
+                "target_datatype": "string"
+            }
+        ]
+    },
+    "user_status_history": {
+        "table_name": "user_status_history",
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "user_status_history_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "id",
+                "target_col_name": "SYSTEM_GENERATED_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status",
+                "target_col_name": "STATUS",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status_change_description",
+                "target_col_name": "STATUS_CHANGE_DESCRIPTION",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "users": {
+        "table_name": "users",
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "users_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "customer_unique_id",
+                "target_col_name": "CUSTOMER_UNIQUE_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "created_at",
+                "target_col_name": "CREATED_AT",
+                "target_datatype": "timestamp"
+            }
+        ]
+    }
 }

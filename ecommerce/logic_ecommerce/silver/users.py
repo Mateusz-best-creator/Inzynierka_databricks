@@ -81,7 +81,7 @@ def entry_point_users(spark: SparkSession, env: str, log_level: int) -> None:
     logger = set_logger(log_level=log_level)
     logger.info(f"Running entry_point for users silver table.")
 
-    config = get_config(env=env, layer="silver", config_filename="users.json")
+    config = get_config(env=env, layer="silver", config_filename="users.json")[0]
     table_name_uc = config["table_name_uc"]
     partition_key = config["partition_key"]
 

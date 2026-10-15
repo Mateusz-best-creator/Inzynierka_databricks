@@ -55,28 +55,30 @@ def entry_point_file_ingestion(
 ) -> None:
     """"""
     logger = set_logger()
-    logger.info(
-        f"Running entry_point for the bronze table with given config: {config_filename}"
-    )
 
     env = env.lower()
     layer = layer.lower()
     config_filename = config_filename.lower()
 
-    config = get_config(env=env, layer=layer, config_filename=config_filename)
+    config_list = get_config(env=env, layer=layer, config_filename=config_filename)
 
-    table_name_uc = config["table_name_uc"]
-    file_cloud_loc = config["file_cloud_loc"]
-    # Path if we would like to create an external table
-    # table_cloud_loc = config["table_cloud_loc"]
-    partition_key = config["partition_key"]
+    for config_set in config_list:
+        table_name_uc = config_set["table_name_uc"]
+        logger.info(f"Ingestion of {layer} table: {table_name_uc}")
 
-    df = read_file(spark=spark, file_cloud_loc=file_cloud_loc, schema=config["schema"])
+        file_cloud_loc = config_set["file_cloud_loc"]
+        # Path if we would like to create an external table
+        # table_cloud_loc = config_set["table_cloud_loc"]
+        partition_key = config_set["partition_key"]
 
-    create_table(
-        source_data=df,
-        table_name_uc=table_name_uc,
-        partition_key=partition_key,
-    )
+        df = read_file(
+            spark=spark, file_cloud_loc=file_cloud_loc, schema=config_set["schema"]
+        )
 
-    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+        create_table(
+            source_data=df,
+            table_name_uc=table_name_uc,
+            partition_key=partition_key,
+        )
+
+        optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
