@@ -46,7 +46,6 @@ def read_excel_file(
     spark: SparkSession,
     dbutils: Any,
     schema: StructType,
-    path: str,
     excel_properties: dict,
 ) -> DataFrame:
     """"""
@@ -117,7 +116,6 @@ def read_file(
             spark=spark,
             dbutils=dbutils,
             schema=schema,
-            path=file_cloud_loc,
             excel_properties=excel_properties,
         )
     else:
