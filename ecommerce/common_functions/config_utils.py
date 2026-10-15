@@ -93,6 +93,26 @@ def get_bronze_config(
     }
 
 
+def get_silver_gold_config(
+    env: str, layer: str, json_configuration: dict, default_json_configuration: dict
+) -> dict:
+    """"""
+
+    catalog = default_json_configuration[layer][env]["catalog"]
+    schema = default_json_configuration["all_layers"][f"{layer}_schema"]
+    partition_key = json_configuration.get("partition_key", None)
+    table_name = json_configuration["table_name"]
+
+    # if json_configuration.get("table_name", None):
+    #     object_name = json_configuration["table_name"]
+    # else:
+    #     object_name = json_configuration["view_name"]
+
+    table_name_uc = f"{catalog}.{schema}.{table_name}"
+
+    return {"table_name_uc": table_name_uc, "partition_key": partition_key}
+
+
 def get_config(env: str, layer: str, config_filename: str) -> dict:
     """"""
 
@@ -101,8 +121,6 @@ def get_config(env: str, layer: str, config_filename: str) -> dict:
     default_config_path = get_default_config_path(
         root_project_path, "default_properties.json"
     )
-
-    logger = set_logger()
 
     json_configuration: dict = read_json(config_path)
     default_json_configuration: dict = read_json(default_config_path)
@@ -114,7 +132,12 @@ def get_config(env: str, layer: str, config_filename: str) -> dict:
             file_config=json_configuration,
             default_config=default_json_configuration,
         )
-    # else:
-    #     config = get_silver_gold_config(json_configuration, default_json_configuration)
+    else:
+        config = get_silver_gold_config(
+            env=env,
+            layer=layer,
+            json_configuration=json_configuration,
+            default_json_configuration=default_json_configuration,
+        )
 
     return config
