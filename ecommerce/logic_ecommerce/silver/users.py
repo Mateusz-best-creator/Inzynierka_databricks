@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession, DataFrame
 
-from pyspark.sql.functions import col, regexp_replace
+from pyspark.sql.functions import col, regexp_replace, lit
 
 from ecommerce.common_functions.config_utils import get_config, set_logger
 from ecommerce.common_functions.delta_utils import (
@@ -86,27 +86,27 @@ def entry_point_users(spark: SparkSession, env: str, log_level: int) -> None:
     partition_key = config["partition_key"]
 
     locations_df = spark.read.table(
-        f"databricks_{env}_domain.ecommmerce_bronze.locations"
+        f"databricks_{env}_domain.ecommerce_bronze.locations"
     )
 
     user_contacts_df = spark.read.table(
-        f"databricks_{env}_domain.ecommmerce_bronze.user_contacts"
+        f"databricks_{env}_domain.ecommerce_bronze.user_contacts"
     )
 
     user_locations_df = spark.read.table(
-        f"databricks_{env}_domain.ecommmerce_bronze.user_locations"
-    ).filter(col("IS_CURRENT"))
+        f"databricks_{env}_domain.ecommerce_bronze.user_locations"
+    ).filter(col("IS_CURRENT") == lit(1))
 
     user_profiles_df = spark.read.table(
-        f"databricks_{env}_domain.ecommmerce_bronze.user_profiles"
+        f"databricks_{env}_domain.ecommerce_bronze.user_profiles"
     )
 
     user_status_history_df = spark.read.table(
-        f"databricks_{env}_domain.ecommmerce_bronze.user_status_history"
-    ).filter(col("IS_CURRENT"))
+        f"databricks_{env}_domain.ecommerce_bronze.user_status_history"
+    ).filter(col("IS_CURRENT") == lit(1))
 
     users_mapping_df = spark.read.table(
-        f"databricks_{env}_domain.ecommmerce_bronze.users"
+        f"databricks_{env}_domain.ecommerce_bronze.users"
     )
 
     users_silver_df = join_users_data(

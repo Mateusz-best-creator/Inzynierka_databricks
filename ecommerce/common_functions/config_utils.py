@@ -67,7 +67,6 @@ def get_bronze_config(
     for table_name in table_list:
         logger.info(f"Processing configuration for table: {table_name}")
 
-        storage_type = file_config["storage_type"]
         bronze_schema = default_config["all_layers"]["bronze_schema"]
         endpoint = default_config["all_layers"]["endpoint"]
         blob_file_system_azure = default_config["all_layers"]["blob_file_system_azure"]
@@ -77,14 +76,15 @@ def get_bronze_config(
             "external_storage_account"
         ]
 
-        container_name = file_config["container_name"]
-        storage_account_name = file_config["storage_account_name"]
-        container_folder_path = file_config["container_folder_path"]
-        file_name = file_config["file_name"]
-        partition_key = file_config.get("partition_key", None)
-        table_name = file_config["table_name"]
+        storage_type = file_config[table_name]["storage_type"]
+        container_name = file_config[table_name]["container_name"]
+        storage_account_name = file_config[table_name]["storage_account_name"]
+        container_folder_path = file_config[table_name]["container_folder_path"]
+        file_name = file_config[table_name]["file_name"]
+        partition_key = file_config[table_name].get("partition_key", None)
+        table_name = file_config[table_name]["table_name"]
         table_name_uc = f"{catalog}.{bronze_schema}.{table_name}"
-        schema = file_config["schema"]
+        schema = file_config[table_name]["schema"]
 
         if storage_type == "azure_storage_account":
             file_cloud_loc = f"{blob_file_system_azure}://{container_name}@{storage_account_name}.{endpoint}/{container_folder_path}/{file_name}"
