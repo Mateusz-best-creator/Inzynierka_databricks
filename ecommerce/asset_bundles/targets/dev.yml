@@ -1,0 +1,23 @@
+targets:
+  dev:
+    presets:
+      name_prefix: '${workspace.current_user.short_name}_'
+      pipeline_development: true
+      trigger_pause_status: PAUSED
+    mode: development
+    default: true
+    workspace:
+      host: todo
+      root_path: /Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+      artifact_path: /Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+      file_path: /Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+      state_path: /Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}/state
+    run_as:
+      user_name: ${workspace.current_user.userName}
+    permissions:
+      - user_name: "${workspace.current_user.userName}"
+        level: CAN_MANAGE
+    variables:
+      env:
+        description: "Enviroment to which we want to deploy the pipeline."
+        default: "dev"

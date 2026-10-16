@@ -1,0 +1,20 @@
+bundle:
+  name: ecommerce
+
+include:
+  - ecommerce/asset_bundles/target.*yml
+  - ecommerce/asset_bundles/global_variables.yml
+  - ecommerce/asset_bundles/pipelines/.*yml
+
+sync:
+  exclude:
+    - mypy.ini
+    - requirements.txt
+    - databricks.yml
+    - ecommerce/asset_bundles
+    - .mypy_cache
+    - .pytest_cache
+    - .ruff_cache
+    - __pycache__
+  include:
+    - ecommerce/*

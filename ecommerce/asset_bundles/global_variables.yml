@@ -1,0 +1,6 @@
+variables:
+  env:
+    description: "Enviroment to which we want to deploy the pipeline."
+  ecommerce_product_tag:
+    decsription: "Key value pair used to indicate that given pipeline is related to ecommerce processing."
+    default: "ecommerce"
