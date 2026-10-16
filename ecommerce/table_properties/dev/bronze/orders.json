@@ -104,7 +104,7 @@
             {
                 "source_col_name": "quantity",
                 "target_col_name": "QUANTITY",
-                "target_datatype": "double"
+                "target_datatype": "integer"
             }
         ]
     },
