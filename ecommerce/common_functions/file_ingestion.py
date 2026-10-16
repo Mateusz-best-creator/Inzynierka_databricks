@@ -73,7 +73,7 @@ def read_excel_file(
     stream = io.BytesIO(blob_client.download_blob().readall())
 
     df = pd_read_excel(stream)
-    return spark.CreateDataFrame(data=df, schema=schema)
+    return spark.createDataFrame(data=df, schema=schema)
 
 
 def read_file(
