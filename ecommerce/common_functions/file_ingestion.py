@@ -22,6 +22,8 @@ from ecommerce.common_functions.delta_utils import (
     add_ingestion_timestamp_column,
 )
 
+from pyspark.sql.functions import lit
+
 
 def read_csv_file(spark: SparkSession, schema: StructType, path: str) -> DataFrame:
     return (
@@ -102,11 +104,11 @@ def read_file(
         final_schema.add(StructField(struct["source_col_name"], target_datatype, True))
 
     if file_format == "csv":
-        df = read_csv_file(spark=spark, schema=schema, path=file_cloud_loc)
+        df = read_csv_file(spark=spark, schema=final_schema, path=file_cloud_loc)
     elif file_format == "json":
-        df = read_json_file(spark=spark, schema=schema, path=file_cloud_loc)
+        df = read_json_file(spark=spark, schema=final_schema, path=file_cloud_loc)
     elif file_format == "parquet":
-        df = read_parquet_file(spark=spark, schema=schema, path=file_cloud_loc)
+        df = read_parquet_file(spark=spark, schema=final_schema, path=file_cloud_loc)
     elif file_format == "excel":
         if not excel_properties:
             raise ValueError(
@@ -116,7 +118,7 @@ def read_file(
         df = read_excel_file(
             spark=spark,
             dbutils=dbutils,
-            schema=schema,
+            schema=final_schema,
             excel_properties=excel_properties,
         )
     else:
@@ -165,7 +167,7 @@ def entry_point_file_ingestion(
 
         df = add_ingestion_timestamp_column(df)
 
-        df = df.withColumn("INGESTION_FILENAME", filename)
+        df = df.withColumn("INGESTION_FILENAME", lit(filename))
 
         create_table(
             source_data=df,

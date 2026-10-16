@@ -1,5 +1,5 @@
 {
-    "table_list:": [
+    "table_list": [
         "payment_details",
         "payment_status_history"
     ],

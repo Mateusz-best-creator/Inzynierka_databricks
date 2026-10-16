@@ -108,7 +108,7 @@
             }
         ]
     },
-    "order_status_history_table": {
+    "order_status_history": {
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommercevj4gm7",
         "container_name": "rawdatastorage",
