@@ -44,5 +44,52 @@
                 "target_datatype": "double"
             }
         ]
+    },
+    "payment_status_history": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "payments_data",
+        "file_name": "payment_status_history.json",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "log_id",
+                "target_col_name": "LOG_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "payment_id",
+                "target_col_name": "PAYMENT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status",
+                "target_col_name": "STATUS",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "gateway_response",
+                "target_col_name": "GATEWAY_RESPONSE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
     }
 }

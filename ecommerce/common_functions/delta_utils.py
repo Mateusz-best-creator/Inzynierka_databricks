@@ -3,6 +3,8 @@ from ecommerce.common_functions.config_utils import set_logger
 from delta.tables import DeltaTable
 from datetime import datetime, timezone
 
+from pyspark.sql.functions import lit
+
 
 def create_table(
     source_data: DataFrame,
@@ -58,4 +60,4 @@ def optimize_vacuum_table(
 
 def add_ingestion_timestamp_column(df: DataFrame) -> DataFrame:
     """"""
-    return df.withColumn("INGESTED_AT", datetime.now(tz=timezone.utc))
+    return df.withColumn("INGESTED_AT", lit(datetime.now(tz=timezone.utc)))
