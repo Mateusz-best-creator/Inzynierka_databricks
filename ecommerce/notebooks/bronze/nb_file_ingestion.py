@@ -10,13 +10,14 @@
 
 # MAGIC %pip install azure-storage-blob==12.31.0 pandas==3.0.6 openpyxl==3.1.5
 
-# COMMAND ----------
-
-from ecommerce.common_functions.file_ingestion import entry_point_file_ingestion
 
 # COMMAND ----------
 
 dbutils.library.restartPython()
+
+# COMMAND ----------
+
+from ecommerce.common_functions.file_ingestion import entry_point_file_ingestion
 
 # COMMAND ----------
 
