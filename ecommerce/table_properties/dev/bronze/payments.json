@@ -9,7 +9,7 @@
         "container_name": "rawdatastorage",
         "file_format": "json",
         "container_folder_path": "payments_data",
-        "file_name": "payment_details_table.json",
+        "file_name": "payment_details.json",
         "partition_key": [],
 
         "schema": [

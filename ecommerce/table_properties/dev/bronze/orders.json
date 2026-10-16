@@ -163,9 +163,9 @@
         "container_name": "rawdatastorage",
         "file_format": "excel",
         "container_folder_path": "orders_data",
-        "file_name": "order_status_history.xlsx",
+        "file_name": "orders.xlsx",
         "sheet_name": "Sheet1",
-        "blob_name": "orders_data/order_status_history.xlsx",
+        "blob_name": "orders_data/orders.xlsx",
         "partition_key": [],
 
         "schema": [
