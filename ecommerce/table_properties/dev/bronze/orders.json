@@ -1,0 +1,194 @@
+{
+    "table_list": [
+        "order_details",
+        "order_item_pricing",
+        "order_items",
+        "order_status_history",
+        "orders"
+    ],
+    "order_details": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "excel",
+        "container_folder_path": "orders_data",
+        "file_name": "order_details.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/order_details.xlsx",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_channel",
+                "target_col_name": "ORDER_CHANNEL",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "shipping_method",
+                "target_col_name": "SHIPPING_METHOD",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "freight_value",
+                "target_col_name": "SHIPPING_COST",
+                "target_datatype": "double"
+            }
+        ]
+    },
+    "order_item_pricing": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "excel",
+        "container_folder_path": "orders_data",
+        "file_name": "order_item_pricing.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/order_item_pricing.xlsx",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "order_item_id",
+                "target_col_name": "ORDER_ITEM_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "unit_price",
+                "target_col_name": "UNIT_PRICE",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "discount",
+                "target_col_name": "DISCOUNT",
+                "target_datatype": "double"
+            }
+        ]
+    },
+    "order_items": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "excel",
+        "container_folder_path": "orders_data",
+        "file_name": "order_items.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/order_items.xlsx",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "order_item_id",
+                "target_col_name": "ORDER_ITEM_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_item_seq",
+                "target_col_name": "ORDER_ITEM_SEQUENTIAL",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_id",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "quantity",
+                "target_col_name": "QUANTITY",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "order_status_history": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "excel",
+        "container_folder_path": "orders_data",
+        "file_name": "order_status_history.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/order_status_history.xlsx",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "id",
+                "target_col_name": "ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status",
+                "target_col_name": "CURRENT_STATUS",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status_change_description",
+                "target_col_name": "STATUS_CHANGE_DESCRIPTION",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "orders": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "excel",
+        "container_folder_path": "orders_data",
+        "file_name": "orders.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/orders.xlsx",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "session_id",
+                "target_col_name": "SESSION_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "created_at",
+                "target_col_name": "CREATED_AT",
+                "target_datatype": "timestamp"
+            }
+        ]
+    }
+}

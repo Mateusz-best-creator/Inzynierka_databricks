@@ -1,0 +1,4 @@
+{
+    "table_name": "orders",
+    "partition_key": "YEAR"
+}

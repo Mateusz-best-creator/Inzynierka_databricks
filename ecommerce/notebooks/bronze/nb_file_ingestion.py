@@ -8,6 +8,19 @@
 
 # COMMAND ----------
 
+# MAGIC %pip install azure-storage-blob==12.31.0 pandas==3.0.6 openpyxl==3.1.5
+
+
+# COMMAND ----------
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
+from ecommerce.common_functions.file_ingestion import entry_point_file_ingestion
+
+# COMMAND ----------
+
 dbutils.widgets.dropdown("env", "dev", ["dev"])
 env = dbutils.widgets.get("env")
 
@@ -16,10 +29,6 @@ layer = dbutils.widgets.get("layer")
 
 dbutils.widgets.text("config_filename", "")
 config_filename = dbutils.widgets.get("config_filename")
-
-# COMMAND ----------
-
-from ecommerce.common_functions.file_ingestion import entry_point_file_ingestion
 
 # COMMAND ----------
 
@@ -33,5 +42,5 @@ spark.conf.set(
 # COMMAND ----------
 
 entry_point_file_ingestion(
-    spark=spark, env=env, layer=layer, config_filename=config_filename
+    spark=spark, dbutils=dbutils, env=env, layer=layer, config_filename=config_filename
 )
