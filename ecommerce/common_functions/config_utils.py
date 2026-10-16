@@ -82,7 +82,6 @@ def get_bronze_config(
         container_folder_path = file_config[table_name]["container_folder_path"]
         file_name = file_config[table_name]["file_name"]
         partition_key = file_config[table_name].get("partition_key", None)
-        table_name = file_config[table_name]["table_name"]
         table_name_uc = f"{catalog}.{bronze_schema}.{table_name}"
         schema = file_config[table_name]["schema"]
         file_format = (file_config[table_name]["file_format"]).lower()
@@ -122,6 +121,8 @@ def get_bronze_config(
                 "file_format": file_format,
                 # Special properties for reading excel files
                 "excel_properties": excel_properties,
+                # Ingestion filename
+                "filename": file_name,
             }
         )
 

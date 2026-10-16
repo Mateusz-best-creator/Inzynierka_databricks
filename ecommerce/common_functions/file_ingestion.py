@@ -19,6 +19,7 @@ from ecommerce.common_functions.config_utils import get_config, set_logger
 from ecommerce.common_functions.delta_utils import (
     create_table,
     optimize_vacuum_table,
+    add_ingestion_timestamp_column,
 )
 
 
@@ -149,6 +150,7 @@ def entry_point_file_ingestion(
         partition_key = config_set["partition_key"]
         file_format = config_set["file_format"]
         excel_properties = None
+        filename = config_set["filename"]
         if file_format == "excel":
             excel_properties = config_set["excel_properties"]
 
@@ -160,6 +162,10 @@ def entry_point_file_ingestion(
             file_format=file_format,
             excel_properties=excel_properties,
         )
+
+        df = add_ingestion_timestamp_column(df)
+
+        df = df.withColumn("INGESTION_FILENAME", filename)
 
         create_table(
             source_data=df,

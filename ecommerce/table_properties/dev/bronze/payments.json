@@ -1,0 +1,48 @@
+{
+    "table_list:": [
+        "payment_details",
+        "payment_status_history"
+    ],
+    "payment_details": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "payments_data",
+        "file_name": "payment_details_table.json",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "payment_id",
+                "target_col_name": "PAYMENT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "payment_sequential",
+                "target_col_name": "PAYMENT_SEQUENTIAL",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "payment_type",
+                "target_col_name": "PAYMENT_TYPE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "payment_installments",
+                "target_col_name": "PAYMENT_INSTALLMENTS",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "payment_value",
+                "target_col_name": "PAYMENT_VALUE",
+                "target_datatype": "double"
+            }
+        ]
+    }
+}
