@@ -6,14 +6,18 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 from pyspark.sql.functions import lit, col, upper, trim
 
 
-def prepare_payments_data(payment_details: DataFrame, payment_status_history: DataFrame) -> DataFrame:
+def prepare_payments_data(
+    payment_details: DataFrame, payment_status_history: DataFrame
+) -> DataFrame:
     """"""
     payment_joined = (
-        payment_details.alias("pd").join(
+        payment_details.alias("pd")
+        .join(
             other=payment_status_history.alias("psh"),
-            on=upper(trim(col("pd.payment_id")))==upper(trim(col("psh.payment_id"))),
-            how="left"
-        ).select(
+            on=upper(trim(col("pd.payment_id"))) == upper(trim(col("psh.payment_id"))),
+            how="left",
+        )
+        .select(
             col("pd.payment_id").alias("PAYMENT_ID"),
             col("pd.order_id").alias("ORDER_ID"),
             col("pd.payment_sequential").alias("PAYMENT_SEQUENTIAL"),
@@ -39,13 +43,21 @@ def entry_point_payments(spark: SparkSession, env: str, log_level: int) -> None:
     table_name_uc = config["table_name_uc"]
     partition_key = config["partition_key"]
 
-    payment_details = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.payment_details")
-    payment_status_history = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.payment_status_history").filter(col("IS_CURRENT") == lit(1))
+    payment_details = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.payment_details"
+    )
+    payment_status_history = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.payment_status_history"
+    ).filter(col("IS_CURRENT") == lit(1))
 
-    payments_silver = prepare_payments_data(payment_details=payment_details, payment_status_history=payment_status_history)
+    payments_silver = prepare_payments_data(
+        payment_details=payment_details, payment_status_history=payment_status_history
+    )
 
     create_table(
-        source_data=payments_silver, table_name_uc=table_name_uc, partition_key=partition_key
+        source_data=payments_silver,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
     )
 
     optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)

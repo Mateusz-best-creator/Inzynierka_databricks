@@ -7,13 +7,17 @@ from pyspark.sql.functions import col, lit, trim, upper, year, month, when, conc
 from pyspark.sql.types import IntegerType
 
 
-def add_date_columns(df: DataFrame, timestamp_column_name: str = "CREATED_AT") -> DataFrame:
-
+def add_date_columns(
+    df: DataFrame, timestamp_column_name: str = "CREATED_AT"
+) -> DataFrame:
     timestamp_column = month(col(timestamp_column_name))
 
-    df_year_month = (
-        df.withColumn("YEAR", year("CREATED_AT").cast(IntegerType()))
-        .withColumn("MONTH", when(timestamp_column < 10), concat(lit("0"), timestamp_column).otherwise(timestamp_column))
+    df_year_month = df.withColumn(
+        "YEAR", year("CREATED_AT").cast(IntegerType())
+    ).withColumn(
+        "MONTH",
+        when(timestamp_column < 10),
+        concat(lit("0"), timestamp_column).otherwise(timestamp_column),
     )
 
     quarter = (
@@ -27,18 +31,23 @@ def add_date_columns(df: DataFrame, timestamp_column_name: str = "CREATED_AT") -
     return df_year_month.withColumn("QUARTER", quarter)
 
 
-def prepare_orders_data(order_details: DataFrame, order_status_history: DataFrame, orders: DataFrame) -> DataFrame:
+def prepare_orders_data(
+    order_details: DataFrame, order_status_history: DataFrame, orders: DataFrame
+) -> DataFrame:
     """"""
     joined_orders_data = (
-        orders.alias("orders").join(
+        orders.alias("orders")
+        .join(
             other=order_details.alias("od"),
-            on=upper(trim(col("orders.order_id")))==upper(trim(col("od.order_id"))),
-            how="left"
-        ).join(
+            on=upper(trim(col("orders.order_id"))) == upper(trim(col("od.order_id"))),
+            how="left",
+        )
+        .join(
             order_status_history.alias("osh"),
-            on=upper(trim(col("orders.order_id")))==upper(trim(col("osh.order_id"))),
-            how="left"
-        ).select(
+            on=upper(trim(col("orders.order_id"))) == upper(trim(col("osh.order_id"))),
+            how="left",
+        )
+        .select(
             col("orders.order_id").alias("ORDER_ID"),
             col("orders.user_id").alias("USER_ID"),
             col("orders.session_id").alias("SESSION_ID"),
@@ -56,7 +65,6 @@ def prepare_orders_data(order_details: DataFrame, order_status_history: DataFram
     return joined_orders_data
 
 
-
 def entry_point_orders(spark: SparkSession, env: str, log_level: int) -> None:
     """"""
     logger = set_logger(log_level)
@@ -66,18 +74,28 @@ def entry_point_orders(spark: SparkSession, env: str, log_level: int) -> None:
     table_name_uc = config["table_name_uc"]
     partition_key = config["partition_key"]
 
-    order_details = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.order_details")
+    order_details = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_details"
+    )
 
-    order_status_history = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.order_status_history").filter(col("IS_CURRENT") == lit(1))
+    order_status_history = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_status_history"
+    ).filter(col("IS_CURRENT") == lit(1))
 
     orders = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.orders")
 
-    order_silver = prepare_orders_data(order_details=order_details, order_status_history=order_status_history, orders=orders)
+    order_silver = prepare_orders_data(
+        order_details=order_details,
+        order_status_history=order_status_history,
+        orders=orders,
+    )
 
     orders_with_date_columns = add_date_columns(order_silver)
 
     create_table(
-        source_data=orders_with_date_columns, table_name_uc=table_name_uc, partition_key=partition_key
+        source_data=orders_with_date_columns,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
     )
 
     optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
