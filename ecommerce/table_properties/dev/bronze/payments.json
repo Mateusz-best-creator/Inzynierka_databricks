@@ -8,7 +8,7 @@
         "storage_account_name": "ecommercevj4gm7",
         "container_name": "rawdatastorage",
         "file_format": "json",
-        "container_folder_path": "payments_data",
+        "folder_path": "payments_data",
         "file_name": "payment_details.json",
         "partition_key": [],
 
@@ -50,7 +50,7 @@
         "storage_account_name": "ecommercevj4gm7",
         "container_name": "rawdatastorage",
         "file_format": "json",
-        "container_folder_path": "payments_data",
+        "folder_path": "payments_data",
         "file_name": "payment_status_history.json",
         "partition_key": [],
 

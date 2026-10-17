@@ -64,22 +64,20 @@ def get_bronze_config(
     table_list = file_config["table_list"]
     config = []
 
+    bronze_schema = default_config["all_layers"]["bronze_schema"]
+    endpoint = default_config["all_layers"]["endpoint"]
+    blob_file_system_azure = default_config["all_layers"]["blob_file_system_azure"]
+    catalog = default_config[layer][env]["catalog"]
+    external_container = default_config[layer][env]["external_container"]
+    external_storage_account = default_config[layer][env]["external_storage_account"]
+
     for table_name in table_list:
         logger.info(f"Processing configuration for table: {table_name}")
 
-        bronze_schema = default_config["all_layers"]["bronze_schema"]
-        endpoint = default_config["all_layers"]["endpoint"]
-        blob_file_system_azure = default_config["all_layers"]["blob_file_system_azure"]
-        catalog = default_config[layer][env]["catalog"]
-        external_container = default_config[layer][env]["external_container"]
-        external_storage_account = default_config[layer][env][
-            "external_storage_account"
-        ]
-
         storage_type = file_config[table_name]["storage_type"]
         container_name = file_config[table_name]["container_name"]
-        storage_account_name = file_config[table_name]["storage_account_name"]
-        container_folder_path = file_config[table_name]["container_folder_path"]
+        storage_account_name = file_config[table_name].get("storage_account_name")
+        folder_path = file_config[table_name].get("folder_path")
         file_name = file_config[table_name]["file_name"]
         partition_key = file_config[table_name].get("partition_key", None)
         table_name_uc = f"{catalog}.{bronze_schema}.{table_name}"
@@ -87,7 +85,11 @@ def get_bronze_config(
         file_format = (file_config[table_name]["file_format"]).lower()
 
         if storage_type == "azure_storage_account":
-            file_cloud_loc = f"{blob_file_system_azure}://{container_name}@{storage_account_name}.{endpoint}/{container_folder_path}/{file_name}"
+            file_cloud_loc = f"{blob_file_system_azure}://{container_name}@{storage_account_name}.{endpoint}/{folder_path}/{file_name}"
+        elif storage_type == "google_drive":
+            file_cloud_loc = f"https://drive.google.com/file/d/engineering_thesis/{folder_path}/{file_name}/edit"
+        else:
+            raise ValueError(f"Given storage type: {storage_type} is not supported.")
 
         table_cloud_loc = f"{blob_file_system_azure}://{external_container}@{external_storage_account}.{endpoint}/{table_name}"
 
