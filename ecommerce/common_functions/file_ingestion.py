@@ -41,8 +41,8 @@ def read_json_file(spark: SparkSession, schema: StructType, path: str) -> DataFr
     )
 
 
-def read_parquet_file(spark: SparkSession, schema: StructType, path: str) -> DataFrame:
-    return spark.read.format("parquet").schema(schema).load(path)
+def read_parquet_file(spark: SparkSession, path: str) -> DataFrame:
+    return spark.read.format("parquet").load(path)
 
 
 def read_excel_file(
@@ -108,7 +108,7 @@ def read_file(
     elif file_format == "json":
         df = read_json_file(spark=spark, schema=final_schema, path=file_cloud_loc)
     elif file_format == "parquet":
-        df = read_parquet_file(spark=spark, schema=final_schema, path=file_cloud_loc)
+        df = read_parquet_file(spark=spark, path=file_cloud_loc)
     elif file_format == "excel":
         if not excel_properties:
             raise ValueError(
@@ -124,8 +124,9 @@ def read_file(
     else:
         raise ValueError(f"Invalid file format specified: {file_format}")
 
-    for struct in schema:
-        df = df.withColumnRenamed(struct["source_col_name"], struct["target_col_name"])
+    if file_format != "parquet":
+        for struct in schema:
+            df = df.withColumnRenamed(struct["source_col_name"], struct["target_col_name"])
 
     return df
 

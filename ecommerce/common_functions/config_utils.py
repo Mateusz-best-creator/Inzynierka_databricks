@@ -75,7 +75,7 @@ def get_bronze_config(
         logger.info(f"Processing configuration for table: {table_name}")
 
         storage_type = file_config[table_name]["storage_type"]
-        container_name = file_config[table_name]["container_name"]
+        container_name = file_config[table_name].get("container_name")
         storage_account_name = file_config[table_name].get("storage_account_name")
         folder_path = file_config[table_name].get("folder_path")
         file_name = file_config[table_name]["file_name"]
