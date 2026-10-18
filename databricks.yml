@@ -2,9 +2,9 @@ bundle:
   name: ecommerce
 
 include:
-  - ecommerce/asset_bundles/target.*yml
+  - ecommerce/asset_bundles/targets/*.yml
   - ecommerce/asset_bundles/global_variables.yml
-  - ecommerce/asset_bundles/pipelines/.*yml
+  - ecommerce/asset_bundles/pipelines/*.yml
 
 sync:
   exclude:

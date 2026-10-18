@@ -1,0 +1,130 @@
+definitions:
+  base_retry_parameters: &base_retry_parameters
+    timeout_seconds: 1800
+    max_retries: 1
+    min_retry_interval_millis: 120000
+    retry_on_timeout: true
+
+resources:
+  jobs:
+    ecommerce_all:
+
+      name: ecommerce_all
+
+      base_params: &base_params
+        env: "${var.env}"
+        log_level: "${{job.parameters.log_level}}"
+
+      parameters:
+        - name: run_id
+          default: ""
+        - name: ingestion_nb_layer
+          default: bronze
+        - name: log_level
+          default: "INFO"
+
+      tags:
+        product: "${var.ecommerce_product_tag}"
+
+      job_clusters:
+        - job_cluster_key: ecommerce_job_cluster
+          new_cluster:
+            cluster_name: ""
+            spark_version: 16.4.x-scala2.13
+            node_type_id: Standard_D4s_v3
+            data_security_mode: DATA_SECURITY_MODE_AUTO
+            runtime_engine: STANDARD
+            kind: CLASSIC_PREVIEW
+            is_single_node: true
+
+      email_notifications:
+        on_failure:
+          - ${var.notification_email}
+        no_alert_for_skipped_runs: true
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+
+      schedule:
+        quartz_cron_expression: 55 0 1 1 * ?
+        timezone_id: UTC
+        pause_status: UNPAUSED
+
+      queue:
+        enabled: true
+
+      tasks:
+
+        - task_key: pl_file_ingestion_orders
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
+            base_parameters:
+              <<: *base_params
+              config_filename: orders.json
+            source: WORKSPACE
+
+        - task_key: pl_file_ingestion_payments
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
+            base_parameters:
+              <<: *base_params
+              config_filename: payments.json
+            source: WORKSPACE
+
+        - task_key: pl_file_ingestion_users
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
+            base_parameters:
+              <<: *base_params
+              config_filename: users.json
+            source: WORKSPACE
+
+        - task_key: pl_order_items_silver
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_file_ingestion_orders
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_order_items
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_orders_silver
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_file_ingestion_orders
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_orders
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_users_silver
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_file_ingestion_users
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_users
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_payments_silver
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_file_ingestion_payments
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_payments
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE

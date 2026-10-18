@@ -2,7 +2,7 @@ targets:
   dev:
     presets:
       name_prefix: '${workspace.current_user.short_name}_'
-      pipeline_development: true
+      pipelines_development: true
       trigger_pause_status: PAUSED
     mode: development
     default: true
