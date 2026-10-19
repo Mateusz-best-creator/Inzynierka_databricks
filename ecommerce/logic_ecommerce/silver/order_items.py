@@ -11,7 +11,7 @@ def prepare_order_items_data(
     """"""
     order_items_joined = order_items.alias("oi").join(
         other=order_item_pricing.alias("oip"),
-        on=col("oi.order_item_id") == col("oip").order_item_id,
+        on=col("oi.order_item_id") == col("oip.order_item_id"),
         how="left",
     )
 
@@ -20,8 +20,8 @@ def prepare_order_items_data(
         col("oi.order_id").alias("ORDER_ID"),
         col("oi.product_id").alias("PRODUCT_ID"),
         col("oi.quantity").alias("QUANTITY"),
-        col("oi.unit_price").alias("UNIT_PRICE"),
-        col("oi.discount").alias("DISCOUNT"),
+        col("oip.unit_price").alias("UNIT_PRICE"),
+        col("oip.discount").alias("DISCOUNT"),
     )
 
     return order_items_selected.withColumn(
