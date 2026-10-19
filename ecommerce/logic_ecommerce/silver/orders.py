@@ -13,11 +13,12 @@ def add_date_columns(
     timestamp_column = month(col(timestamp_column_name))
 
     df_year_month = df.withColumn(
-        "YEAR", year("CREATED_AT").cast(IntegerType())
+        "YEAR", year(col(timestamp_column_name)).cast(IntegerType())
     ).withColumn(
         "MONTH",
-        when(timestamp_column < 10),
-        concat(lit("0"), timestamp_column).otherwise(timestamp_column),
+        when(timestamp_column < 10, concat(lit("0"), timestamp_column)).otherwise(
+            timestamp_column.cast("string")
+        ),
     )
 
     quarter = (
@@ -55,7 +56,6 @@ def prepare_orders_data(
             col("od.order_channel").alias("ORDER_CHANNEL"),
             col("od.shipping_method").alias("SHIPPING_METHOD"),
             col("od.shipping_cost").alias("SHIPPING_COST"),
-            col("osh").alias("SHIPPING_COST"),
             col("osh.status").alias("STATUS"),
             col("osh.STATUS_CHANGE_DESCRIPTION").alias("STATUS_CHANGE_DESCRIPTION"),
             col("osh.valid_from").alias("VALID_FROM"),
