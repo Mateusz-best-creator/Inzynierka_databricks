@@ -1,3 +1,59 @@
 {
-    "table_name": "order_items"
+    "table_list": [
+        "silver_order_items"
+    ],
+    "silver_order_items": {        
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "parquet",
+        "container_folder_path": "silver_data",
+        "file_name": "silver_order_items.parquet",
+        "blob_name": "silver_data/silver_order_items.parquet",
+        "table_name": "silver_order_items",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "order_item_surrogate_key",
+                "target_col_name": "ORDER_ITEM_SURROGATE_KEY",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "ORDER_ITEM_ID",
+                "target_col_name": "ORDER_ITEM_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "ITEM_SEQUENCE",
+                "target_col_name": "ITEM_SEQUENCE",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "QUANTITY",
+                "target_col_name": "QUANTITY",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "UNIT_PRICE",
+                "target_col_name": "UNIT_PRICE",
+                "target_datatype": "decimal"
+            },
+            {
+                "source_col_name": "DISCOUNT",
+                "target_col_name": "DISCOUNT",
+                "target_datatype": "decimal"
+            },
+            {
+                "source_col_name": "ORDER_ID",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "PRODUCT_ID",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            }
+        ]
+    }
 }

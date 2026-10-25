@@ -1,0 +1,122 @@
+[
+    {
+        "category_id": "CAT-00001",
+        "parent_category_id": null,
+        "category_name": "Electronics",
+        "updated_at": "2023-05-13 16:11:57"
+    },
+    {
+        "category_id": "CAT-00002",
+        "parent_category_id": "CAT-00001",
+        "category_name": "Laptops",
+        "updated_at": "2023-03-18 12:52:01"
+    },
+    {
+        "category_id": "CAT-00003",
+        "parent_category_id": "CAT-00001",
+        "category_name": "Smartphones",
+        "updated_at": "2023-01-23 14:52:44"
+    },
+    {
+        "category_id": "CAT-00004",
+        "parent_category_id": "CAT-00001",
+        "category_name": "Audio",
+        "updated_at": "2023-08-13 03:08:02"
+    },
+    {
+        "category_id": "CAT-00005",
+        "parent_category_id": "CAT-00001",
+        "category_name": "Cameras",
+        "updated_at": "2023-01-16 19:41:17"
+    },
+    {
+        "category_id": "CAT-00006",
+        "parent_category_id": null,
+        "category_name": "Home & Garden",
+        "updated_at": "2023-08-16 12:53:17"
+    },
+    {
+        "category_id": "CAT-00007",
+        "parent_category_id": "CAT-00006",
+        "category_name": "Furniture",
+        "updated_at": "2023-04-20 13:06:16"
+    },
+    {
+        "category_id": "CAT-00008",
+        "parent_category_id": "CAT-00006",
+        "category_name": "Kitchen",
+        "updated_at": "2022-10-30 12:15:51"
+    },
+    {
+        "category_id": "CAT-00009",
+        "parent_category_id": "CAT-00006",
+        "category_name": "Decor",
+        "updated_at": "2023-09-02 07:45:11"
+    },
+    {
+        "category_id": "CAT-00010",
+        "parent_category_id": "CAT-00006",
+        "category_name": "Lighting",
+        "updated_at": "2023-09-17 02:14:39"
+    },
+    {
+        "category_id": "CAT-00011",
+        "parent_category_id": null,
+        "category_name": "Sports",
+        "updated_at": "2022-12-09 05:47:00"
+    },
+    {
+        "category_id": "CAT-00012",
+        "parent_category_id": "CAT-00011",
+        "category_name": "Fitness",
+        "updated_at": "2023-10-11 07:22:22"
+    },
+    {
+        "category_id": "CAT-00013",
+        "parent_category_id": "CAT-00011",
+        "category_name": "Cycling",
+        "updated_at": "2023-09-07 21:25:48"
+    },
+    {
+        "category_id": "CAT-00014",
+        "parent_category_id": "CAT-00011",
+        "category_name": "Running",
+        "updated_at": "2023-02-07 11:42:39"
+    },
+    {
+        "category_id": "CAT-00015",
+        "parent_category_id": "CAT-00011",
+        "category_name": "Swimming",
+        "updated_at": "2023-01-13 10:10:00"
+    },
+    {
+        "category_id": "CAT-00016",
+        "parent_category_id": null,
+        "category_name": "Clothing",
+        "updated_at": "2023-05-23 19:56:57"
+    },
+    {
+        "category_id": "CAT-00017",
+        "parent_category_id": "CAT-00016",
+        "category_name": "Men",
+        "updated_at": "2022-11-28 16:42:24"
+    },
+    {
+        "category_id": "CAT-00018",
+        "parent_category_id": "CAT-00016",
+        "category_name": "Women",
+        "updated_at": "2023-01-15 13:29:30"
+    },
+    {
+        "category_id": "CAT-00019",
+        "parent_category_id": "CAT-00016",
+        "category_name": "Kids",
+        "updated_at": "2022-10-25 07:45:59"
+    },
+    {
+        "category_id": "CAT-00020",
+        "parent_category_id": "CAT-00016",
+        "category_name": "Accessories",
+        "updated_at": "2022-12-01 09:22:16"
+    }
+]

@@ -1,0 +1,59 @@
+{
+    "table_list": [
+        "silver_sessions"
+    ],
+    "silver_sessions": {        
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "parquet",
+        "container_folder_path": "silver_data",
+        "file_name": "silver_sessions.parquet",
+        "blob_name": "silver_data/silver_sessions.parquet",
+        "table_name": "silver_sessions",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "session_surrogate_key",
+                "target_col_name": "SESSION_SURROGATE_KEY",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "SESSION_ID",
+                "target_col_name": "SESSION_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "SESSION_START",
+                "target_col_name": "SESSION_START",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "SESSION_END",
+                "target_col_name": "SESSION_END",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "DEVICE_TYPE",
+                "target_col_name": "DEVICE_TYPE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "BROWSER",
+                "target_col_name": "BROWSER",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "TRAFFIC_SOURCE",
+                "target_col_name": "TRAFFIC_SOURCE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "USER_SURROGATE_KEY",
+                "target_col_name": "USER_SURROGATE_KEY",
+                "target_datatype": "integer"
+            }
+        ]
+    }
+}

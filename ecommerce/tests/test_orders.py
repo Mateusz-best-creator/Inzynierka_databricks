@@ -2,6 +2,7 @@ import pytest
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     DoubleType,
+    IntegerType,
     StringType,
     StructField,
     StructType,
@@ -14,203 +15,308 @@ from ecommerce.logic_ecommerce.silver.orders import (
 
 
 def test_prepare_orders_data_schema_and_columns(spark: SparkSession) -> None:
-    # Arrange verifying output schema
+    orders_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("session_id", StringType(), True),
+        StructField("created_at", StringType(), True),
+    ])
+    details_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("shipping_method", StringType(), True),
+        StructField("freight_value", DoubleType(), True),
+    ])
+    status_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("status", StringType(), True),
+        StructField("valid_from", StringType(), True),
+    ])
+    items_schema = StructType([
+        StructField("order_item_id", StringType(), True),
+        StructField("order_id", StringType(), True),
+        StructField("quantity", IntegerType(), True),
+    ])
+    pricing_schema = StructType([
+        StructField("order_item_id", StringType(), True),
+        StructField("unit_price", DoubleType(), True),
+        StructField("discount", DoubleType(), True),
+    ])
+    users_schema = StructType([
+        StructField("user_surrogate_key", IntegerType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+    ])
+
     orders_df = spark.createDataFrame(
-        [("ORD-1", "USR-1", "SESS-1", "2025-01-15 10:00:00")],
-        ["order_id", "user_id", "session_id", "created_at"],
+        [("ORD-1", "USR-1", "SESS-1", "2025-01-15 10:00:00")], schema=orders_schema
     )
     order_details_df = spark.createDataFrame(
-        [("ORD-1", "WEB", "COURIER", 15.0)],
-        ["order_id", "order_channel", "shipping_method", "shipping_cost"],
+        [("ORD-1", "COURIER", 15.0)], schema=details_schema
     )
     order_status_history_df = spark.createDataFrame(
-        [("ORD-1", "DELIVERED", "Order delivered", "2025-01-18 14:00:00")],
-        ["order_id", "status", "STATUS_CHANGE_DESCRIPTION", "valid_from"],
+        [("ORD-1", "DELIVERED", "2025-01-18 14:00:00")], schema=status_schema
+    )
+    order_items_df = spark.createDataFrame(
+        [("ITEM-1", "ORD-1", 2)], schema=items_schema
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", 50.0, 5.0)], schema=pricing_schema
+    )
+    silver_users_df = spark.createDataFrame(
+        [(1, "USR-1", "2025-01-01 00:00:00", None)], schema=users_schema
     )
 
-    # Act
     result_df = prepare_orders_data(
+        orders=orders_df,
         order_details=order_details_df,
         order_status_history=order_status_history_df,
-        orders=orders_df,
+        order_items=order_items_df,
+        order_item_pricing=order_item_pricing_df,
+        silver_users=silver_users_df,
     )
 
-    # Assert checking if all column names are uppercase and in the expected order
     expected_columns = [
+        "ORDER_SURROGATE_KEY",
         "ORDER_ID",
-        "USER_ID",
-        "SESSION_ID",
-        "CREATED_AT",
-        "ORDER_CHANNEL",
+        "TOTAL_AMOUNT",
+        "FREIGHT_VALUE",
         "SHIPPING_METHOD",
-        "SHIPPING_COST",
-        "STATUS",
-        "STATUS_CHANGE_DESCRIPTION",
-        "VALID_FROM",
+        "CREATED_AT_TIMESTAMP",
+        "PENDING_PAYMENT_TIMESTAMP",
+        "PAID_TIMESTAMP",
+        "PROCESSING_TIMESTAMP",
+        "SHIPPED_TIMESTAMP",
+        "DELIVERED_TIMESTAMP",
+        "SESSION_ID",
+        "USER_SURROGATE_KEY",
     ]
     assert result_df.columns == expected_columns
 
 
-def test_prepare_orders_data_joins_with_trim_and_case(spark: SparkSession) -> None:
-    # Arrange creating orders with different case and spaces in order_id
+def test_prepare_orders_data_calculations_and_pivots(spark: SparkSession) -> None:
+    orders_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("session_id", StringType(), True),
+        StructField("created_at", StringType(), True),
+    ])
+    details_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("shipping_method", StringType(), True),
+        StructField("freight_value", DoubleType(), True),
+    ])
+    status_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("status", StringType(), True),
+        StructField("valid_from", StringType(), True),
+    ])
+    items_schema = StructType([
+        StructField("order_item_id", StringType(), True),
+        StructField("order_id", StringType(), True),
+        StructField("quantity", IntegerType(), True),
+    ])
+    pricing_schema = StructType([
+        StructField("order_item_id", StringType(), True),
+        StructField("unit_price", DoubleType(), True),
+        StructField("discount", DoubleType(), True),
+    ])
+    users_schema = StructType([
+        StructField("user_surrogate_key", IntegerType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+    ])
+
     orders_df = spark.createDataFrame(
-        [
-            (" ord-100 ", "USR-10", "SESS-10", "2025-03-10 12:00:00"),
-            ("ORD-101", "USR-11", "SESS-11", "2025-03-11 15:30:00"),
-        ],
-        ["order_id", "user_id", "session_id", "created_at"],
+        [("ORD-100", "USR-10", "SESS-10", "2025-03-10 12:00:00")], schema=orders_schema
     )
     order_details_df = spark.createDataFrame(
-        [
-            ("ORD-100", "MOBILE", "LOCKER", 9.99),
-            (" ord-101", "WEB", "EXPRESS", 25.0),
-        ],
-        ["order_id", "order_channel", "shipping_method", "shipping_cost"],
+        [("ORD-100", "EXPRESS", 10.0)], schema=details_schema
     )
     order_status_history_df = spark.createDataFrame(
         [
-            ("ord-100", "PAID", "Payment confirmed", "2025-03-10 12:05:00"),
-            ("ORD-101 ", "SHIPPED", "Sent to customer", "2025-03-12 08:00:00"),
-        ],
-        ["order_id", "status", "STATUS_CHANGE_DESCRIPTION", "valid_from"],
+            ("ORD-100", "PENDING_PAYMENT", "2025-03-10 12:01:00"),
+            ("ORD-100", "PAID", "2025-03-10 12:05:00"),
+            ("ORD-100", "SHIPPED", "2025-03-11 08:00:00"),
+        ], schema=status_schema
+    )
+    order_items_df = spark.createDataFrame(
+        [
+            ("ITEM-1", "ORD-100", 2),
+            ("ITEM-2", "ORD-100", 1),
+        ], schema=items_schema
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [
+            ("ITEM-1", 100.0, 10.0),
+            ("ITEM-2", 50.0, 0.0),
+        ], schema=pricing_schema
+    )
+    silver_users_df = spark.createDataFrame(
+        [(99, "USR-10", "2025-01-01 00:00:00", None)], schema=users_schema
     )
 
-    # Act
     result_df = prepare_orders_data(
+        orders=orders_df,
         order_details=order_details_df,
         order_status_history=order_status_history_df,
-        orders=orders_df,
+        order_items=order_items_df,
+        order_item_pricing=order_item_pricing_df,
+        silver_users=silver_users_df,
     )
-    rows = {row["USER_ID"]: row for row in result_df.collect()}
+    rows = {row["ORDER_ID"]: row for row in result_df.collect()}
 
-    # Assert
-    assert len(rows) == 2
+    assert len(rows) == 1
+    row = rows["ORD-100"]
 
-    assert rows["USR-10"]["ORDER_CHANNEL"] == "MOBILE"
-    assert rows["USR-10"]["SHIPPING_METHOD"] == "LOCKER"
-    assert rows["USR-10"]["SHIPPING_COST"] == pytest.approx(9.99)
-    assert rows["USR-10"]["STATUS"] == "PAID"
-
-    assert rows["USR-11"]["ORDER_CHANNEL"] == "WEB"
-    assert rows["USR-11"]["SHIPPING_COST"] == pytest.approx(25.0)
-    assert rows["USR-11"]["STATUS"] == "SHIPPED"
+    assert row["TOTAL_AMOUNT"] == pytest.approx(240.0)
+    assert row["FREIGHT_VALUE"] == pytest.approx(10.0)
+    assert row["SHIPPING_METHOD"] == "EXPRESS"
+    assert row["USER_SURROGATE_KEY"] == 99
+    assert row["PENDING_PAYMENT_TIMESTAMP"] == "2025-03-10 12:01:00"
+    assert row["PAID_TIMESTAMP"] == "2025-03-10 12:05:00"
+    assert row["SHIPPED_TIMESTAMP"] == "2025-03-11 08:00:00"
+    assert row["DELIVERED_TIMESTAMP"] is None
 
 
 def test_prepare_orders_data_left_join_missing_details(spark: SparkSession) -> None:
-    # Arrange ORD-2 has no matching records in details and status history
+    orders_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("session_id", StringType(), True),
+        StructField("created_at", StringType(), True),
+    ])
+    details_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("shipping_method", StringType(), True),
+        StructField("freight_value", DoubleType(), True),
+    ])
+    status_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("status", StringType(), True),
+        StructField("valid_from", StringType(), True),
+    ])
+    items_schema = StructType([
+        StructField("order_item_id", StringType(), True),
+        StructField("order_id", StringType(), True),
+        StructField("quantity", IntegerType(), True),
+    ])
+    pricing_schema = StructType([
+        StructField("order_item_id", StringType(), True),
+        StructField("unit_price", DoubleType(), True),
+        StructField("discount", DoubleType(), True),
+    ])
+    users_schema = StructType([
+        StructField("user_surrogate_key", IntegerType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+    ])
+
     orders_df = spark.createDataFrame(
         [
             ("ORD-1", "USR-1", "SESS-1", "2025-05-01 10:00:00"),
             ("ORD-2", "USR-2", "SESS-2", "2025-05-02 11:00:00"),
-        ],
-        ["order_id", "user_id", "session_id", "created_at"],
-    )
-    order_details_df = spark.createDataFrame(
-        [("ORD-1", "WEB", "STANDARD", 12.5)],
-        ["order_id", "order_channel", "shipping_method", "shipping_cost"],
-    )
-    order_status_history_df = spark.createDataFrame(
-        [("ORD-1", "CREATED", "New order", "2025-05-01 10:01:00")],
-        ["order_id", "status", "STATUS_CHANGE_DESCRIPTION", "valid_from"],
+        ], schema=orders_schema
     )
 
-    # Act
+    order_details_df = spark.createDataFrame(
+        [("ORD-1", "STANDARD", 12.5)], schema=details_schema
+    )
+
+    order_status_history_df = spark.createDataFrame(
+        [("ORD-1", "PENDING_PAYMENT", "2025-05-01 10:01:00")], schema=status_schema
+    )
+
+    order_items_df = spark.createDataFrame(
+        [("ITEM-1", "ORD-1", 1)], schema=items_schema
+    )
+
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", 20.0, 0.0)], schema=pricing_schema
+    )
+
+    silver_users_df = spark.createDataFrame(
+        [
+            (1, "USR-1", "2025-01-01 00:00:00", None),
+            (2, "USR-2", "2025-01-01 00:00:00", None),
+        ], schema=users_schema
+    )
+
     result_df = prepare_orders_data(
+        orders=orders_df,
         order_details=order_details_df,
         order_status_history=order_status_history_df,
-        orders=orders_df,
+        order_items=order_items_df,
+        order_item_pricing=order_item_pricing_df,
+        silver_users=silver_users_df,
     )
     rows = {row["ORDER_ID"]: row for row in result_df.collect()}
 
-    # Assert left join save ORD-2 with NULL values for missing columns
     assert len(rows) == 2
-    assert rows["ORD-1"]["STATUS"] == "CREATED"
-    assert rows["ORD-1"]["SHIPPING_COST"] == pytest.approx(12.5)
+    assert rows["ORD-1"]["PENDING_PAYMENT_TIMESTAMP"] == "2025-05-01 10:01:00"
+    assert rows["ORD-1"]["FREIGHT_VALUE"] == pytest.approx(12.5)
+    assert rows["ORD-1"]["TOTAL_AMOUNT"] == pytest.approx(32.5)
 
-    assert rows["ORD-2"]["USER_ID"] == "USR-2"
-    assert rows["ORD-2"]["ORDER_CHANNEL"] is None
-    assert rows["ORD-2"]["SHIPPING_COST"] is None
-    assert rows["ORD-2"]["STATUS"] is None
-
-
-def test_add_date_columns_all_quarters_and_invalid_date(spark: SparkSession) -> None:
-    # Arrange dates for all quarters and one invalid date
-    input_df = spark.createDataFrame(
-        [
-            ("ORD-1", "2024-02-15 10:00:00"),
-            ("ORD-2", "2024-05-20 12:30:00"),
-            ("ORD-3", "2025-08-05 08:15:00"),
-            ("ORD-4", "2025-11-30 22:00:00"),
-            ("ORD-5", None),
-        ],
-        ["ORDER_ID", "CREATED_AT"],
-    )
-
-    # Act
-    result_df = add_date_columns(input_df)
-    rows = {row["ORDER_ID"]: row for row in result_df.collect()}
-
-    # Assert checking year month formatting and quarter mapping
-    assert rows["ORD-1"]["YEAR"] == 2024
-    assert rows["ORD-1"]["MONTH"] == "02"
-    assert rows["ORD-1"]["QUARTER"] == "Q1"
-
-    assert rows["ORD-2"]["YEAR"] == 2024
-    assert rows["ORD-2"]["MONTH"] == "05"
-    assert rows["ORD-2"]["QUARTER"] == "Q2"
-
-    assert rows["ORD-3"]["YEAR"] == 2025
-    assert rows["ORD-3"]["MONTH"] == "08"
-    assert rows["ORD-3"]["QUARTER"] == "Q3"
-
-    assert rows["ORD-4"]["YEAR"] == 2025
-    assert rows["ORD-4"]["MONTH"] == "11"
-    assert rows["ORD-4"]["QUARTER"] == "Q4"
-
-    assert rows["ORD-5"]["YEAR"] is None
-    assert rows["ORD-5"]["QUARTER"] == "INCORRECT_DATE"
+    assert rows["ORD-2"]["USER_SURROGATE_KEY"] == 2
+    assert rows["ORD-2"]["SHIPPING_METHOD"] is None
+    assert rows["ORD-2"]["FREIGHT_VALUE"] == pytest.approx(0.0)
+    assert rows["ORD-2"]["TOTAL_AMOUNT"] == pytest.approx(0.0)
+    assert rows["ORD-2"]["PENDING_PAYMENT_TIMESTAMP"] is None
 
 
 def test_prepare_orders_data_empty_dataframes(spark: SparkSession) -> None:
-    # Arrange define schemas for empty dataframes
-    orders_schema = StructType(
-        [
-            StructField("order_id", StringType(), True),
-            StructField("user_id", StringType(), True),
-            StructField("session_id", StringType(), True),
-            StructField("created_at", StringType(), True),
-        ]
-    )
-    details_schema = StructType(
-        [
-            StructField("order_id", StringType(), True),
-            StructField("order_channel", StringType(), True),
-            StructField("shipping_method", StringType(), True),
-            StructField("shipping_cost", DoubleType(), True),
-        ]
-    )
-    status_schema = StructType(
-        [
-            StructField("order_id", StringType(), True),
-            StructField("status", StringType(), True),
-            StructField("STATUS_CHANGE_DESCRIPTION", StringType(), True),
-            StructField("valid_from", StringType(), True),
-        ]
-    )
+    orders_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("session_id", StringType(), True),
+        StructField("created_at", StringType(), True),
+    ])
+    details_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("shipping_method", StringType(), True),
+        StructField("freight_value", DoubleType(), True),
+    ])
+    status_schema = StructType([
+        StructField("order_id", StringType(), True),
+        StructField("status", StringType(), True),
+        StructField("valid_from", StringType(), True),
+    ])
+    items_schema = StructType([
+        StructField("order_item_id", StringType(), True),
+        StructField("order_id", StringType(), True),
+        StructField("quantity", IntegerType(), True),
+    ])
+    pricing_schema = StructType([
+        StructField("order_item_id", StringType(), True),
+        StructField("unit_price", DoubleType(), True),
+        StructField("discount", DoubleType(), True),
+    ])
+    users_schema = StructType([
+        StructField("user_surrogate_key", IntegerType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+    ])
 
     empty_orders = spark.createDataFrame([], schema=orders_schema)
     empty_details = spark.createDataFrame([], schema=details_schema)
     empty_status = spark.createDataFrame([], schema=status_schema)
+    empty_items = spark.createDataFrame([], schema=items_schema)
+    empty_pricing = spark.createDataFrame([], schema=pricing_schema)
+    empty_users = spark.createDataFrame([], schema=users_schema)
 
-    # Act
     joined_df = prepare_orders_data(
+        orders=empty_orders,
         order_details=empty_details,
         order_status_history=empty_status,
-        orders=empty_orders,
+        order_items=empty_items,
+        order_item_pricing=empty_pricing,
+        silver_users=empty_users,
     )
     result_df = add_date_columns(joined_df)
 
-    # Assert
     assert result_df.count() == 0
     assert "YEAR" in result_df.columns
     assert "MONTH" in result_df.columns

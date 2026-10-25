@@ -2,5 +2,5 @@ pre-commit==4.5.0
 pytest==9.0.2
 pytest-picked==0.5.1
 azure-storage-blob==12.31.0
-pandas==3.0.6
+pandas==2.3.3
 openpyxl==3.1.5

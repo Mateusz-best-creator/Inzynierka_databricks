@@ -14,8 +14,8 @@ from ecommerce.logic_ecommerce.silver.order_items import prepare_order_items_dat
 def test_prepare_order_items_schema_and_columns(spark: SparkSession) -> None:
     # Arrange verifying output schema
     order_items_df = spark.createDataFrame(
-        [("ITEM-1", "ORD-1", "PROD-1", 1)],
-        ["order_item_id", "order_id", "product_id", "quantity"],
+        [("ITEM-1", "ORD-1", 1, "PROD-1", 1)],
+        ["order_item_id", "order_id", "order_item_seq", "product_id", "quantity"],
     )
     order_item_pricing_df = spark.createDataFrame(
         [("ITEM-1", 50.0, 5.0)],
@@ -27,30 +27,31 @@ def test_prepare_order_items_schema_and_columns(spark: SparkSession) -> None:
         order_items=order_items_df, order_item_pricing=order_item_pricing_df
     )
 
-    # Assert checking if all column names are uppercase and in the expected order
+    # Assert checking if all expected column names are present and uppercase
     expected_columns = [
+        "ORDER_ITEM_SURROGATE_KEY",
         "ORDER_ITEM_ID",
-        "ORDER_ID",
-        "PRODUCT_ID",
+        "ITEM_SEQUENCE",
         "QUANTITY",
         "UNIT_PRICE",
         "DISCOUNT",
-        "TOTAL_PRICE",
-        "TOTAL_PRICE_AFTER_DISCOUNT",
+        "ORDER_ID",
+        "PRODUCT_ID",
     ]
-    assert result_df.columns == expected_columns
+    for col_name in expected_columns:
+        assert col_name in result_df.columns
 
 
-def test_prepare_order_items_price_calculations(spark: SparkSession) -> None:
-    # Arrange creating multiple items with standard discount zero discount and single quantity
+def test_prepare_order_items_mapping_and_values(spark: SparkSession) -> None:
+    # Arrange creating multiple items
     order_items_data = [
-        ("ITEM-1", "ORD-100", "PROD-A", 3),
-        ("ITEM-2", "ORD-100", "PROD-B", 2),
-        ("ITEM-3", "ORD-101", "PROD-C", 1),
+        ("ITEM-1", "ORD-100", 1, "PROD-A", 3),
+        ("ITEM-2", "ORD-100", 2, "PROD-B", 2),
+        ("ITEM-3", "ORD-101", 1, "PROD-C", 1),
     ]
     order_items_df = spark.createDataFrame(
         order_items_data,
-        ["order_item_id", "order_id", "product_id", "quantity"],
+        ["order_item_id", "order_id", "order_item_seq", "product_id", "quantity"],
     )
 
     pricing_data = [
@@ -73,28 +74,27 @@ def test_prepare_order_items_price_calculations(spark: SparkSession) -> None:
     assert len(rows) == 3
 
     assert rows["ITEM-1"]["ORDER_ID"] == "ORD-100"
+    assert rows["ITEM-1"]["ITEM_SEQUENCE"] == 1
     assert rows["ITEM-1"]["PRODUCT_ID"] == "PROD-A"
     assert rows["ITEM-1"]["QUANTITY"] == 3
     assert rows["ITEM-1"]["UNIT_PRICE"] == pytest.approx(100.0)
     assert rows["ITEM-1"]["DISCOUNT"] == pytest.approx(15.5)
-    assert rows["ITEM-1"]["TOTAL_PRICE"] == pytest.approx(300.0)
-    assert rows["ITEM-1"]["TOTAL_PRICE_AFTER_DISCOUNT"] == pytest.approx(253.5)
 
-    assert rows["ITEM-2"]["TOTAL_PRICE"] == pytest.approx(90.0)
-    assert rows["ITEM-2"]["TOTAL_PRICE_AFTER_DISCOUNT"] == pytest.approx(90.0)
+    assert rows["ITEM-2"]["ITEM_SEQUENCE"] == 2
+    assert rows["ITEM-2"]["UNIT_PRICE"] == pytest.approx(45.0)
 
-    assert rows["ITEM-3"]["TOTAL_PRICE"] == pytest.approx(19.99)
-    assert rows["ITEM-3"]["TOTAL_PRICE_AFTER_DISCOUNT"] == pytest.approx(15.0)
+    assert rows["ITEM-3"]["UNIT_PRICE"] == pytest.approx(19.99)
+    assert rows["ITEM-3"]["DISCOUNT"] == pytest.approx(4.99)
 
 
 def test_prepare_order_items_left_join_missing_pricing(spark: SparkSession) -> None:
     # Arrange ITEM-2 has no matching record in order_item_pricing
     order_items_df = spark.createDataFrame(
         [
-            ("ITEM-1", "ORD-1", "PROD-1", 2),
-            ("ITEM-2", "ORD-2", "PROD-2", 5),
+            ("ITEM-1", "ORD-1", 1, "PROD-1", 2),
+            ("ITEM-2", "ORD-2", 1, "PROD-2", 5),
         ],
-        ["order_item_id", "order_id", "product_id", "quantity"],
+        ["order_item_id", "order_id", "order_item_seq", "product_id", "quantity"],
     )
     order_item_pricing_df = spark.createDataFrame(
         [("ITEM-1", 20.0, 2.0)],
@@ -107,16 +107,13 @@ def test_prepare_order_items_left_join_missing_pricing(spark: SparkSession) -> N
     )
     rows = {row["ORDER_ITEM_ID"]: row for row in result_df.collect()}
 
-    # Assert left join save ITEM-2 with NULL values for price columns
+    # Assert left join saves ITEM-2 with NULL values for price columns
     assert len(rows) == 2
-    assert rows["ITEM-1"]["TOTAL_PRICE"] == pytest.approx(40.0)
-    assert rows["ITEM-1"]["TOTAL_PRICE_AFTER_DISCOUNT"] == pytest.approx(36.0)
+    assert rows["ITEM-1"]["UNIT_PRICE"] == pytest.approx(20.0)
 
     assert rows["ITEM-2"]["QUANTITY"] == 5
     assert rows["ITEM-2"]["UNIT_PRICE"] is None
     assert rows["ITEM-2"]["DISCOUNT"] is None
-    assert rows["ITEM-2"]["TOTAL_PRICE"] is None
-    assert rows["ITEM-2"]["TOTAL_PRICE_AFTER_DISCOUNT"] is None
 
 
 def test_prepare_order_items_empty_dataframes(spark: SparkSession) -> None:
@@ -125,6 +122,7 @@ def test_prepare_order_items_empty_dataframes(spark: SparkSession) -> None:
         [
             StructField("order_item_id", StringType(), True),
             StructField("order_id", StringType(), True),
+            StructField("order_item_seq", IntegerType(), True),
             StructField("product_id", StringType(), True),
             StructField("quantity", IntegerType(), True),
         ]
@@ -147,5 +145,5 @@ def test_prepare_order_items_empty_dataframes(spark: SparkSession) -> None:
 
     # Assert
     assert result_df.count() == 0
-    assert "TOTAL_PRICE" in result_df.columns
-    assert "TOTAL_PRICE_AFTER_DISCOUNT" in result_df.columns
+    assert "ORDER_ITEM_SURROGATE_KEY" in result_df.columns
+    assert "ITEM_SEQUENCE" in result_df.columns

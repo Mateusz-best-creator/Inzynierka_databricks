@@ -55,6 +55,7 @@ resources:
 
       tasks:
 
+        # Bronze layer ingestion tasks
         - task_key: pl_file_ingestion_orders
           job_cluster_key: ecommerce_job_cluster
           <<: *base_retry_parameters
@@ -85,24 +86,46 @@ resources:
               config_filename: users.json
             source: WORKSPACE
 
-        - task_key: pl_order_items_silver
+        - task_key: pl_file_ingestion_categories
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
+            base_parameters:
+              <<: *base_params
+              config_filename: categories.json
+            source: WORKSPACE
+
+        - task_key: pl_file_ingestion_products
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
+            base_parameters:
+              <<: *base_params
+              config_filename: products.json
+            source: WORKSPACE
+
+        # Silver layer transformation tasks
+        - task_key: pl_categories_silver
           job_cluster_key: ecommerce_job_cluster
           <<: *base_retry_parameters
           depends_on:
-            - task_key: pl_file_ingestion_orders
+            - task_key: pl_file_ingestion_categories
           notebook_task:
-            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_order_items
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_categories
             base_parameters:
               <<: *base_params
             source: WORKSPACE
 
-        - task_key: pl_orders_silver
+        - task_key: pl_products_silver
           job_cluster_key: ecommerce_job_cluster
           <<: *base_retry_parameters
           depends_on:
-            - task_key: pl_file_ingestion_orders
+            - task_key: pl_file_ingestion_products
+            - task_key: pl_categories_silver
           notebook_task:
-            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_orders
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_products
             base_parameters:
               <<: *base_params
             source: WORKSPACE
@@ -118,11 +141,36 @@ resources:
               <<: *base_params
             source: WORKSPACE
 
+        - task_key: pl_orders_silver
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_file_ingestion_orders
+            - task_key: pl_users_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_orders
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_order_items_silver
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_file_ingestion_orders
+            - task_key: pl_orders_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_order_items
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
         - task_key: pl_payments_silver
           job_cluster_key: ecommerce_job_cluster
           <<: *base_retry_parameters
           depends_on:
             - task_key: pl_file_ingestion_payments
+            - task_key: pl_orders_silver
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_payments
             base_parameters:
