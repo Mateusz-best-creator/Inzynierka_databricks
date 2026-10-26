@@ -1,0 +1,4 @@
+{
+    "table_name": "fact_sales",
+    "partition_key": "order_date_key"
+}

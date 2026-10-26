@@ -1,17 +1,25 @@
 import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.types import DoubleType, IntegerType, StringType, StructField, StructType
+from pyspark.sql.types import (
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
 
 from ecommerce.logic_ecommerce.silver.payments import prepare_payments_data
 
-PAYMENTS_SCHEMA = StructType([
-    StructField("payment_id", StringType(), True),
-    StructField("order_id", StringType(), True),
-    StructField("payment_sequential", IntegerType(), True),
-    StructField("payment_type", StringType(), True),
-    StructField("payment_installments", IntegerType(), True),
-    StructField("payment_value", DoubleType(), True),
-])
+PAYMENTS_SCHEMA = StructType(
+    [
+        StructField("payment_id", StringType(), True),
+        StructField("order_id", StringType(), True),
+        StructField("payment_sequential", IntegerType(), True),
+        StructField("payment_type", StringType(), True),
+        StructField("payment_installments", IntegerType(), True),
+        StructField("payment_value", DoubleType(), True),
+    ]
+)
 
 
 def test_prepare_payments_schema_and_columns(spark: SparkSession) -> None:
@@ -35,7 +43,9 @@ def test_prepare_payments_schema_and_columns(spark: SparkSession) -> None:
     assert result_df.columns == expected_columns
 
 
-def test_prepare_payments_value_sanitization_and_null_filtering(spark: SparkSession) -> None:
+def test_prepare_payments_value_sanitization_and_null_filtering(
+    spark: SparkSession,
+) -> None:
     # Verify negative values are converted to positive, nulls to 0.0, and null IDs dropped
     payments_df = spark.createDataFrame(
         [

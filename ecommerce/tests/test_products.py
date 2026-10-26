@@ -1,41 +1,53 @@
 import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.types import DoubleType, IntegerType, StringType, StructField, StructType
+from pyspark.sql.types import (
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
 
 from ecommerce.logic_ecommerce.silver.products import prepare_products_data
 
-CATALOG_SCHEMA = StructType([
-    StructField("product_id", StringType(), True),
-    StructField("category_id", StringType(), True),
-    StructField("product_name", StringType(), True),
-    StructField("brand", StringType(), True),
-    StructField("description", StringType(), True),
-    StructField("is_active", IntegerType(), True),
-    StructField("created_at", StringType(), True),
-])
+CATALOG_SCHEMA = StructType(
+    [
+        StructField("product_id", StringType(), True),
+        StructField("category_id", StringType(), True),
+        StructField("product_name", StringType(), True),
+        StructField("brand", StringType(), True),
+        StructField("description", StringType(), True),
+        StructField("is_active", IntegerType(), True),
+        StructField("created_at", StringType(), True),
+    ]
+)
 
-PRICING_SCHEMA = StructType([
-    StructField("unique_id", StringType(), True),
-    StructField("product_id", StringType(), True),
-    StructField("price", DoubleType(), True),
-    StructField("cost_price", DoubleType(), True),
-    StructField("valid_from", StringType(), True),
-    StructField("valid_to", StringType(), True),
-    StructField("is_current", IntegerType(), True),
-])
+PRICING_SCHEMA = StructType(
+    [
+        StructField("unique_id", StringType(), True),
+        StructField("product_id", StringType(), True),
+        StructField("price", DoubleType(), True),
+        StructField("cost_price", DoubleType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+        StructField("is_current", IntegerType(), True),
+    ]
+)
 
-INVENTORY_SCHEMA = StructType([
-    StructField("inventory_id", StringType(), True),
-    StructField("product_id", StringType(), True),
-    StructField("weight_g", DoubleType(), True),
-    StructField("length_cm", DoubleType(), True),
-    StructField("height_cm", DoubleType(), True),
-    StructField("width_cm", DoubleType(), True),
-    StructField("stock_quantity", IntegerType(), True),
-    StructField("valid_from", StringType(), True),
-    StructField("valid_to", StringType(), True),
-    StructField("is_current", IntegerType(), True),
-])
+INVENTORY_SCHEMA = StructType(
+    [
+        StructField("inventory_id", StringType(), True),
+        StructField("product_id", StringType(), True),
+        StructField("weight_g", DoubleType(), True),
+        StructField("length_cm", DoubleType(), True),
+        StructField("height_cm", DoubleType(), True),
+        StructField("width_cm", DoubleType(), True),
+        StructField("stock_quantity", IntegerType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+        StructField("is_current", IntegerType(), True),
+    ]
+)
 
 
 def test_prepare_products_schema_and_time_slicing(spark: SparkSession) -> None:
@@ -46,15 +58,45 @@ def test_prepare_products_schema_and_time_slicing(spark: SparkSession) -> None:
     )
     pricing_df = spark.createDataFrame(
         [
-            ("P-1", "PROD-1", 100.0, 60.0, "2025-01-01 00:00:00", "2025-03-01 00:00:00", 0),
+            (
+                "P-1",
+                "PROD-1",
+                100.0,
+                60.0,
+                "2025-01-01 00:00:00",
+                "2025-03-01 00:00:00",
+                0,
+            ),
             ("P-2", "PROD-1", 120.0, 60.0, "2025-03-01 00:00:00", None, 1),
         ],
         schema=PRICING_SCHEMA,
     )
     inventory_df = spark.createDataFrame(
         [
-            ("I-1", "PROD-1", 100.0, 10.0, 5.0, 5.0, 50, "2025-01-01 00:00:00", "2025-02-01 00:00:00", 0),
-            ("I-2", "PROD-1", 100.0, 10.0, 5.0, 5.0, 30, "2025-02-01 00:00:00", None, 1),
+            (
+                "I-1",
+                "PROD-1",
+                100.0,
+                10.0,
+                5.0,
+                5.0,
+                50,
+                "2025-01-01 00:00:00",
+                "2025-02-01 00:00:00",
+                0,
+            ),
+            (
+                "I-2",
+                "PROD-1",
+                100.0,
+                10.0,
+                5.0,
+                5.0,
+                30,
+                "2025-02-01 00:00:00",
+                None,
+                1,
+            ),
         ],
         schema=INVENTORY_SCHEMA,
     )

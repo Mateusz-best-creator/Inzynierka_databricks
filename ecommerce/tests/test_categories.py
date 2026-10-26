@@ -3,11 +3,13 @@ from pyspark.sql.types import StringType, StructField, StructType
 
 from ecommerce.logic_ecommerce.silver.categories import prepare_categories_data
 
-CATEGORIES_SCHEMA = StructType([
-    StructField("category_id", StringType(), True),
-    StructField("category_name", StringType(), True),
-    StructField("parent_category_id", StringType(), True),
-])
+CATEGORIES_SCHEMA = StructType(
+    [
+        StructField("category_id", StringType(), True),
+        StructField("category_name", StringType(), True),
+        StructField("parent_category_id", StringType(), True),
+    ]
+)
 
 
 def test_prepare_categories_schema_and_hierarchy(spark: SparkSession) -> None:

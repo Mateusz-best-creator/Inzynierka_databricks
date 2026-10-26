@@ -63,20 +63,14 @@ def prepare_products_data(
             other=product_pricing_history.alias("p"),
             on=(col("ot.product_id") == col("p.product_id"))
             & (col("ot.valid_from") >= col("p.valid_from"))
-            & (
-                (col("ot.valid_from") < col("p.valid_to"))
-                | col("p.valid_to").isNull()
-            ),
+            & ((col("ot.valid_from") < col("p.valid_to")) | col("p.valid_to").isNull()),
             how="left",
         )
         .join(
             other=product_inventory.alias("i"),
             on=(col("ot.product_id") == col("i.product_id"))
             & (col("ot.valid_from") >= col("i.valid_from"))
-            & (
-                (col("ot.valid_from") < col("i.valid_to"))
-                | col("i.valid_to").isNull()
-            ),
+            & ((col("ot.valid_from") < col("i.valid_to")) | col("i.valid_to").isNull()),
             how="left",
         )
         .select(

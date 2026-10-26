@@ -13,7 +13,10 @@ def spark():
         .config("spark.driver.bindAddress", "127.0.0.1")
         .config("spark.sql.session.timeZone", "UTC")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+        .config(
+            "spark.sql.catalog.spark_catalog",
+            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+        )
         .config("spark.driver.extraJavaOptions", "-Djava.security.debug=off")
         .getOrCreate()
     )

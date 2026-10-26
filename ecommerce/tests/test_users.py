@@ -3,52 +3,64 @@ from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 
 from ecommerce.logic_ecommerce.silver.users import join_users_data
 
-LOCATIONS_SCHEMA = StructType([
-    StructField("location_id", StringType(), True),
-    StructField("city", StringType(), True),
-    StructField("state", StringType(), True),
-    StructField("zip_code", StringType(), True),
-    StructField("country", StringType(), True),
-])
+LOCATIONS_SCHEMA = StructType(
+    [
+        StructField("location_id", StringType(), True),
+        StructField("city", StringType(), True),
+        StructField("state", StringType(), True),
+        StructField("zip_code", StringType(), True),
+        StructField("country", StringType(), True),
+    ]
+)
 
-CONTACTS_SCHEMA = StructType([
-    StructField("user_id", StringType(), True),
-    StructField("email", StringType(), True),
-    StructField("phone", StringType(), True),
-])
+CONTACTS_SCHEMA = StructType(
+    [
+        StructField("user_id", StringType(), True),
+        StructField("email", StringType(), True),
+        StructField("phone", StringType(), True),
+    ]
+)
 
-USER_LOCATIONS_SCHEMA = StructType([
-    StructField("id", IntegerType(), True),
-    StructField("user_id", StringType(), True),
-    StructField("location_id", StringType(), True),
-    StructField("valid_from", StringType(), True),
-    StructField("valid_to", StringType(), True),
-    StructField("is_current", IntegerType(), True),
-])
+USER_LOCATIONS_SCHEMA = StructType(
+    [
+        StructField("id", IntegerType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("location_id", StringType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+        StructField("is_current", IntegerType(), True),
+    ]
+)
 
-PROFILES_SCHEMA = StructType([
-    StructField("user_id", StringType(), True),
-    StructField("first_name", StringType(), True),
-    StructField("last_name", StringType(), True),
-    StructField("birth_date", StringType(), True),
-    StructField("gender", StringType(), True),
-])
+PROFILES_SCHEMA = StructType(
+    [
+        StructField("user_id", StringType(), True),
+        StructField("first_name", StringType(), True),
+        StructField("last_name", StringType(), True),
+        StructField("birth_date", StringType(), True),
+        StructField("gender", StringType(), True),
+    ]
+)
 
-STATUS_SCHEMA = StructType([
-    StructField("id", StringType(), True),
-    StructField("user_id", StringType(), True),
-    StructField("status", StringType(), True),
-    StructField("status_change_description", StringType(), True),
-    StructField("valid_from", StringType(), True),
-    StructField("valid_to", StringType(), True),
-    StructField("is_current", IntegerType(), True),
-])
+STATUS_SCHEMA = StructType(
+    [
+        StructField("id", StringType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("status", StringType(), True),
+        StructField("status_change_description", StringType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+        StructField("is_current", IntegerType(), True),
+    ]
+)
 
-USERS_SCHEMA = StructType([
-    StructField("user_id", StringType(), True),
-    StructField("customer_unique_id", StringType(), True),
-    StructField("created_at", StringType(), True),
-])
+USERS_SCHEMA = StructType(
+    [
+        StructField("user_id", StringType(), True),
+        StructField("customer_unique_id", StringType(), True),
+        StructField("created_at", StringType(), True),
+    ]
+)
 
 
 def test_join_users_data_schema_and_scd2_timeline(spark: SparkSession) -> None:

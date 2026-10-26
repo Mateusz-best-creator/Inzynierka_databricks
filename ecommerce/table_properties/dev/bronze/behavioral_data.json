@@ -89,7 +89,7 @@
                 "source_col_name": "user_id",
                 "target_col_name": "USER_ID",
                 "target_datatype": "string"
-            }           
+            }
         ]
     }
 }

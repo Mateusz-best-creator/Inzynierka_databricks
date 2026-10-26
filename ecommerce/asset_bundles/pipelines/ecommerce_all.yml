@@ -55,7 +55,7 @@ resources:
 
       tasks:
 
-        # Bronze layer ingestion tasks
+        #BRONZE LAYER
         - task_key: pl_file_ingestion_orders
           job_cluster_key: ecommerce_job_cluster
           <<: *base_retry_parameters
@@ -106,7 +106,18 @@ resources:
               config_filename: products.json
             source: WORKSPACE
 
-        # Silver layer transformation tasks
+        - task_key: pl_file_ingestion_behavioral
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
+            base_parameters:
+              <<: *base_params
+              config_filename: behavioral_data.json
+            source: WORKSPACE
+
+
+        #SILVER LAYER
         - task_key: pl_categories_silver
           job_cluster_key: ecommerce_job_cluster
           <<: *base_retry_parameters
@@ -173,6 +184,168 @@ resources:
             - task_key: pl_orders_silver
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_payments
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_sessions_silver
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_file_ingestion_behavioral
+            - task_key: pl_users_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_sessions
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_event_clickstream_silver
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_file_ingestion_behavioral
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/silver/nb_event_clickstream
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+
+        #GOLD LAYER (DIMENSIONS)
+        - task_key: pl_dim_date
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_date
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_dim_time
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_time
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_dim_geography
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_users_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_geography
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_dim_user
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_users_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_user
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_dim_product
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_products_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_product
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_dim_session
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_sessions_silver
+            - task_key: pl_event_clickstream_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_session
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_dim_event_type
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_event_clickstream_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_event_type
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_dim_payment_type
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_payments_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_payment_type
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_dim_sales_context
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_orders_silver
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_sales_context
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+
+        #GOLD LAYER (FACTS)
+        - task_key: pl_fact_sales
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_orders_silver
+            - task_key: pl_order_items_silver
+            - task_key: pl_payments_silver
+            - task_key: pl_dim_date
+            - task_key: pl_dim_time
+            - task_key: pl_dim_product
+            - task_key: pl_dim_user
+            - task_key: pl_dim_geography
+            - task_key: pl_dim_payment_type
+            - task_key: pl_dim_sales_context
+            - task_key: pl_dim_session
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_fact_sales
+            base_parameters:
+              <<: *base_params
+            source: WORKSPACE
+
+        - task_key: pl_fact_events
+          job_cluster_key: ecommerce_job_cluster
+          <<: *base_retry_parameters
+          depends_on:
+            - task_key: pl_event_clickstream_silver
+            - task_key: pl_dim_date
+            - task_key: pl_dim_time
+            - task_key: pl_dim_session
+            - task_key: pl_dim_user
+            - task_key: pl_dim_geography
+            - task_key: pl_dim_product
+            - task_key: pl_dim_event_type
+          notebook_task:
+            notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_fact_events
             base_parameters:
               <<: *base_params
             source: WORKSPACE

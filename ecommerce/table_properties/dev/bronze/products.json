@@ -1,0 +1,178 @@
+{
+    "table_list": [
+        "product_catalog",
+        "product_inventory",
+        "product_pricing_history"
+    ],
+    "product_catalog": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "",
+        "file_name": "product_catalog_table.json",
+        "blob_name": "product_catalog_table.json",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "id",
+                "target_col_name": "ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_id",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "category_id",
+                "target_col_name": "CATEGORY_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_name",
+                "target_col_name": "PRODUCT_NAME",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "brand",
+                "target_col_name": "BRAND",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "description",
+                "target_col_name": "DESCRIPTION",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "is_active",
+                "target_col_name": "IS_ACTIVE",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "product_inventory": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "",
+        "file_name": "product_inventory_table.json",
+        "blob_name": "product_inventory_table.json",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "inventory_id",
+                "target_col_name": "INVENTORY_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_id",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "weight_g",
+                "target_col_name": "WEIGHT_G",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "length_cm",
+                "target_col_name": "LENGTH_CM",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "height_cm",
+                "target_col_name": "HEIGHT_CM",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "width_cm",
+                "target_col_name": "WIDTH_CM",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "stock_quantity",
+                "target_col_name": "STOCK_QUANTITY",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "product_pricing_history": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "",
+        "file_name": "product_pricing_history_table.json",
+        "blob_name": "product_pricing_history_table.json",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "unique_id",
+                "target_col_name": "UNIQUE_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_id",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "price",
+                "target_col_name": "PRICE",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "cost_price",
+                "target_col_name": "COST_PRICE",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    }
+}

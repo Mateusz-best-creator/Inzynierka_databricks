@@ -15,38 +15,50 @@ from ecommerce.logic_ecommerce.silver.orders import (
 
 
 def test_prepare_orders_data_schema_and_columns(spark: SparkSession) -> None:
-    orders_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("session_id", StringType(), True),
-        StructField("created_at", StringType(), True),
-    ])
-    details_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("shipping_method", StringType(), True),
-        StructField("freight_value", DoubleType(), True),
-    ])
-    status_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("status", StringType(), True),
-        StructField("valid_from", StringType(), True),
-    ])
-    items_schema = StructType([
-        StructField("order_item_id", StringType(), True),
-        StructField("order_id", StringType(), True),
-        StructField("quantity", IntegerType(), True),
-    ])
-    pricing_schema = StructType([
-        StructField("order_item_id", StringType(), True),
-        StructField("unit_price", DoubleType(), True),
-        StructField("discount", DoubleType(), True),
-    ])
-    users_schema = StructType([
-        StructField("user_surrogate_key", IntegerType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("valid_from", StringType(), True),
-        StructField("valid_to", StringType(), True),
-    ])
+    orders_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("session_id", StringType(), True),
+            StructField("created_at", StringType(), True),
+        ]
+    )
+    details_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("shipping_method", StringType(), True),
+            StructField("freight_value", DoubleType(), True),
+        ]
+    )
+    status_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("status", StringType(), True),
+            StructField("valid_from", StringType(), True),
+        ]
+    )
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    pricing_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("unit_price", DoubleType(), True),
+            StructField("discount", DoubleType(), True),
+        ]
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
 
     orders_df = spark.createDataFrame(
         [("ORD-1", "USR-1", "SESS-1", "2025-01-15 10:00:00")], schema=orders_schema
@@ -95,38 +107,50 @@ def test_prepare_orders_data_schema_and_columns(spark: SparkSession) -> None:
 
 
 def test_prepare_orders_data_calculations_and_pivots(spark: SparkSession) -> None:
-    orders_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("session_id", StringType(), True),
-        StructField("created_at", StringType(), True),
-    ])
-    details_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("shipping_method", StringType(), True),
-        StructField("freight_value", DoubleType(), True),
-    ])
-    status_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("status", StringType(), True),
-        StructField("valid_from", StringType(), True),
-    ])
-    items_schema = StructType([
-        StructField("order_item_id", StringType(), True),
-        StructField("order_id", StringType(), True),
-        StructField("quantity", IntegerType(), True),
-    ])
-    pricing_schema = StructType([
-        StructField("order_item_id", StringType(), True),
-        StructField("unit_price", DoubleType(), True),
-        StructField("discount", DoubleType(), True),
-    ])
-    users_schema = StructType([
-        StructField("user_surrogate_key", IntegerType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("valid_from", StringType(), True),
-        StructField("valid_to", StringType(), True),
-    ])
+    orders_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("session_id", StringType(), True),
+            StructField("created_at", StringType(), True),
+        ]
+    )
+    details_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("shipping_method", StringType(), True),
+            StructField("freight_value", DoubleType(), True),
+        ]
+    )
+    status_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("status", StringType(), True),
+            StructField("valid_from", StringType(), True),
+        ]
+    )
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    pricing_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("unit_price", DoubleType(), True),
+            StructField("discount", DoubleType(), True),
+        ]
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
 
     orders_df = spark.createDataFrame(
         [("ORD-100", "USR-10", "SESS-10", "2025-03-10 12:00:00")], schema=orders_schema
@@ -139,19 +163,22 @@ def test_prepare_orders_data_calculations_and_pivots(spark: SparkSession) -> Non
             ("ORD-100", "PENDING_PAYMENT", "2025-03-10 12:01:00"),
             ("ORD-100", "PAID", "2025-03-10 12:05:00"),
             ("ORD-100", "SHIPPED", "2025-03-11 08:00:00"),
-        ], schema=status_schema
+        ],
+        schema=status_schema,
     )
     order_items_df = spark.createDataFrame(
         [
             ("ITEM-1", "ORD-100", 2),
             ("ITEM-2", "ORD-100", 1),
-        ], schema=items_schema
+        ],
+        schema=items_schema,
     )
     order_item_pricing_df = spark.createDataFrame(
         [
             ("ITEM-1", 100.0, 10.0),
             ("ITEM-2", 50.0, 0.0),
-        ], schema=pricing_schema
+        ],
+        schema=pricing_schema,
     )
     silver_users_df = spark.createDataFrame(
         [(99, "USR-10", "2025-01-01 00:00:00", None)], schema=users_schema
@@ -181,44 +208,57 @@ def test_prepare_orders_data_calculations_and_pivots(spark: SparkSession) -> Non
 
 
 def test_prepare_orders_data_left_join_missing_details(spark: SparkSession) -> None:
-    orders_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("session_id", StringType(), True),
-        StructField("created_at", StringType(), True),
-    ])
-    details_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("shipping_method", StringType(), True),
-        StructField("freight_value", DoubleType(), True),
-    ])
-    status_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("status", StringType(), True),
-        StructField("valid_from", StringType(), True),
-    ])
-    items_schema = StructType([
-        StructField("order_item_id", StringType(), True),
-        StructField("order_id", StringType(), True),
-        StructField("quantity", IntegerType(), True),
-    ])
-    pricing_schema = StructType([
-        StructField("order_item_id", StringType(), True),
-        StructField("unit_price", DoubleType(), True),
-        StructField("discount", DoubleType(), True),
-    ])
-    users_schema = StructType([
-        StructField("user_surrogate_key", IntegerType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("valid_from", StringType(), True),
-        StructField("valid_to", StringType(), True),
-    ])
+    orders_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("session_id", StringType(), True),
+            StructField("created_at", StringType(), True),
+        ]
+    )
+    details_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("shipping_method", StringType(), True),
+            StructField("freight_value", DoubleType(), True),
+        ]
+    )
+    status_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("status", StringType(), True),
+            StructField("valid_from", StringType(), True),
+        ]
+    )
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    pricing_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("unit_price", DoubleType(), True),
+            StructField("discount", DoubleType(), True),
+        ]
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
 
     orders_df = spark.createDataFrame(
         [
             ("ORD-1", "USR-1", "SESS-1", "2025-05-01 10:00:00"),
             ("ORD-2", "USR-2", "SESS-2", "2025-05-02 11:00:00"),
-        ], schema=orders_schema
+        ],
+        schema=orders_schema,
     )
 
     order_details_df = spark.createDataFrame(
@@ -241,7 +281,8 @@ def test_prepare_orders_data_left_join_missing_details(spark: SparkSession) -> N
         [
             (1, "USR-1", "2025-01-01 00:00:00", None),
             (2, "USR-2", "2025-01-01 00:00:00", None),
-        ], schema=users_schema
+        ],
+        schema=users_schema,
     )
 
     result_df = prepare_orders_data(
@@ -267,38 +308,50 @@ def test_prepare_orders_data_left_join_missing_details(spark: SparkSession) -> N
 
 
 def test_prepare_orders_data_empty_dataframes(spark: SparkSession) -> None:
-    orders_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("session_id", StringType(), True),
-        StructField("created_at", StringType(), True),
-    ])
-    details_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("shipping_method", StringType(), True),
-        StructField("freight_value", DoubleType(), True),
-    ])
-    status_schema = StructType([
-        StructField("order_id", StringType(), True),
-        StructField("status", StringType(), True),
-        StructField("valid_from", StringType(), True),
-    ])
-    items_schema = StructType([
-        StructField("order_item_id", StringType(), True),
-        StructField("order_id", StringType(), True),
-        StructField("quantity", IntegerType(), True),
-    ])
-    pricing_schema = StructType([
-        StructField("order_item_id", StringType(), True),
-        StructField("unit_price", DoubleType(), True),
-        StructField("discount", DoubleType(), True),
-    ])
-    users_schema = StructType([
-        StructField("user_surrogate_key", IntegerType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("valid_from", StringType(), True),
-        StructField("valid_to", StringType(), True),
-    ])
+    orders_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("session_id", StringType(), True),
+            StructField("created_at", StringType(), True),
+        ]
+    )
+    details_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("shipping_method", StringType(), True),
+            StructField("freight_value", DoubleType(), True),
+        ]
+    )
+    status_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("status", StringType(), True),
+            StructField("valid_from", StringType(), True),
+        ]
+    )
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    pricing_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("unit_price", DoubleType(), True),
+            StructField("discount", DoubleType(), True),
+        ]
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
 
     empty_orders = spark.createDataFrame([], schema=orders_schema)
     empty_details = spark.createDataFrame([], schema=details_schema)

@@ -12,9 +12,21 @@ def test_read_file_schema_mapping(mock_read_csv, spark: SparkSession) -> None:
     mock_read_csv.return_value = spark.createDataFrame([], schema="dummy_source STRING")
 
     schema_config = [
-        {"source_col_name": "id_src", "target_col_name": "ID", "target_datatype": "integer"},
-        {"source_col_name": "name_src", "target_col_name": "NAME", "target_datatype": "string"},
-        {"source_col_name": "price_src", "target_col_name": "PRICE", "target_datatype": "double"},
+        {
+            "source_col_name": "id_src",
+            "target_col_name": "ID",
+            "target_datatype": "integer",
+        },
+        {
+            "source_col_name": "name_src",
+            "target_col_name": "NAME",
+            "target_datatype": "string",
+        },
+        {
+            "source_col_name": "price_src",
+            "target_col_name": "PRICE",
+            "target_datatype": "double",
+        },
     ]
 
     read_file(
@@ -22,7 +34,7 @@ def test_read_file_schema_mapping(mock_read_csv, spark: SparkSession) -> None:
         dbutils=None,
         file_cloud_loc="mock/path.csv",
         schema=schema_config,
-        file_format="csv"
+        file_format="csv",
     )
 
     # Extract the schema passed to read_csv_file
@@ -42,6 +54,12 @@ def test_read_file_invalid_format(spark: SparkSession) -> None:
             spark=spark,
             dbutils=None,
             file_cloud_loc="path",
-            schema=[{"source_col_name": "id", "target_col_name": "id", "target_datatype": "string"}],
-            file_format="txt"
+            schema=[
+                {
+                    "source_col_name": "id",
+                    "target_col_name": "id",
+                    "target_datatype": "string",
+                }
+            ],
+            file_format="txt",
         )

@@ -13,15 +13,37 @@ from ecommerce.logic_ecommerce.silver.sessions import prepare_sessions_data
 def test_prepare_sessions_schema_and_columns(spark: SparkSession) -> None:
     # Arrange verifying output schema and required inputs
     sessions_df = spark.createDataFrame(
-        [("SESS-1", "USR-1", "2025-01-15 10:00:00", "2025-01-15 10:30:00", "WEB", "MOBILE", "Chrome", "Organic")],
-        ["session_id", "user_id", "session_start", "session_end", "channel", "device_type", "browser", "traffic_source"],
+        [
+            (
+                "SESS-1",
+                "USR-1",
+                "2025-01-15 10:00:00",
+                "2025-01-15 10:30:00",
+                "WEB",
+                "MOBILE",
+                "Chrome",
+                "Organic",
+            )
+        ],
+        [
+            "session_id",
+            "user_id",
+            "session_start",
+            "session_end",
+            "channel",
+            "device_type",
+            "browser",
+            "traffic_source",
+        ],
     )
-    users_schema = StructType([
-        StructField("user_surrogate_key", IntegerType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("valid_from", StringType(), True),
-        StructField("valid_to", StringType(), True),
-    ])
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
     silver_users_df = spark.createDataFrame(
         [(1, "USR-1", "2025-01-01 00:00:00", None)],
         schema=users_schema,
@@ -51,17 +73,46 @@ def test_prepare_sessions_transformations_and_user_lookup(spark: SparkSession) -
     # Arrange multiple sessions with valid user surrogate key lookup
     sessions_df = spark.createDataFrame(
         [
-            ("SESS-10", "USR-10", "2025-03-10 12:00:00", "2025-03-10 12:15:00", "MOBILE", "iOS", "Safari", "Paid"),
-            ("SESS-11", "USR-11", "2025-03-11 14:00:00", "2025-03-11 14:45:00", "WEB", "Desktop", "Firefox", "Organic"),
+            (
+                "SESS-10",
+                "USR-10",
+                "2025-03-10 12:00:00",
+                "2025-03-10 12:15:00",
+                "MOBILE",
+                "iOS",
+                "Safari",
+                "Paid",
+            ),
+            (
+                "SESS-11",
+                "USR-11",
+                "2025-03-11 14:00:00",
+                "2025-03-11 14:45:00",
+                "WEB",
+                "Desktop",
+                "Firefox",
+                "Organic",
+            ),
         ],
-        ["session_id", "user_id", "session_start", "session_end", "channel", "device_type", "browser", "traffic_source"],
+        [
+            "session_id",
+            "user_id",
+            "session_start",
+            "session_end",
+            "channel",
+            "device_type",
+            "browser",
+            "traffic_source",
+        ],
     )
-    users_schema = StructType([
-        StructField("user_surrogate_key", IntegerType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("valid_from", StringType(), True),
-        StructField("valid_to", StringType(), True),
-    ])
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
     silver_users_df = spark.createDataFrame(
         [
             (100, "USR-10", "2025-01-01 00:00:00", None),
@@ -88,15 +139,37 @@ def test_prepare_sessions_transformations_and_user_lookup(spark: SparkSession) -
 def test_prepare_sessions_missing_user_mapping(spark: SparkSession) -> None:
     # Arrange a session where user_id does not exist in silver_users
     sessions_df = spark.createDataFrame(
-        [("SESS-99", "UNKNOWN-USR", "2025-04-01 08:00:00", "2025-04-01 08:10:00", "WEB", "MOBILE", "Chrome", "Organic")],
-        ["session_id", "user_id", "session_start", "session_end", "channel", "device_type", "browser", "traffic_source"],
+        [
+            (
+                "SESS-99",
+                "UNKNOWN-USR",
+                "2025-04-01 08:00:00",
+                "2025-04-01 08:10:00",
+                "WEB",
+                "MOBILE",
+                "Chrome",
+                "Organic",
+            )
+        ],
+        [
+            "session_id",
+            "user_id",
+            "session_start",
+            "session_end",
+            "channel",
+            "device_type",
+            "browser",
+            "traffic_source",
+        ],
     )
-    users_schema = StructType([
-        StructField("user_surrogate_key", IntegerType(), True),
-        StructField("user_id", StringType(), True),
-        StructField("valid_from", StringType(), True),
-        StructField("valid_to", StringType(), True),
-    ])
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
     silver_users_df = spark.createDataFrame([], schema=users_schema)
 
     # Act

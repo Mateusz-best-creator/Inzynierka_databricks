@@ -5,18 +5,19 @@ from ecommerce.common_functions.config_utils import get_config, set_logger
 from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
 
 
-def prepare_sessions_data(
-    sessions: DataFrame, silver_users: DataFrame
-) -> DataFrame:
+def prepare_sessions_data(sessions: DataFrame, silver_users: DataFrame) -> DataFrame:
     """Prepare and join sessions data with silver users to resolve user surrogate keys."""
-    
+
     joined_sessions = (
         sessions.alias("s")
         .join(
             silver_users.alias("u"),
             (upper(trim(col("s.USER_ID"))) == upper(trim(col("u.USER_ID"))))
             & (col("s.SESSION_START") >= col("u.VALID_FROM"))
-            & ((col("s.SESSION_START") < col("u.VALID_TO")) | col("u.VALID_TO").isNull()),
+            & (
+                (col("s.SESSION_START") < col("u.VALID_TO"))
+                | col("u.VALID_TO").isNull()
+            ),
             how="left",
         )
         .select(
@@ -44,7 +45,9 @@ def entry_point_sessions(spark: SparkSession, env: str, log_level: int) -> None:
     partition_key = config["partition_key"]
 
     sessions = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.sessions")
-    silver_users = spark.read.table(f"databricks_{env}_domain.ecommerce_silver.silver_users")
+    silver_users = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.silver_users"
+    )
 
     sessions_silver = prepare_sessions_data(
         sessions=sessions,

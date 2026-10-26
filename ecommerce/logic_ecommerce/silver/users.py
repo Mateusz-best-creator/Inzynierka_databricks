@@ -87,10 +87,7 @@ def join_users_data(
             other=user_status_history.alias("s"),
             on=(col("ot.user_id") == col("s.user_id"))
             & (col("ot.valid_from") >= col("s.valid_from"))
-            & (
-                (col("ot.valid_from") < col("s.valid_to"))
-                | col("s.valid_to").isNull()
-            ),
+            & ((col("ot.valid_from") < col("s.valid_to")) | col("s.valid_to").isNull()),
             how="left",
         )
         .select(

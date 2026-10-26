@@ -3,7 +3,21 @@ from pyspark.sql import SparkSession, DataFrame
 from ecommerce.common_functions.config_utils import get_config, set_logger
 from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
 
-from pyspark.sql.functions import col, lit, trim, upper, year, month, when, concat, coalesce, sum, max as spark_max, expr, monotonically_increasing_id
+from pyspark.sql.functions import (
+    col,
+    lit,
+    trim,
+    upper,
+    year,
+    month,
+    when,
+    concat,
+    coalesce,
+    sum,
+    max as spark_max,
+    expr,
+    monotonically_increasing_id,
+)
 from pyspark.sql.types import IntegerType, DecimalType
 
 
@@ -45,7 +59,8 @@ def prepare_orders_data(
         order_items.alias("oi")
         .join(
             order_item_pricing.alias("ip"),
-            upper(trim(col("oi.ORDER_ITEM_ID"))) == upper(trim(col("ip.ORDER_ITEM_ID"))),
+            upper(trim(col("oi.ORDER_ITEM_ID")))
+            == upper(trim(col("ip.ORDER_ITEM_ID"))),
             how="inner",
         )
         .groupBy(col("oi.ORDER_ID"))
@@ -61,11 +76,21 @@ def prepare_orders_data(
         order_status_history.alias("osh")
         .groupBy(col("ORDER_ID"))
         .agg(
-            spark_max(when(col("STATUS") == "PENDING_PAYMENT", col("VALID_FROM"))).alias("PENDING_PAYMENT_TIMESTAMP"),
-            spark_max(when(col("STATUS") == "PAID", col("VALID_FROM"))).alias("PAID_TIMESTAMP"),
-            spark_max(when(col("STATUS") == "PROCESSING", col("VALID_FROM"))).alias("PROCESSING_TIMESTAMP"),
-            spark_max(when(col("STATUS") == "SHIPPED", col("VALID_FROM"))).alias("SHIPPED_TIMESTAMP"),
-            spark_max(when(col("STATUS") == "DELIVERED", col("VALID_FROM"))).alias("DELIVERED_TIMESTAMP"),
+            spark_max(
+                when(col("STATUS") == "PENDING_PAYMENT", col("VALID_FROM"))
+            ).alias("PENDING_PAYMENT_TIMESTAMP"),
+            spark_max(when(col("STATUS") == "PAID", col("VALID_FROM"))).alias(
+                "PAID_TIMESTAMP"
+            ),
+            spark_max(when(col("STATUS") == "PROCESSING", col("VALID_FROM"))).alias(
+                "PROCESSING_TIMESTAMP"
+            ),
+            spark_max(when(col("STATUS") == "SHIPPED", col("VALID_FROM"))).alias(
+                "SHIPPED_TIMESTAMP"
+            ),
+            spark_max(when(col("STATUS") == "DELIVERED", col("VALID_FROM"))).alias(
+                "DELIVERED_TIMESTAMP"
+            ),
         )
     )
 
@@ -98,7 +123,10 @@ def prepare_orders_data(
     orders_selected = joined_orders.select(
         monotonically_increasing_id().alias("ORDER_SURROGATE_KEY"),
         col("o.ORDER_ID").alias("ORDER_ID"),
-        (coalesce(col("it.ITEMS_TOTAL"), lit(0.00)) + coalesce(col("od.FREIGHT_VALUE"), lit(0.00))).alias("TOTAL_AMOUNT"),
+        (
+            coalesce(col("it.ITEMS_TOTAL"), lit(0.00))
+            + coalesce(col("od.FREIGHT_VALUE"), lit(0.00))
+        ).alias("TOTAL_AMOUNT"),
         coalesce(col("od.FREIGHT_VALUE"), lit(0.00)).alias("FREIGHT_VALUE"),
         col("od.SHIPPING_METHOD").alias("SHIPPING_METHOD"),
         col("o.CREATED_AT").alias("CREATED_AT_TIMESTAMP"),
@@ -125,11 +153,21 @@ def entry_point_orders(spark: SparkSession, env: str, log_level: int) -> None:
 
     # Read bronze and silver dependencies
     orders = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.orders")
-    order_details = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.order_details")
-    order_status_history = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.order_status_history")
-    order_items = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.order_items")
-    order_item_pricing = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.order_item_pricing")
-    silver_users = spark.read.table(f"databricks_{env}_domain.ecommerce_silver.silver_users")
+    order_details = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_details"
+    )
+    order_status_history = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_status_history"
+    )
+    order_items = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_items"
+    )
+    order_item_pricing = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_item_pricing"
+    )
+    silver_users = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.silver_users"
+    )
 
     order_silver = prepare_orders_data(
         orders=orders,

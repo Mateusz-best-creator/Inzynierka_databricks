@@ -9,9 +9,7 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 def prepare_payments_data(payment_details: DataFrame) -> DataFrame:
     # Generate surrogate key and sanitize payment_value against NULLs and negative values
-    surrogate_window = Window.orderBy(
-        col("payment_id"), col("payment_sequential")
-    )
+    surrogate_window = Window.orderBy(col("payment_id"), col("payment_sequential"))
 
     return payment_details.filter(col("payment_id").isNotNull()).select(
         row_number().over(surrogate_window).alias("PAYMENT_SURROGATE_KEY"),
