@@ -15,7 +15,6 @@ from pyspark.sql.functions import (
     coalesce,
     sum,
     max as spark_max,
-    expr,
     monotonically_increasing_id,
 )
 from pyspark.sql.types import IntegerType, DecimalType
@@ -77,18 +76,18 @@ def prepare_orders_data(
         .groupBy(col("ORDER_ID"))
         .agg(
             spark_max(
-                when(col("STATUS") == "PENDING_PAYMENT", col("VALID_FROM"))
+                when(col("CURRENT_STATUS") == "PENDING_PAYMENT", col("VALID_FROM"))
             ).alias("PENDING_PAYMENT_TIMESTAMP"),
-            spark_max(when(col("STATUS") == "PAID", col("VALID_FROM"))).alias(
+            spark_max(when(col("CURRENT_STATUS") == "PAID", col("VALID_FROM"))).alias(
                 "PAID_TIMESTAMP"
             ),
-            spark_max(when(col("STATUS") == "PROCESSING", col("VALID_FROM"))).alias(
+            spark_max(when(col("CURRENT_STATUS") == "PROCESSING", col("VALID_FROM"))).alias(
                 "PROCESSING_TIMESTAMP"
             ),
-            spark_max(when(col("STATUS") == "SHIPPED", col("VALID_FROM"))).alias(
+            spark_max(when(col("CURRENT_STATUS") == "SHIPPED", col("VALID_FROM"))).alias(
                 "SHIPPED_TIMESTAMP"
             ),
-            spark_max(when(col("STATUS") == "DELIVERED", col("VALID_FROM"))).alias(
+            spark_max(when(col("CURRENT_STATUS") == "DELIVERED", col("VALID_FROM"))).alias(
                 "DELIVERED_TIMESTAMP"
             ),
         )
@@ -125,9 +124,9 @@ def prepare_orders_data(
         col("o.ORDER_ID").alias("ORDER_ID"),
         (
             coalesce(col("it.ITEMS_TOTAL"), lit(0.00))
-            + coalesce(col("od.FREIGHT_VALUE"), lit(0.00))
+            + coalesce(col("od.SHIPPING_COST"), lit(0.00))
         ).alias("TOTAL_AMOUNT"),
-        coalesce(col("od.FREIGHT_VALUE"), lit(0.00)).alias("FREIGHT_VALUE"),
+        coalesce(col("od.SHIPPING_COST"), lit(0.00)).alias("FREIGHT_VALUE"),
         col("od.SHIPPING_METHOD").alias("SHIPPING_METHOD"),
         col("o.CREATED_AT").alias("CREATED_AT_TIMESTAMP"),
         col("osh.PENDING_PAYMENT_TIMESTAMP"),
@@ -148,10 +147,9 @@ def entry_point_orders(spark: SparkSession, env: str, log_level: int) -> None:
     logger.info("Running entry_point for silver orders table.")
 
     config = get_config(env=env, layer="silver", config_filename="orders.json")[0]
-    table_name_uc = config["table_name"]
+    table_name_uc = config["table_name_uc"]
     partition_key = config["partition_key"]
 
-    # Read bronze and silver dependencies
     orders = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.orders")
     order_details = spark.read.table(
         f"databricks_{env}_domain.ecommerce_bronze.order_details"
@@ -166,7 +164,7 @@ def entry_point_orders(spark: SparkSession, env: str, log_level: int) -> None:
         f"databricks_{env}_domain.ecommerce_bronze.order_item_pricing"
     )
     silver_users = spark.read.table(
-        f"databricks_{env}_domain.ecommerce_silver.silver_users"
+        f"databricks_{env}_domain.ecommerce_silver.users"
     )
 
     order_silver = prepare_orders_data(

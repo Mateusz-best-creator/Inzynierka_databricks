@@ -31,7 +31,7 @@ def entry_point_event_clickstream(
     config = get_config(
         env=env, layer="silver", config_filename="event_clickstream.json"
     )[0]
-    table_name_uc = config["table_name"]
+    table_name_uc = config["table_name_uc"]
     partition_key = config["partition_key"]
 
     event_clickstream = spark.read.table(
