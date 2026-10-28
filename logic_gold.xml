@@ -1,0 +1,1211 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: ecommerce/logic_ecommerce/gold
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+ecommerce/
+  logic_ecommerce/
+    gold/
+      dim_date.py
+      dim_event_type.py
+      dim_geography.py
+      dim_payment_type.py
+      dim_product.py
+      dim_sales_context.py
+      dim_session.py
+      dim_time.py
+      dim_user.py
+      fact_events.py
+      fact_sales.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="ecommerce/logic_ecommerce/gold/dim_event_type.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, lit, row_number, when
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_dim_event_type_data(silver_events: DataFrame) -> DataFrame:
+    # Filter out empty event types and keep distinct values
+    unique_events = (
+        silver_events.filter(col("EVENT_TYPE").isNotNull())
+        .select(col("EVENT_TYPE").alias("event_type_name"))
+        .dropDuplicates(["event_type_name"])
+    )
+
+    # Map raw event types to funnel steps and funnel stages
+    mapped_events = unique_events.withColumn(
+        "funnel_step_order",
+        when(col("event_type_name").isin("View", "PageView", "ProductView"), lit(1))
+        .when(col("event_type_name").isin("AddToCart", "Cart", "Wishlist"), lit(2))
+        .when(col("event_type_name").isin("Checkout", "Payment"), lit(3))
+        .when(col("event_type_name").isin("Purchase", "Complete"), lit(4))
+        .otherwise(lit(5)),
+    ).withColumn(
+        "funnel_stage_name",
+        when(
+            col("event_type_name").isin("View", "PageView", "ProductView"),
+            lit("1. Awareness (View)"),
+        )
+        .when(
+            col("event_type_name").isin("AddToCart", "Cart", "Wishlist"),
+            lit("2. Consideration (Cart)"),
+        )
+        .when(
+            col("event_type_name").isin("Checkout", "Payment", "Purchase", "Complete"),
+            lit("3. Conversion (Purchase)"),
+        )
+        .otherwise(lit("4. Other / Unclassified")),
+    )
+
+    surrogate_window = Window.orderBy("funnel_step_order", "event_type_name")
+
+    return mapped_events.select(
+        row_number().over(surrogate_window).alias("EVENT_TYPE_KEY"),
+        col("event_type_name").alias("EVENT_TYPE_NAME"),
+        col("funnel_step_order").alias("FUNNEL_STEP_ORDER"),
+        col("funnel_stage_name").alias("FUNNEL_STAGE_NAME"),
+    )
+
+
+def entry_point_dim_event_type(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold dim_event_type table.")
+
+    config = get_config(env=env, layer="gold", config_filename="dim_event_type.json")[0]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "dim_event_type"
+    )
+    partition_key = config.get("partition_key", [])
+
+    silver_events_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.event_clickstream"
+    )
+
+    dim_event_type_df = prepare_dim_event_type_data(silver_events=silver_events_df)
+
+    create_table(
+        source_data=dim_event_type_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/dim_product.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import coalesce, col, lit, row_number, when
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_dim_product_data(
+    silver_products: DataFrame, silver_categories: DataFrame
+) -> DataFrame:
+    # Prepare categories with parent category names via self-join
+    cat_df = silver_categories.alias("c")
+    parent_cat_df = silver_categories.alias("p")
+
+    categories_enriched = cat_df.join(
+        parent_cat_df, col("c.PARENT_CATEGORY_ID") == col("p.CATEGORY_ID"), "left"
+    ).select(
+        col("c.CATEGORY_ID"),
+        coalesce(col("c.CATEGORY_NAME"), lit("Unknown")).alias("CATEGORY_NAME"),
+        col("c.PARENT_CATEGORY_ID"),
+        coalesce(col("p.CATEGORY_NAME"), lit("Root / None")).alias(
+            "PARENT_CATEGORY_NAME"
+        ),
+    )
+
+    # Join products with enriched categories
+    products_joined = silver_products.alias("sp").join(
+        categories_enriched.alias("ce"), on="CATEGORY_ID", how="left"
+    )
+
+    # Calculate margin safely to avoid division by zero
+    margin_expr = when(
+        coalesce(col("sp.BASE_PRICE"), lit(0)) > 0,
+        (col("sp.BASE_PRICE") - col("sp.COST_PRICE")) / col("sp.BASE_PRICE"),
+    ).otherwise(lit(0))
+
+    # Calculate package volume
+    volume_expr = (
+        coalesce(col("sp.LENGTH_CM"), lit(0))
+        * coalesce(col("sp.WIDTH_CM"), lit(0))
+        * coalesce(col("sp.HEIGHT_CM"), lit(0))
+    )
+
+    dim_product_logic = (
+        products_joined.withColumn(
+            "PRICE_TIER",
+            when(col("sp.BASE_PRICE") < 50, lit("Budget (< 50)"))
+            .when(col("sp.BASE_PRICE").between(50, 200), lit("Regular (50-200)"))
+            .when(col("sp.BASE_PRICE").between(200, 500), lit("Premium (200-500)"))
+            .otherwise(lit("Luxury (> 500)")),
+        )
+        .withColumn(
+            "MARGIN_TIER",
+            when(
+                (col("sp.BASE_PRICE").isNull())
+                | (col("sp.BASE_PRICE") == 0)
+                | (margin_expr < 0.15),
+                lit("Low Margin (< 15%)"),
+            )
+            .when(margin_expr.between(0.15, 0.35), lit("Standard Margin (15-35%)"))
+            .otherwise(lit("High Margin (> 35%)")),
+        )
+        .withColumn(
+            "WEIGHT_CLASS",
+            when(coalesce(col("sp.WEIGHT_G"), lit(0)) < 500, lit("Light (< 0.5 kg)"))
+            .when(col("sp.WEIGHT_G").between(500, 5000), lit("Standard (0.5-5 kg)"))
+            .when(col("sp.WEIGHT_G").between(5001, 20000), lit("Heavy (5-20 kg)"))
+            .otherwise(lit("Freight (> 20 kg)")),
+        )
+        .withColumn(
+            "PACKAGE_SIZE_TIER",
+            when(volume_expr < 1000, lit("Small (Parcel A)"))
+            .when(volume_expr.between(1000, 5000), lit("Medium (Parcel B)"))
+            .when(volume_expr.between(5001, 20000), lit("Large (Parcel C)"))
+            .otherwise(lit("Oversized")),
+        )
+        .withColumn(
+            "STOCK_STATUS",
+            when(
+                coalesce(col("sp.STOCK_QUANTITY"), lit(0)) == 0, lit("Out of Stock (0)")
+            )
+            .when(col("sp.STOCK_QUANTITY").between(1, 10), lit("Low Stock (1-10)"))
+            .when(col("sp.STOCK_QUANTITY").between(11, 100), lit("In Stock (11-100)"))
+            .otherwise(lit("High Stock (> 100)")),
+        )
+        .withColumn(
+            "PRODUCT_LIFECYCLE_STATUS",
+            when(col("sp.IS_ACTIVE") == 1, lit("Active Catalog")).otherwise(
+                lit("Discontinued")
+            ),
+        )
+        .withColumn(
+            "SCD_RECORD_STATUS",
+            when(col("sp.VALID_TO").isNull(), lit("Current")).otherwise(
+                lit("Historical")
+            ),
+        )
+    )
+
+    surrogate_window = Window.orderBy("sp.PRODUCT_ID", "sp.VALID_FROM")
+
+    return dim_product_logic.select(
+        row_number().over(surrogate_window).alias("PRODUCT_SURROGATE_KEY"),
+        col("sp.PRODUCT_ID"),
+        col("sp.PRODUCT_NAME"),
+        col("sp.BRAND"),
+        col("sp.DESCRIPTION"),
+        col("CATEGORY_ID"),
+        col("ce.CATEGORY_NAME"),
+        col("ce.PARENT_CATEGORY_ID"),
+        col("ce.PARENT_CATEGORY_NAME"),
+        col("PRICE_TIER"),
+        col("MARGIN_TIER"),
+        col("WEIGHT_CLASS"),
+        col("PACKAGE_SIZE_TIER"),
+        col("STOCK_STATUS"),
+        col("PRODUCT_LIFECYCLE_STATUS"),
+        col("sp.CREATED_AT"),
+        col("sp.VALID_FROM"),
+        col("sp.VALID_TO"),
+        col("SCD_RECORD_STATUS"),
+    )
+
+
+def entry_point_dim_product(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold dim_product table.")
+
+    config = get_config(env=env, layer="gold", config_filename="dim_product.json")[0]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "dim_product"
+    )
+    partition_key = config.get("partition_key", [])
+
+    silver_products_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.products"
+    )
+    silver_categories_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.categories"
+    )
+
+    dim_product_df = prepare_dim_product_data(
+        silver_products=silver_products_df, silver_categories=silver_categories_df
+    )
+
+    create_table(
+        source_data=dim_product_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/dim_sales_context.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import coalesce, col, lit, row_number, when
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_dim_sales_context_data(silver_orders: DataFrame) -> DataFrame:
+    # Check if optional columns exist to prevent crashes during dataframe evaluation
+    has_discount = "DISCOUNT_AMOUNT" in silver_orders.columns
+    has_actual_delivery = "ACTUAL_DELIVERY_DATE" in silver_orders.columns
+    has_estimated_delivery = "ESTIMATED_DELIVERY_DATE" in silver_orders.columns
+
+    # Define discount status logic
+    if has_discount:
+        discount_logic = when(
+            coalesce(col("DISCOUNT_AMOUNT"), lit(0)) > 0, lit("Discounted")
+        ).otherwise(lit("Full Price"))
+    else:
+        discount_logic = lit("Full Price")
+
+    # Define delivery SLA status logic
+    if has_actual_delivery and has_estimated_delivery:
+        sla_logic = (
+            when(
+                col("ACTUAL_DELIVERY_DATE").isNull()
+                | col("ESTIMATED_DELIVERY_DATE").isNull(),
+                lit("On-Time Delivery"),
+            )
+            .when(
+                col("ACTUAL_DELIVERY_DATE") <= col("ESTIMATED_DELIVERY_DATE"),
+                lit("On-Time Delivery"),
+            )
+            .otherwise(lit("Delayed Delivery"))
+        )
+    else:
+        sla_logic = lit("On-Time Delivery")
+
+    # Extract unique context combinations
+    context_df = (
+        silver_orders.withColumn(
+            "shipping_method_clean", coalesce(col("SHIPPING_METHOD"), lit("Standard"))
+        )
+        .withColumn("discount_status", discount_logic)
+        .withColumn("delivery_sla_status", sla_logic)
+        .select(
+            col("shipping_method_clean").alias("shipping_method"),
+            col("discount_status"),
+            col("delivery_sla_status"),
+        )
+        .dropDuplicates(["shipping_method", "discount_status", "delivery_sla_status"])
+    )
+
+    surrogate_window = Window.orderBy(
+        "shipping_method", "discount_status", "delivery_sla_status"
+    )
+
+    return context_df.select(
+        row_number().over(surrogate_window).alias("SALES_CONTEXT_KEY"),
+        col("shipping_method").alias("SHIPPING_METHOD"),
+        col("discount_status").alias("DISCOUNT_STATUS"),
+        col("delivery_sla_status").alias("DELIVERY_SLA_STATUS"),
+    )
+
+
+def entry_point_dim_sales_context(
+    spark: SparkSession, env: str, log_level: int
+) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold dim_sales_context table.")
+
+    config = get_config(
+        env=env, layer="gold", config_filename="dim_sales_context.json"
+    )[0]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "dim_sales_context"
+    )
+    partition_key = config.get("partition_key", [])
+
+    silver_orders_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.orders"
+    )
+
+    dim_sales_context_df = prepare_dim_sales_context_data(
+        silver_orders=silver_orders_df
+    )
+
+    create_table(
+        source_data=dim_sales_context_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/dim_session.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, lit, row_number, unix_timestamp, when
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_dim_session_data(
+    silver_sessions: DataFrame, silver_events: DataFrame
+) -> DataFrame:
+    # Identify sessions that resulted in a conversion
+    converted_sessions = (
+        silver_events.filter(col("EVENT_TYPE").isin("Purchase", "Checkout"))
+        .select("SESSION_ID")
+        .dropDuplicates()
+        .withColumn("is_converted", lit(1))
+    )
+
+    # Join sessions with conversion flags
+    sessions_joined = silver_sessions.join(
+        converted_sessions, on="SESSION_ID", how="left"
+    )
+
+    # Calculate session duration in seconds
+    duration_sec = unix_timestamp(col("SESSION_END")) - unix_timestamp(
+        col("SESSION_START")
+    )
+
+    duration_bucket_logic = (
+        when(col("SESSION_END").isNull() | (duration_sec < 10), lit("Bounce (< 10s)"))
+        .when(duration_sec.between(10, 59), lit("Brief (10s-60s)"))
+        .when(duration_sec.between(60, 300), lit("Engaged (1m-5m)"))
+        .otherwise(lit("Extended (> 5m)"))
+    )
+
+    conversion_status_logic = when(
+        col("is_converted") == 1, lit("Converted (Purchase)")
+    ).otherwise(lit("Browsing Only"))
+
+    surrogate_window = Window.orderBy("SESSION_START")
+
+    return sessions_joined.select(
+        row_number().over(surrogate_window).alias("SESSION_SURROGATE_KEY"),
+        col("SESSION_ID"),
+        col("SESSION_START"),
+        col("SESSION_END"),
+        duration_bucket_logic.alias("SESSION_DURATION_BUCKET"),
+        col("DEVICE_TYPE"),
+        col("BROWSER"),
+        col("TRAFFIC_SOURCE"),
+        conversion_status_logic.alias("CONVERSION_STATUS"),
+    )
+
+
+def entry_point_dim_session(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold dim_session table.")
+
+    config = get_config(env=env, layer="gold", config_filename="dim_session.json")[0]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "dim_session"
+    )
+    partition_key = config.get("partition_key", [])
+
+    silver_sessions_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.sessions"
+    )
+    silver_events_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.event_clickstream"
+    )
+
+    dim_session_df = prepare_dim_session_data(
+        silver_sessions=silver_sessions_df, silver_events=silver_events_df
+    )
+
+    create_table(
+        source_data=dim_session_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/dim_user.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, current_date, floor, lit, months_between, when
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_dim_user_data(silver_users: DataFrame) -> DataFrame:
+    # Calculate age based on birth date and current date
+    age_in_years = floor(months_between(current_date(), col("BIRTH_DATE")) / 12)
+
+    # Map age to analytical groups
+    age_group_logic = (
+        when(col("BIRTH_DATE").isNull(), lit("Unknown"))
+        .when(age_in_years.between(18, 24), lit("18-24"))
+        .when(age_in_years.between(25, 34), lit("25-34"))
+        .when(age_in_years.between(35, 49), lit("35-49"))
+        .when(age_in_years >= 50, lit("50+"))
+        .otherwise(lit("Unknown"))
+    )
+
+    # Determine SCD2 record status
+    scd_status_logic = when(col("VALID_TO").isNull(), lit("Current")).otherwise(
+        lit("Historical")
+    )
+
+    return silver_users.select(
+        col("USER_SURROGATE_KEY"),
+        col("USER_ID"),
+        col("CUSTOMER_UNIQUE_ID"),
+        col("FIRST_NAME"),
+        col("LAST_NAME"),
+        col("EMAIL"),
+        col("PHONE"),
+        col("BIRTH_DATE"),
+        age_group_logic.alias("AGE_GROUP"),
+        col("GENDER"),
+        col("STATUS"),
+        col("CREATED_AT"),
+        col("VALID_FROM"),
+        col("VALID_TO"),
+        scd_status_logic.alias("SCD_RECORD_STATUS"),
+    )
+
+
+def entry_point_dim_user(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold dim_user table.")
+
+    config = get_config(env=env, layer="gold", config_filename="dim_user.json")[0]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "dim_user"
+    )
+    partition_key = config.get("partition_key", [])
+
+    silver_users_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.users"
+    )
+
+    dim_user_df = prepare_dim_user_data(silver_users=silver_users_df)
+
+    create_table(
+        source_data=dim_user_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/fact_events.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import (
+    col,
+    hour,
+    lead,
+    minute,
+    row_number,
+    second,
+    to_date,
+    unix_timestamp,
+    coalesce,
+    current_timestamp,
+)
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_fact_events_data(
+    silver_events: DataFrame,
+    silver_sessions: DataFrame,
+    silver_users: DataFrame,
+    dim_date: DataFrame,
+    dim_time: DataFrame,
+    dim_session: DataFrame,
+    dim_user: DataFrame,
+    dim_geography: DataFrame,
+    dim_product: DataFrame,
+    dim_event_type: DataFrame,
+) -> DataFrame:
+    # 1. Calculate event sequence and time spent on step using window functions
+    window_session = Window.partitionBy("SESSION_ID").orderBy("EVENT_TIME")
+
+    events_seq = (
+        silver_events.withColumn(
+            "EVENT_SEQUENCE_IN_SESSION", row_number().over(window_session)
+        )
+        .withColumn("next_event_time", lead("EVENT_TIME").over(window_session))
+        .withColumn(
+            "TIME_ON_STEP_SECONDS",
+            (unix_timestamp("next_event_time") - unix_timestamp("EVENT_TIME")).cast(
+                "integer"
+            ),
+        )
+        .withColumn("event_date", to_date("EVENT_TIME"))
+        .withColumn("event_hour", hour("EVENT_TIME"))
+        .withColumn("event_minute", minute("EVENT_TIME"))
+        .withColumn("event_second", second("EVENT_TIME"))
+    )
+
+    # 2. Enrich events with user surrogate key and geography mapping from sessions and users
+    events_enriched = (
+        events_seq.alias("e")
+        .join(
+            silver_sessions.alias("ss"),
+            col("e.SESSION_ID") == col("ss.SESSION_ID"),
+            "left",
+        )
+        .join(
+            silver_users.alias("su"),
+            col("ss.USER_SURROGATE_KEY") == col("su.USER_SURROGATE_KEY"),
+            "left",
+        )
+        .select(
+            "e.*",
+            col("su.USER_SURROGATE_KEY").alias("raw_user_key"),
+            col("su.CITY"),
+            col("su.STATE"),
+            col("su.COUNTRY"),
+            col("su.ZIP_CODE"),
+        )
+    )
+
+    # 3. Join with all dimension tables to fetch surrogate keys
+    fact_df = (
+        events_enriched.alias("f")
+        .join(dim_date.alias("dd"), col("f.event_date") == col("dd.FULL_DATE"), "left")
+        .join(
+            dim_time.alias("dt"),
+            (col("f.event_hour") == col("dt.HOUR"))
+            & (col("f.event_minute") == col("dt.MINUTE"))
+            & (col("f.event_second") == col("dt.SECONDS")),
+            "left",
+        )
+        .join(
+            dim_session.alias("ds"), col("f.SESSION_ID") == col("ds.SESSION_ID"), "left"
+        )
+        .join(
+            dim_user.alias("du"),
+            col("f.raw_user_key") == col("du.USER_SURROGATE_KEY"),
+            "left",
+        )
+        .join(
+            dim_geography.alias("dg"),
+            (col("f.CITY") == col("dg.CITY"))
+            & (col("f.STATE") == col("dg.STATE"))
+            & (col("f.COUNTRY") == col("dg.COUNTRY")),
+            "left",
+        )
+        .join(
+            dim_event_type.alias("det"),
+            col("f.EVENT_TYPE") == col("det.EVENT_TYPE_NAME"),
+            "left",
+        )
+        .join(
+            dim_product.alias("dp"),
+            (col("f.PRODUCT_ID") == col("dp.PRODUCT_ID"))
+            & (col("f.EVENT_TIME") >= col("dp.VALID_FROM"))
+            & (
+                col("f.EVENT_TIME") <= coalesce(col("dp.VALID_TO"), current_timestamp())
+            ),
+            "left",
+        )
+    )
+
+    # 4. Select and map columns for the final fact table
+    return fact_df.select(
+        col("dd.DATE_KEY").alias("EVENT_DATE_KEY"),
+        col("dt.TIME_KEY").alias("EVENT_TIME_KEY"),
+        col("ds.SESSION_SURROGATE_KEY"),
+        col("du.USER_SURROGATE_KEY"),
+        col("dg.GEOGRAPHY_KEY"),
+        col("dp.PRODUCT_SURROGATE_KEY"),
+        col("det.EVENT_TYPE_KEY"),
+        col("f.EVENT_ID"),
+        col("f.SESSION_ID"),
+        col("f.EVENT_SEQUENCE_IN_SESSION"),
+        col("f.TIME_ON_STEP_SECONDS"),
+        col("dp.BASE_PRICE").alias("PRODUCT_PRICE_AT_EVENT"),
+        col("dp.STOCK_QUANTITY").alias("PRODUCT_STOCK_AT_EVENT"),
+    )
+
+
+def entry_point_fact_events(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold fact_events table.")
+
+    config = get_config(env=env, layer="gold", config_filename="fact_events.json")[0]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "fact_events"
+    )
+    partition_key = config.get("partition_key", [])
+
+    # Load Source Tables
+    silver_events_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.event_clickstream"
+    )
+    silver_sessions_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.sessions"
+    )
+    silver_users_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.users"
+    )
+
+    # Load Dimensions
+    dim_date_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_date")
+    dim_time_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_time")
+    dim_session_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_gold.dim_session"
+    )
+    dim_user_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_user")
+    dim_geography_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_gold.dim_geography"
+    )
+    dim_product_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_gold.dim_product"
+    )
+    dim_event_type_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_gold.dim_event_type"
+    )
+
+    fact_events_df = prepare_fact_events_data(
+        silver_events=silver_events_df,
+        silver_sessions=silver_sessions_df,
+        silver_users=silver_users_df,
+        dim_date=dim_date_df,
+        dim_time=dim_time_df,
+        dim_session=dim_session_df,
+        dim_user=dim_user_df,
+        dim_geography=dim_geography_df,
+        dim_product=dim_product_df,
+        dim_event_type=dim_event_type_df,
+    )
+
+    create_table(
+        source_data=fact_events_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/fact_sales.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import (
+    coalesce, col, current_timestamp, hour, lit, minute, second, sum as _sum,
+    to_date, unix_timestamp, countDistinct, max as _max
+)
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_fact_sales_data(
+    silver_orders: DataFrame,
+    silver_order_items: DataFrame,
+    silver_payments: DataFrame,
+    silver_users: DataFrame,
+    dim_date: DataFrame,
+    dim_time: DataFrame,
+    dim_session: DataFrame,
+    dim_user: DataFrame,
+    dim_geography: DataFrame,
+    dim_product: DataFrame,
+    dim_payment_type: DataFrame,
+    dim_sales_context: DataFrame
+) -> DataFrame:
+
+    # 1. Aggregate payments to order grain
+    payments_agg = silver_payments.groupBy("ORDER_ID").agg(
+        _max("PAYMENT_INSTALLMENTS").alias("payment_installments_count"),
+        countDistinct("PAYMENT_TYPE").alias("payment_methods_used_count"),
+        _max("PAYMENT_TYPE").alias("primary_payment_type") # Simplification for context
+    )
+
+    # 2. Join base order data
+    sales_base = silver_order_items.alias("soi").join(
+        silver_orders.alias("so"), on="ORDER_ID", how="left"
+    ).join(
+        payments_agg.alias("pa"), on="ORDER_ID", how="left"
+    ).join(
+        silver_users.alias("su"), col("so.USER_SURROGATE_KEY") == col("su.USER_SURROGATE_KEY"), "left"
+    )
+
+    # 3. Calculate item-level measures and dates
+    sales_measures = sales_base.withColumn(
+        "gross_item_amount", col("soi.QUANTITY") * col("soi.UNIT_PRICE")
+    ).withColumn(
+        "net_item_amount", col("gross_item_amount") - coalesce(col("soi.DISCOUNT"), lit(0))
+    ).withColumn(
+        "order_date", to_date("so.CREATED_AT_TIMESTAMP")
+    ).withColumn(
+        "paid_date", to_date("so.PAID_TIMESTAMP")
+    ).withColumn(
+        "shipped_date", to_date("so.SHIPPED_TIMESTAMP")
+    ).withColumn(
+        "delivered_date", to_date("so.DELIVERED_TIMESTAMP")
+    ).withColumn(
+        "order_hour", hour("so.CREATED_AT_TIMESTAMP")
+    ).withColumn(
+        "order_minute", minute("so.CREATED_AT_TIMESTAMP")
+    ).withColumn(
+        "order_second", second("so.CREATED_AT_TIMESTAMP")
+    )
+
+    # 4. Join with Dimensions to get Surrogate Keys
+    fact_df = sales_measures.alias("sm") \
+        .join(dim_date.alias("dd_ord"), col("sm.order_date") == col("dd_ord.FULL_DATE"), "left") \
+        .join(dim_date.alias("dd_pay"), col("sm.paid_date") == col("dd_pay.FULL_DATE"), "left") \
+        .join(dim_date.alias("dd_shp"), col("sm.shipped_date") == col("dd_shp.FULL_DATE"), "left") \
+        .join(dim_date.alias("dd_del"), col("sm.delivered_date") == col("dd_del.FULL_DATE"), "left") \
+        .join(
+            dim_time.alias("dt"),
+            (col("sm.order_hour") == col("dt.HOUR")) &
+            (col("sm.order_minute") == col("dt.MINUTE")) &
+            (col("sm.order_second") == col("dt.SECONDS")),
+            "left"
+        ) \
+        .join(dim_session.alias("ds"), col("sm.SESSION_ID") == col("ds.SESSION_ID"), "left") \
+        .join(dim_user.alias("du"), col("sm.USER_SURROGATE_KEY") == col("du.USER_SURROGATE_KEY"), "left") \
+        .join(
+            dim_geography.alias("dg"),
+            (col("sm.CITY") == col("dg.CITY")) &
+            (col("sm.STATE") == col("dg.STATE")) &
+            (col("sm.COUNTRY") == col("dg.COUNTRY")),
+            "left"
+        ) \
+        .join(
+            dim_payment_type.alias("dpt"),
+            col("sm.primary_payment_type") == col("dpt.PAYMENT_TYPE_NAME"),
+            "left"
+        ) \
+        .join(
+            dim_sales_context.alias("dsc"),
+            col("sm.SHIPPING_METHOD") == col("dsc.SHIPPING_METHOD"), # Simplified join
+            "left"
+        ) \
+        .join(
+            dim_product.alias("dp"),
+            (col("sm.PRODUCT_ID") == col("dp.PRODUCT_ID")) &
+            (col("sm.CREATED_AT_TIMESTAMP") >= col("dp.VALID_FROM")) &
+            (col("sm.CREATED_AT_TIMESTAMP") <= coalesce(col("dp.VALID_TO"), current_timestamp())),
+            "left"
+        )
+
+    # 5. Finalize calculations using product attributes
+    unit_cost_price = coalesce(col("dp.BASE_PRICE") * lit(0.7), col("sm.UNIT_PRICE") * lit(0.7)) # Fallback assumption if cost is missing
+    total_cost = unit_cost_price * col("sm.QUANTITY")
+
+    fact_final = fact_df.withColumn(
+        "net_profit_margin",
+        when(col("sm.net_item_amount") > 0,
+             (col("sm.net_item_amount") - total_cost) / col("sm.net_item_amount")
+        ).otherwise(lit(0))
+    ).withColumn(
+        "minutes_to_pay",
+        (unix_timestamp("sm.PAID_TIMESTAMP") - unix_timestamp("sm.CREATED_AT_TIMESTAMP")) / 60
+    ).withColumn(
+        "hours_to_process",
+        (unix_timestamp("sm.SHIPPED_TIMESTAMP") - unix_timestamp("sm.PAID_TIMESTAMP")) / 3600
+    ).withColumn(
+        "hours_to_deliver",
+        (unix_timestamp("sm.DELIVERED_TIMESTAMP") - unix_timestamp("sm.SHIPPED_TIMESTAMP")) / 3600
+    ).withColumn(
+        "total_fulfillment_days",
+        (unix_timestamp("sm.DELIVERED_TIMESTAMP") - unix_timestamp("sm.CREATED_AT_TIMESTAMP")) / 86400
+    )
+
+    return fact_final.select(
+        col("dd_ord.DATE_KEY").alias("ORDER_DATE_KEY"),
+        col("dt.TIME_KEY").alias("ORDER_TIME_KEY"),
+        col("dd_pay.DATE_KEY").alias("PAID_DATE_KEY"),
+        col("dd_shp.DATE_KEY").alias("SHIPPED_DATE_KEY"),
+        col("dd_del.DATE_KEY").alias("DELIVERED_DATE_KEY"),
+        col("du.USER_SURROGATE_KEY"),
+        col("dg.GEOGRAPHY_KEY"),
+        col("dp.PRODUCT_SURROGATE_KEY"),
+        col("ds.SESSION_SURROGATE_KEY"),
+        col("dpt.PAYMENT_TYPE_KEY"),
+        col("dsc.SALES_CONTEXT_KEY"),
+        col("sm.ORDER_ID"),
+        col("sm.ITEM_SEQUENCE"),
+        col("sm.QUANTITY"),
+        col("sm.UNIT_PRICE"),
+        unit_cost_price.alias("UNIT_COST_PRICE"),
+        coalesce(col("sm.DISCOUNT"), lit(0)).alias("DISCOUNT_AMOUNT"),
+        col("sm.gross_item_amount").alias("GROSS_ITEM_AMOUNT"),
+        col("sm.net_item_amount").alias("NET_ITEM_AMOUNT"),
+        col("sm.FREIGHT_VALUE"),
+        (col("sm.net_item_amount") + col("sm.FREIGHT_VALUE")).alias("TOTAL_LINE_AMOUNT"),
+        col("net_profit_margin").cast("decimal(10,2)").alias("NET_PROFIT_MARGIN"),
+        lit(0).alias("TOTAL_ITEM_WEIGHT_G"), # Requires physical product data
+        lit(0).alias("TOTAL_ITEM_VOLUME_CM3"),
+        col("sm.payment_installments_count").alias("PAYMENT_INSTALLMENTS_COUNT"),
+        col("sm.payment_methods_used_count").alias("PAYMENT_METHODS_USED_COUNT"),
+        col("minutes_to_pay").cast("integer").alias("MINUTES_TO_PAY"),
+        col("hours_to_process").cast("integer").alias("HOURS_TO_PROCESS"),
+        col("hours_to_process").alias("HOURS_TO_SHIP"), # Assuming process = ship lag for this model
+        col("hours_to_deliver").cast("integer").alias("HOURS_TO_DELIVER"),
+        col("total_fulfillment_days").cast("decimal(10,2)").alias("TOTAL_FULFILLMENT_DAYS")
+    )
+
+
+def entry_point_fact_sales(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold fact_sales table.")
+
+    config = get_config(env=env, layer="gold", config_filename="fact_sales.json")[0]
+    table_name_uc = str(config.get("table_name_uc") or config.get("table_name") or "fact_sales")
+    partition_key = config.get("partition_key", [])
+
+    # Load Source Tables
+    silver_orders_df = spark.read.table(f"databricks_{env}_domain.ecommerce_silver.orders")
+    silver_order_items_df = spark.read.table(f"databricks_{env}_domain.ecommerce_silver.order_items")
+    silver_payments_df = spark.read.table(f"databricks_{env}_domain.ecommerce_silver.payments")
+    silver_users_df = spark.read.table(f"databricks_{env}_domain.ecommerce_silver.users")
+
+    # Load Dimensions
+    dim_date_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_date")
+    dim_time_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_time")
+    dim_session_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_session")
+    dim_user_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_user")
+    dim_geography_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_geography")
+    dim_product_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_product")
+    dim_payment_type_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_payment_type")
+    dim_sales_context_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_sales_context")
+
+    fact_sales_df = prepare_fact_sales_data(
+        silver_orders=silver_orders_df,
+        silver_order_items=silver_order_items_df,
+        silver_payments=silver_payments_df,
+        silver_users=silver_users_df,
+        dim_date=dim_date_df,
+        dim_time=dim_time_df,
+        dim_session=dim_session_df,
+        dim_user=dim_user_df,
+        dim_geography=dim_geography_df,
+        dim_product=dim_product_df,
+        dim_payment_type=dim_payment_type_df,
+        dim_sales_context=dim_sales_context_df
+    )
+
+    create_table(
+        source_data=fact_sales_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/dim_date.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import (
+    col,
+    concat,
+    date_format,
+    dayofmonth,
+    dayofweek,
+    expr,
+    lit,
+    month,
+    quarter,
+    row_number,
+    when,
+    year,
+)
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_dim_date_data(
+    spark: SparkSession,
+    start_date: str = "2022-01-01",
+    end_date: str = "2026-12-31",
+) -> DataFrame:
+    # Generate a continuous daily date sequence without reading source tables
+    dates_df = spark.sql(
+        f"SELECT explode(sequence(to_date('{start_date}'), to_date('{end_date}'), interval 1 day)) AS full_date"
+    )
+
+    # Spark dayofweek returns 1 for Sunday and 7 for Saturday.
+    # Shift values so Monday = 1 and Sunday = 7 to match SQL SET DATEFIRST 1 logic.
+    iso_day_of_week = ((dayofweek(col("full_date")) + 5) % 7) + 1
+    surrogate_window = Window.orderBy(col("full_date"))
+
+    return dates_df.select(
+        row_number().over(surrogate_window).alias("DATE_KEY"),
+        col("full_date").alias("FULL_DATE"),
+        dayofmonth(col("full_date")).alias("DAY"),
+        month(col("full_date")).alias("MONTH"),
+        concat(lit("Q"), quarter(col("full_date"))).alias("QUARTER"),
+        year(col("full_date")).alias("YEAR"),
+        date_format(col("full_date"), "MMMM").alias("MONTH_NAME"),
+        dayofmonth(col("full_date")).alias("DAY_OF_MONTH"),
+        iso_day_of_week.alias("DAY_OF_WEEK"),
+        when(iso_day_of_week.isin([6, 7]), lit(1))
+        .otherwise(lit(0))
+        .alias("IS_WEEKEND"),
+    )
+
+
+def entry_point_dim_date(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold dim_date table.")
+
+    config = get_config(env=env, layer="gold", config_filename="dim_date.json")[0]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "default_table_name"
+    )
+    partition_key = config.get("partition_key", [])
+
+    dim_date_df = prepare_dim_date_data(spark=spark)
+
+    create_table(
+        source_data=dim_date_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/dim_geography.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import coalesce, col, lit, row_number, trim
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_dim_geography_data(silver_users: DataFrame) -> DataFrame:
+    # Filter valid locations and deduplicate unique geographic combinations
+    unique_locations = (
+        silver_users.filter(col("CITY").isNotNull() & col("STATE").isNotNull())
+        .select(
+            trim(coalesce(col("ZIP_CODE"), lit(""))).alias("ZIP_CODE"),
+            trim(col("CITY")).alias("CITY"),
+            trim(col("STATE")).alias("STATE"),
+            trim(col("COUNTRY")).alias("COUNTRY"),
+        )
+        .dropDuplicates(["ZIP_CODE", "CITY", "STATE", "COUNTRY"])
+    )
+
+    surrogate_window = Window.orderBy(
+        col("COUNTRY"), col("STATE"), col("CITY"), col("ZIP_CODE")
+    )
+
+    return unique_locations.select(
+        row_number().over(surrogate_window).alias("GEOGRAPHY_KEY"),
+        col("ZIP_CODE"),
+        col("CITY"),
+        col("STATE"),
+        col("COUNTRY"),
+    )
+
+
+def entry_point_dim_geography(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold dim_geography table.")
+
+    config = get_config(env=env, layer="gold", config_filename="dim_geography.json")[0]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "default_table_name"
+    )
+    partition_key = config.get("partition_key", [])
+
+    silver_users_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.users"
+    )
+
+    dim_geography_df = prepare_dim_geography_data(silver_users=silver_users_df)
+
+    create_table(
+        source_data=dim_geography_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/dim_payment_type.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, coalesce, lit, row_number, when
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_dim_payment_type_data(silver_payments: DataFrame) -> DataFrame:
+    payment_with_tier = silver_payments.withColumn(
+        "installment_tier",
+        when(coalesce(col("PAYMENT_INSTALLMENTS"), lit(1)) <= 1, lit("Single Payment"))
+        .when(col("PAYMENT_INSTALLMENTS").between(2, 3), lit("2-3 Installments"))
+        .otherwise(lit("4+ Installments")),
+    )
+
+    # Extract distinct combinations of payment types and their respective installment tiers
+    unique_payments = payment_with_tier.select(
+        col("PAYMENT_TYPE").alias("payment_type_name"), col("installment_tier")
+    ).dropDuplicates(["payment_type_name", "installment_tier"])
+
+    surrogate_window = Window.orderBy("payment_type_name", "installment_tier")
+
+    return unique_payments.select(
+        row_number().over(surrogate_window).alias("PAYMENT_TYPE_KEY"),
+        col("payment_type_name").alias("PAYMENT_TYPE_NAME"),
+        col("installment_tier").alias("INSTALLMENT_TIER"),
+    )
+
+
+def entry_point_dim_payment_type(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold dim_payment_type table.")
+
+    config = get_config(env=env, layer="gold", config_filename="dim_payment_type.json")[
+        0
+    ]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "dim_payment_type"
+    )
+    partition_key = config.get("partition_key", [])
+
+    silver_payments_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.payments"
+    )
+
+    dim_payment_type_df = prepare_dim_payment_type_data(
+        silver_payments=silver_payments_df
+    )
+
+    create_table(
+        source_data=dim_payment_type_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/gold/dim_time.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, lit, row_number, when
+from pyspark.sql.types import IntegerType
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_dim_time_data(spark: SparkSession) -> DataFrame:
+    # Generate all 86,400 seconds of the day via cross join of ranges
+    hours_df = spark.range(0, 24).select(col("id").cast(IntegerType()).alias("hour"))
+    minutes_df = spark.range(0, 60).select(
+        col("id").cast(IntegerType()).alias("minute")
+    )
+    seconds_df = spark.range(0, 60).select(
+        col("id").cast(IntegerType()).alias("seconds")
+    )
+
+    time_grid_df = hours_df.crossJoin(minutes_df).crossJoin(seconds_df)
+
+    day_part_expr = (
+        when(col("hour").between(6, 11), lit("Morning"))
+        .when(col("hour").between(12, 16), lit("Afternoon"))
+        .when(col("hour").between(17, 21), lit("Evening"))
+        .otherwise(lit("Night"))
+    )
+
+    surrogate_window = Window.orderBy(col("hour"), col("minute"), col("seconds"))
+
+    return time_grid_df.select(
+        row_number().over(surrogate_window).alias("TIME_KEY"),
+        col("hour").alias("HOUR"),
+        col("minute").alias("MINUTE"),
+        col("seconds").alias("SECONDS"),
+        day_part_expr.alias("DAY_PART"),
+    )
+
+
+def entry_point_dim_time(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for gold dim_time table.")
+
+    config = get_config(env=env, layer="gold", config_filename="dim_time.json")[0]
+    table_name_uc = str(
+        config.get("table_name_uc") or config.get("table_name") or "default_table_name"
+    )
+    partition_key = config.get("partition_key", [])
+
+    dim_time_df = prepare_dim_time_data(spark=spark)
+
+    create_table(
+        source_data=dim_time_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+</files>

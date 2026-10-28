@@ -1,0 +1,841 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: ecommerce/logic_ecommerce/silver
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+ecommerce/
+  logic_ecommerce/
+    silver/
+      __init__.py
+      categories.py
+      event_clickstream.py
+      order_items.py
+      orders.py
+      payments.py
+      products.py
+      sessions.py
+      users.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="ecommerce/logic_ecommerce/silver/__init__.py">
+
+</file>
+
+<file path="ecommerce/logic_ecommerce/silver/categories.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, row_number, trim
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_categories_data(categories: DataFrame) -> DataFrame:
+    # Filter out records with missing primary key and deduplicate by category_id
+    cleaned_categories = (
+        categories.filter(col("category_id").isNotNull())
+        .withColumn("category_id_clean", trim(col("category_id")))
+        .dropDuplicates(["category_id_clean"])
+    )
+
+    surrogate_window = Window.orderBy(col("category_id_clean"))
+
+    return cleaned_categories.select(
+        row_number().over(surrogate_window).alias("CATEGORY_SURROGATE_KEY"),
+        col("category_id_clean").alias("CATEGORY_ID"),
+        col("category_name").alias("CATEGORY_NAME"),
+        col("parent_category_id").alias("PARENT_CATEGORY_ID"),
+    )
+
+
+def entry_point_categories(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for silver categories table.")
+
+    config = get_config(env=env, layer="silver", config_filename="categories.json")[0]
+    table_name_uc = config["table_name_uc"]
+    partition_key = config["partition_key"]
+
+    categories_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.categories"
+    )
+
+    categories_silver_df = prepare_categories_data(categories=categories_df)
+
+    create_table(
+        source_data=categories_silver_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/silver/event_clickstream.py">
+from pyspark.sql import SparkSession, DataFrame
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+from pyspark.sql.functions import col, monotonically_increasing_id
+
+
+def prepare_clickstream_data(event_clickstream: DataFrame) -> DataFrame:
+    """Prepare and transform clickstream events data."""
+
+    clickstream_selected = event_clickstream.select(
+        monotonically_increasing_id().alias("EVENT_SURROGATE_KEY"),
+        col("EVENT_ID").alias("EVENT_ID"),
+        col("EVENT_TYPE").alias("EVENT_TYPE"),
+        col("EVENT_TIME").alias("EVENT_TIME"),
+        col("SESSION_ID").alias("SESSION_ID"),
+        col("PRODUCT_ID").alias("PRODUCT_ID"),
+    )
+
+    return clickstream_selected
+
+
+def entry_point_event_clickstream(
+    spark: SparkSession, env: str, log_level: int
+) -> None:
+    """Entry point for silver events_clickstream table ETL."""
+    logger = set_logger(log_level)
+    logger.info("Running entry_point for silver events_clickstream table.")
+
+    config = get_config(
+        env=env, layer="silver", config_filename="event_clickstream.json"
+    )[0]
+    table_name_uc = config["table_name"]
+    partition_key = config["partition_key"]
+
+    event_clickstream = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.event_clickstream"
+    )
+
+    clickstream_silver = prepare_clickstream_data(event_clickstream=event_clickstream)
+
+    create_table(
+        source_data=clickstream_silver,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/silver/products.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import (
+    abs as spark_abs,
+    coalesce,
+    col,
+    lead,
+    lit,
+    row_number,
+)
+from pyspark.sql.types import IntegerType
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_products_data(
+    product_catalog: DataFrame,
+    product_pricing_history: DataFrame,
+    product_inventory: DataFrame,
+) -> DataFrame:
+    # Step 1: Collect all unique boundary timestamps from pricing and inventory
+    pricing_from = product_pricing_history.select(
+        col("product_id"), col("valid_from").alias("timeline_point")
+    )
+    pricing_to = product_pricing_history.filter(col("valid_to").isNotNull()).select(
+        col("product_id"), col("valid_to").alias("timeline_point")
+    )
+    inventory_from = product_inventory.select(
+        col("product_id"), col("valid_from").alias("timeline_point")
+    )
+    inventory_to = product_inventory.filter(col("valid_to").isNotNull()).select(
+        col("product_id"), col("valid_to").alias("timeline_point")
+    )
+
+    product_timelines = (
+        pricing_from.union(pricing_to)
+        .union(inventory_from)
+        .union(inventory_to)
+        .filter(col("timeline_point").isNotNull())
+        .distinct()
+    )
+
+    # Step 2: Create continuous, non-overlapping time intervals per product
+    timeline_window = Window.partitionBy("product_id").orderBy("timeline_point")
+    ordered_timelines = product_timelines.select(
+        col("product_id"),
+        col("timeline_point").alias("valid_from"),
+        lead("timeline_point").over(timeline_window).alias("valid_to"),
+    )
+
+    # Step 3: Join catalog, active price window, and active inventory window
+    surrogate_window = Window.orderBy(col("ot.product_id"), col("ot.valid_from"))
+
+    joined_products = (
+        ordered_timelines.alias("ot")
+        .join(
+            other=product_catalog.alias("c"),
+            on=col("ot.product_id") == col("c.product_id"),
+            how="inner",
+        )
+        .join(
+            other=product_pricing_history.alias("p"),
+            on=(col("ot.product_id") == col("p.product_id"))
+            & (col("ot.valid_from") >= col("p.valid_from"))
+            & ((col("ot.valid_from") < col("p.valid_to")) | col("p.valid_to").isNull()),
+            how="left",
+        )
+        .join(
+            other=product_inventory.alias("i"),
+            on=(col("ot.product_id") == col("i.product_id"))
+            & (col("ot.valid_from") >= col("i.valid_from"))
+            & ((col("ot.valid_from") < col("i.valid_to")) | col("i.valid_to").isNull()),
+            how="left",
+        )
+        .select(
+            row_number().over(surrogate_window).alias("PRODUCT_SURROGATE_KEY"),
+            col("c.product_id").alias("PRODUCT_ID"),
+            col("c.product_name").alias("PRODUCT_NAME"),
+            col("c.brand").alias("BRAND"),
+            col("c.description").alias("DESCRIPTION"),
+            spark_abs(coalesce(col("p.price").cast("double"), lit(0.0))).alias(
+                "BASE_PRICE"
+            ),
+            spark_abs(coalesce(col("p.cost_price").cast("double"), lit(0.0))).alias(
+                "COST_PRICE"
+            ),
+            col("i.weight_g").cast("double").alias("WEIGHT_G"),
+            col("i.length_cm").cast("double").alias("LENGTH_CM"),
+            col("i.height_cm").cast("double").alias("HEIGHT_CM"),
+            col("i.width_cm").cast("double").alias("WIDTH_CM"),
+            coalesce(col("i.stock_quantity").cast(IntegerType()), lit(0)).alias(
+                "STOCK_QUANTITY"
+            ),
+            col("c.created_at").alias("CREATED_AT"),
+            col("ot.valid_from").alias("VALID_FROM"),
+            col("ot.valid_to").alias("VALID_TO"),
+            col("c.is_active").cast(IntegerType()).alias("IS_ACTIVE"),
+            col("c.category_id").alias("CATEGORY_ID"),
+        )
+    )
+
+    return joined_products
+
+
+def entry_point_products(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for silver products table.")
+
+    config = get_config(env=env, layer="silver", config_filename="products.json")[0]
+    table_name_uc = config["table_name_uc"]
+    partition_key = config["partition_key"]
+
+    product_catalog_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.product_catalog"
+    )
+    product_pricing_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.product_pricing_history"
+    )
+    product_inventory_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.product_inventory"
+    )
+
+    products_silver_df = prepare_products_data(
+        product_catalog=product_catalog_df,
+        product_pricing_history=product_pricing_df,
+        product_inventory=product_inventory_df,
+    )
+
+    create_table(
+        source_data=products_silver_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/silver/sessions.py">
+from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql.functions import col, trim, upper, monotonically_increasing_id
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_sessions_data(sessions: DataFrame, silver_users: DataFrame) -> DataFrame:
+    """Prepare and join sessions data with silver users to resolve user surrogate keys."""
+
+    joined_sessions = (
+        sessions.alias("s")
+        .join(
+            silver_users.alias("u"),
+            (upper(trim(col("s.USER_ID"))) == upper(trim(col("u.USER_ID"))))
+            & (col("s.SESSION_START") >= col("u.VALID_FROM"))
+            & (
+                (col("s.SESSION_START") < col("u.VALID_TO"))
+                | col("u.VALID_TO").isNull()
+            ),
+            how="left",
+        )
+        .select(
+            monotonically_increasing_id().alias("SESSION_SURROGATE_KEY"),
+            col("s.SESSION_ID").alias("SESSION_ID"),
+            col("s.SESSION_START").alias("SESSION_START"),
+            col("s.SESSION_END").alias("SESSION_END"),
+            col("s.DEVICE_TYPE").alias("DEVICE_TYPE"),
+            col("s.BROWSER").alias("BROWSER"),
+            col("s.TRAFFIC_SOURCE").alias("TRAFFIC_SOURCE"),
+            col("u.USER_SURROGATE_KEY").alias("USER_SURROGATE_KEY"),
+        )
+    )
+
+    return joined_sessions
+
+
+def entry_point_sessions(spark: SparkSession, env: str, log_level: int) -> None:
+    """Entry point for silver sessions table ETL."""
+    logger = set_logger(log_level)
+    logger.info("Running entry_point for silver sessions table.")
+
+    config = get_config(env=env, layer="silver", config_filename="sessions.json")[0]
+    table_name_uc = config["table_name"]
+    partition_key = config["partition_key"]
+
+    sessions = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.sessions")
+    silver_users = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.silver_users"
+    )
+
+    sessions_silver = prepare_sessions_data(
+        sessions=sessions,
+        silver_users=silver_users,
+    )
+
+    create_table(
+        source_data=sessions_silver,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/silver/payments.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import abs as spark_abs, coalesce, col, lit, row_number
+from pyspark.sql.types import IntegerType
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_payments_data(payment_details: DataFrame) -> DataFrame:
+    # Generate surrogate key and sanitize payment_value against NULLs and negative values
+    surrogate_window = Window.orderBy(col("payment_id"), col("payment_sequential"))
+
+    return payment_details.filter(col("payment_id").isNotNull()).select(
+        row_number().over(surrogate_window).alias("PAYMENT_SURROGATE_KEY"),
+        col("payment_id").alias("PAYMENT_ID"),
+        col("payment_sequential").cast(IntegerType()).alias("PAYMENT_SEQUENTIAL"),
+        col("payment_type").alias("PAYMENT_TYPE"),
+        col("payment_installments").cast(IntegerType()).alias("PAYMENT_INSTALLMENTS"),
+        spark_abs(coalesce(col("payment_value").cast("double"), lit(0.0))).alias(
+            "PAYMENT_VALUE"
+        ),
+        col("order_id").alias("ORDER_ID"),
+    )
+
+
+def entry_point_payments(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for silver payments table.")
+
+    config = get_config(env=env, layer="silver", config_filename="payments.json")[0]
+    table_name_uc = config["table_name_uc"]
+    partition_key = config["partition_key"]
+
+    payment_details_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.payment_details"
+    )
+
+    payments_silver_df = prepare_payments_data(payment_details=payment_details_df)
+
+    create_table(
+        source_data=payments_silver_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/silver/users.py">
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, lead, lit, row_number, when
+from pyspark.sql.window import Window
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def join_users_data(
+    locations: DataFrame,
+    user_contacts: DataFrame,
+    user_locations: DataFrame,
+    user_profiles: DataFrame,
+    user_status_history: DataFrame,
+    users: DataFrame,
+) -> DataFrame:
+    # Step 1: Collect all unique boundary dates from location history, status history, and user creation
+    loc_from = user_locations.select(
+        col("user_id"), col("valid_from").alias("timeline_point")
+    )
+    loc_to = user_locations.filter(col("valid_to").isNotNull()).select(
+        col("user_id"), col("valid_to").alias("timeline_point")
+    )
+    status_from = user_status_history.select(
+        col("user_id"), col("valid_from").alias("timeline_point")
+    )
+    status_to = user_status_history.filter(col("valid_to").isNotNull()).select(
+        col("user_id"), col("valid_to").alias("timeline_point")
+    )
+    user_created = users.select(
+        col("user_id"), col("created_at").alias("timeline_point")
+    )
+
+    user_timelines = (
+        loc_from.union(loc_to)
+        .union(status_from)
+        .union(status_to)
+        .union(user_created)
+        .filter(col("timeline_point").isNotNull())
+        .distinct()
+    )
+
+    # Step 2: Create continuous, non-overlapping time intervals per user
+    timeline_window = Window.partitionBy("user_id").orderBy("timeline_point")
+    ordered_user_timelines = user_timelines.select(
+        col("user_id"),
+        col("timeline_point").alias("valid_from"),
+        lead("timeline_point").over(timeline_window).alias("valid_to"),
+    )
+
+    # Step 3: Join user tables and match location and status active in each time window
+    surrogate_window = Window.orderBy(col("ot.user_id"), col("ot.valid_from"))
+
+    joined_users_df = (
+        ordered_user_timelines.alias("ot")
+        .join(
+            other=users.alias("u"),
+            on=col("ot.user_id") == col("u.user_id"),
+            how="inner",
+        )
+        .join(
+            other=user_profiles.alias("pr"),
+            on=col("ot.user_id") == col("pr.user_id"),
+            how="left",
+        )
+        .join(
+            other=user_contacts.alias("co"),
+            on=col("ot.user_id") == col("co.user_id"),
+            how="left",
+        )
+        .join(
+            other=user_locations.alias("ul"),
+            on=(col("ot.user_id") == col("ul.user_id"))
+            & (col("ot.valid_from") >= col("ul.valid_from"))
+            & (
+                (col("ot.valid_from") < col("ul.valid_to"))
+                | col("ul.valid_to").isNull()
+            ),
+            how="left",
+        )
+        .join(
+            other=locations.alias("l"),
+            on=col("ul.location_id") == col("l.location_id"),
+            how="left",
+        )
+        .join(
+            other=user_status_history.alias("s"),
+            on=(col("ot.user_id") == col("s.user_id"))
+            & (col("ot.valid_from") >= col("s.valid_from"))
+            & ((col("ot.valid_from") < col("s.valid_to")) | col("s.valid_to").isNull()),
+            how="left",
+        )
+        .select(
+            row_number().over(surrogate_window).alias("USER_SURROGATE_KEY"),
+            col("u.user_id").alias("USER_ID"),
+            col("u.customer_unique_id").alias("CUSTOMER_UNIQUE_ID"),
+            col("pr.first_name").alias("FIRST_NAME"),
+            col("pr.last_name").alias("LAST_NAME"),
+            col("co.email").alias("EMAIL"),
+            col("co.phone").alias("PHONE"),
+            col("pr.birth_date").alias("BIRTH_DATE"),
+            col("pr.gender").alias("GENDER"),
+            col("l.city").alias("CITY"),
+            col("l.state").alias("STATE"),
+            col("l.zip_code").alias("ZIP_CODE"),
+            col("l.country").alias("COUNTRY"),
+            col("s.status").alias("STATUS"),
+            col("u.created_at").alias("CREATED_AT"),
+            col("ot.valid_from").alias("VALID_FROM"),
+            col("ot.valid_to").alias("VALID_TO"),
+            when(col("ot.valid_to").isNull(), lit(1))
+            .otherwise(lit(0))
+            .alias("IS_ACTIVE"),
+        )
+    )
+
+    return joined_users_df
+
+
+def entry_point_users(spark: SparkSession, env: str, log_level: int) -> None:
+    logger = set_logger(log_level=log_level)
+    logger.info("Running entry_point for silver users table.")
+
+    config = get_config(env=env, layer="silver", config_filename="users.json")[0]
+    table_name_uc = config["table_name_uc"]
+    partition_key = config["partition_key"]
+
+    locations_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.locations"
+    )
+    user_contacts_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.user_contacts"
+    )
+    user_locations_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.user_locations"
+    )
+    user_profiles_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.user_profiles"
+    )
+    user_status_history_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.user_status_history"
+    )
+    users_mapping_df = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.users"
+    )
+
+    users_silver_df = join_users_data(
+        locations=locations_df,
+        user_contacts=user_contacts_df,
+        user_locations=user_locations_df,
+        user_profiles=user_profiles_df,
+        user_status_history=user_status_history_df,
+        users=users_mapping_df,
+    )
+
+    create_table(
+        source_data=users_silver_df,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/silver/order_items.py">
+from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql.functions import col, monotonically_increasing_id
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+
+def prepare_order_items_data(
+    order_items: DataFrame, order_item_pricing: DataFrame
+) -> DataFrame:
+    """Prepare and transform order items data by joining with pricing information."""
+    order_items_joined = order_items.alias("oi").join(
+        other=order_item_pricing.alias("oip"),
+        on=col("oi.ORDER_ITEM_ID") == col("oip.ORDER_ITEM_ID"),
+        how="left",
+    )
+
+    order_items_selected = order_items_joined.select(
+        monotonically_increasing_id().alias("ORDER_ITEM_SURROGATE_KEY"),
+        col("oi.ORDER_ITEM_ID").alias("ORDER_ITEM_ID"),
+        col("oi.ORDER_ITEM_SEQ").alias("ITEM_SEQUENCE"),
+        col("oi.QUANTITY").alias("QUANTITY"),
+        col("oip.UNIT_PRICE").alias("UNIT_PRICE"),
+        col("oip.DISCOUNT").alias("DISCOUNT"),
+        col("oi.ORDER_ID").alias("ORDER_ID"),
+        col("oi.PRODUCT_ID").alias("PRODUCT_ID"),
+    )
+
+    return order_items_selected
+
+
+def entry_point_order_items(spark: SparkSession, env: str, log_level: int) -> None:
+    """Entry point for silver order_items table ETL."""
+    logger = set_logger(log_level)
+    logger.info("Running entry_point for silver order_items table.")
+
+    config = get_config(env=env, layer="silver", config_filename="order_items.json")[0]
+    table_name_uc = config["table_name"]
+    partition_key = config["partition_key"]
+
+    order_items = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_items"
+    )
+
+    order_item_pricing = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_item_pricing"
+    )
+
+    order_items_silver = prepare_order_items_data(
+        order_items=order_items, order_item_pricing=order_item_pricing
+    )
+
+    create_table(
+        source_data=order_items_silver,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+<file path="ecommerce/logic_ecommerce/silver/orders.py">
+from pyspark.sql import SparkSession, DataFrame
+
+from ecommerce.common_functions.config_utils import get_config, set_logger
+from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
+
+from pyspark.sql.functions import (
+    col,
+    lit,
+    trim,
+    upper,
+    year,
+    month,
+    when,
+    concat,
+    coalesce,
+    sum,
+    max as spark_max,
+    expr,
+    monotonically_increasing_id,
+)
+from pyspark.sql.types import IntegerType, DecimalType
+
+
+def add_date_columns(
+    df: DataFrame, timestamp_column_name: str = "CREATED_AT_TIMESTAMP"
+) -> DataFrame:
+    timestamp_column = month(col(timestamp_column_name))
+
+    df_year_month = df.withColumn(
+        "YEAR", year(col(timestamp_column_name)).cast(IntegerType())
+    ).withColumn(
+        "MONTH",
+        when(timestamp_column < 10, concat(lit("0"), timestamp_column)).otherwise(
+            timestamp_column.cast("string")
+        ),
+    )
+
+    quarter = (
+        when(col("MONTH").isin(["01", "02", "03"]), "Q1")
+        .when(col("MONTH").isin(["04", "05", "06"]), "Q2")
+        .when(col("MONTH").isin(["07", "08", "09"]), "Q3")
+        .when(col("MONTH").isin(["10", "11", "12"]), "Q4")
+        .otherwise("INCORRECT_DATE")
+    )
+
+    return df_year_month.withColumn("QUARTER", quarter)
+
+
+def prepare_orders_data(
+    orders: DataFrame,
+    order_details: DataFrame,
+    order_status_history: DataFrame,
+    order_items: DataFrame,
+    order_item_pricing: DataFrame,
+    silver_users: DataFrame,
+) -> DataFrame:
+    """Prepare and pivot orders data matching the silver relational logic."""
+    item_totals = (
+        order_items.alias("oi")
+        .join(
+            order_item_pricing.alias("ip"),
+            upper(trim(col("oi.ORDER_ITEM_ID")))
+            == upper(trim(col("ip.ORDER_ITEM_ID"))),
+            how="inner",
+        )
+        .groupBy(col("oi.ORDER_ID"))
+        .agg(
+            sum(
+                col("oi.QUANTITY").cast(DecimalType(10, 2))
+                * (col("ip.UNIT_PRICE") - coalesce(col("ip.DISCOUNT"), lit(0.00)))
+            ).alias("ITEMS_TOTAL")
+        )
+    )
+
+    pivoted_status = (
+        order_status_history.alias("osh")
+        .groupBy(col("ORDER_ID"))
+        .agg(
+            spark_max(
+                when(col("STATUS") == "PENDING_PAYMENT", col("VALID_FROM"))
+            ).alias("PENDING_PAYMENT_TIMESTAMP"),
+            spark_max(when(col("STATUS") == "PAID", col("VALID_FROM"))).alias(
+                "PAID_TIMESTAMP"
+            ),
+            spark_max(when(col("STATUS") == "PROCESSING", col("VALID_FROM"))).alias(
+                "PROCESSING_TIMESTAMP"
+            ),
+            spark_max(when(col("STATUS") == "SHIPPED", col("VALID_FROM"))).alias(
+                "SHIPPED_TIMESTAMP"
+            ),
+            spark_max(when(col("STATUS") == "DELIVERED", col("VALID_FROM"))).alias(
+                "DELIVERED_TIMESTAMP"
+            ),
+        )
+    )
+
+    joined_orders = (
+        orders.alias("o")
+        .join(
+            order_details.alias("od"),
+            upper(trim(col("o.ORDER_ID"))) == upper(trim(col("od.ORDER_ID"))),
+            how="left",
+        )
+        .join(
+            pivoted_status.alias("osh"),
+            upper(trim(col("o.ORDER_ID"))) == upper(trim(col("osh.ORDER_ID"))),
+            how="left",
+        )
+        .join(
+            item_totals.alias("it"),
+            upper(trim(col("o.ORDER_ID"))) == upper(trim(col("it.ORDER_ID"))),
+            how="left",
+        )
+        .join(
+            silver_users.alias("u"),
+            (upper(trim(col("o.USER_ID"))) == upper(trim(col("u.USER_ID"))))
+            & (col("o.CREATED_AT") >= col("u.VALID_FROM"))
+            & ((col("o.CREATED_AT") < col("u.VALID_TO")) | col("u.VALID_TO").isNull()),
+            how="left",
+        )
+    )
+
+    orders_selected = joined_orders.select(
+        monotonically_increasing_id().alias("ORDER_SURROGATE_KEY"),
+        col("o.ORDER_ID").alias("ORDER_ID"),
+        (
+            coalesce(col("it.ITEMS_TOTAL"), lit(0.00))
+            + coalesce(col("od.FREIGHT_VALUE"), lit(0.00))
+        ).alias("TOTAL_AMOUNT"),
+        coalesce(col("od.FREIGHT_VALUE"), lit(0.00)).alias("FREIGHT_VALUE"),
+        col("od.SHIPPING_METHOD").alias("SHIPPING_METHOD"),
+        col("o.CREATED_AT").alias("CREATED_AT_TIMESTAMP"),
+        col("osh.PENDING_PAYMENT_TIMESTAMP"),
+        col("osh.PAID_TIMESTAMP"),
+        col("osh.PROCESSING_TIMESTAMP"),
+        col("osh.SHIPPED_TIMESTAMP"),
+        col("osh.DELIVERED_TIMESTAMP"),
+        col("o.SESSION_ID").alias("SESSION_ID"),
+        col("u.USER_SURROGATE_KEY").alias("USER_SURROGATE_KEY"),
+    )
+
+    return orders_selected
+
+
+def entry_point_orders(spark: SparkSession, env: str, log_level: int) -> None:
+    """Entry point for silver orders table ETL."""
+    logger = set_logger(log_level)
+    logger.info("Running entry_point for silver orders table.")
+
+    config = get_config(env=env, layer="silver", config_filename="orders.json")[0]
+    table_name_uc = config["table_name"]
+    partition_key = config["partition_key"]
+
+    # Read bronze and silver dependencies
+    orders = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.orders")
+    order_details = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_details"
+    )
+    order_status_history = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_status_history"
+    )
+    order_items = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_items"
+    )
+    order_item_pricing = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_bronze.order_item_pricing"
+    )
+    silver_users = spark.read.table(
+        f"databricks_{env}_domain.ecommerce_silver.silver_users"
+    )
+
+    order_silver = prepare_orders_data(
+        orders=orders,
+        order_details=order_details,
+        order_status_history=order_status_history,
+        order_items=order_items,
+        order_item_pricing=order_item_pricing,
+        silver_users=silver_users,
+    )
+
+    orders_with_date_columns = add_date_columns(order_silver)
+
+    create_table(
+        source_data=orders_with_date_columns,
+        table_name_uc=table_name_uc,
+        partition_key=partition_key,
+    )
+
+    optimize_vacuum_table(spark=spark, table_name_uc=table_name_uc)
+</file>
+
+</files>

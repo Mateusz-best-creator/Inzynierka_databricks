@@ -92,7 +92,7 @@ def prepare_products_data(
             coalesce(col("i.stock_quantity").cast(IntegerType()), lit(0)).alias(
                 "STOCK_QUANTITY"
             ),
-            col("c.created_at").alias("CREATED_AT"),
+            col("c.valid_from").alias("CREATED_AT"),
             col("ot.valid_from").alias("VALID_FROM"),
             col("ot.valid_to").alias("VALID_TO"),
             col("c.is_active").cast(IntegerType()).alias("IS_ACTIVE"),

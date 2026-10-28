@@ -1,0 +1,1055 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: ecommerce/table_properties/dev
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+ecommerce/
+  table_properties/
+    dev/
+      bronze/
+        __init__.py
+        behavioral_data.json
+        categories.json
+        orders.json
+        payments.json
+        products.json
+        users.json
+      gold/
+        __init__.py
+        dim_date.json
+        dim_event_type.json
+        dim_geography.json
+        dim_payment_type.json
+        dim_product.json
+        dim_sales_context.json
+        dim_session.json
+        dim_time.json
+        dim_user.json
+        fact_events.json
+        fact_sales.json
+      silver/
+        __init__.py
+        categories.json
+        event_clickstream.json
+        order_items.json
+        orders.json
+        payments.json
+        products.json
+        sessions.json
+        users.json
+      __init__.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="ecommerce/table_properties/dev/bronze/__init__.py">
+
+</file>
+
+<file path="ecommerce/table_properties/dev/bronze/categories.json">
+{
+    "table_list": [
+        "categories"
+    ],
+    "categories": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "",
+        "file_name": "categories_table.json",
+        "blob_name": "categories_table.json",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "category_id",
+                "target_col_name": "CATEGORY_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "parent_category_id",
+                "target_col_name": "PARENT_CATEGORY_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "category_name",
+                "target_col_name": "CATEGORY_NAME",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "created_at",
+                "target_col_name": "CREATED_AT",
+                "target_datatype": "timestamp"
+            }
+        ]
+    }
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/bronze/payments.json">
+{
+    "table_list": [
+        "payment_details",
+        "payment_status_history"
+    ],
+    "payment_details": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "payments_data",
+        "file_name": "payment_details.json",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "payment_id",
+                "target_col_name": "PAYMENT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "payment_sequential",
+                "target_col_name": "PAYMENT_SEQUENTIAL",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "payment_type",
+                "target_col_name": "PAYMENT_TYPE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "payment_installments",
+                "target_col_name": "PAYMENT_INSTALLMENTS",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "payment_value",
+                "target_col_name": "PAYMENT_VALUE",
+                "target_datatype": "double"
+            }
+        ]
+    },
+    "payment_status_history": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "payments_data",
+        "file_name": "payment_status_history.json",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "log_id",
+                "target_col_name": "LOG_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "payment_id",
+                "target_col_name": "PAYMENT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status",
+                "target_col_name": "STATUS",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "gateway_response",
+                "target_col_name": "GATEWAY_RESPONSE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    }
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/bronze/products.json">
+{
+    "table_list": [
+        "product_catalog",
+        "product_inventory",
+        "product_pricing_history"
+    ],
+    "product_catalog": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "",
+        "file_name": "product_catalog_table.json",
+        "blob_name": "product_catalog_table.json",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "id",
+                "target_col_name": "ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_id",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "category_id",
+                "target_col_name": "CATEGORY_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_name",
+                "target_col_name": "PRODUCT_NAME",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "brand",
+                "target_col_name": "BRAND",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "description",
+                "target_col_name": "DESCRIPTION",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "is_active",
+                "target_col_name": "IS_ACTIVE",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "product_inventory": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "",
+        "file_name": "product_inventory_table.json",
+        "blob_name": "product_inventory_table.json",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "inventory_id",
+                "target_col_name": "INVENTORY_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_id",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "weight_g",
+                "target_col_name": "WEIGHT_G",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "length_cm",
+                "target_col_name": "LENGTH_CM",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "height_cm",
+                "target_col_name": "HEIGHT_CM",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "width_cm",
+                "target_col_name": "WIDTH_CM",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "stock_quantity",
+                "target_col_name": "STOCK_QUANTITY",
+                "target_datatype": "integer"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "product_pricing_history": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "",
+        "file_name": "product_pricing_history_table.json",
+        "blob_name": "product_pricing_history_table.json",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "unique_id",
+                "target_col_name": "UNIQUE_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_id",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "price",
+                "target_col_name": "PRICE",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "cost_price",
+                "target_col_name": "COST_PRICE",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    }
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/__init__.py">
+
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/dim_date.json">
+{
+    "table_name": "dim_date"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/dim_event_type.json">
+{
+    "table_name": "dim_event_type"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/dim_geography.json">
+{
+    "table_name": "dim_geography"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/dim_payment_type.json">
+{
+    "table_name": "dim_payment_type"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/dim_product.json">
+{
+    "table_name": "dim_product"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/dim_sales_context.json">
+{
+    "table_name": "dim_sales_context"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/dim_session.json">
+{
+    "table_name": "dim_session"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/dim_time.json">
+{
+    "table_name": "dim_time"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/dim_user.json">
+{
+    "table_name": "dim_user"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/fact_events.json">
+{
+    "table_name": "fact_events",
+    "partition_key": "event_date_key"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/gold/fact_sales.json">
+{
+    "table_name": "fact_sales",
+    "partition_key": "order_date_key"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/silver/__init__.py">
+
+</file>
+
+<file path="ecommerce/table_properties/dev/silver/payments.json">
+{
+    "table_name": "payments"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/silver/users.json">
+{
+    "table_name": "users"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/__init__.py">
+
+</file>
+
+<file path="ecommerce/table_properties/dev/bronze/behavioral_data.json">
+{
+    "table_list": [
+        "sessions",
+        "event_clickstream"
+    ],
+    "sessions": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "parquet",
+        "container_folder_path": "behavioral_data",
+        "file_name": "session.parquet",
+        "blob_name": "behavioral_data/session.parquet",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "session_id",
+                "target_col_name": "SESSION_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "session_start",
+                "target_col_name": "SESSION_START",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "session_end",
+                "target_col_name": "SESSION_END",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "device_type",
+                "target_col_name": "DEVICE_TYPE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "browser",
+                "target_col_name": "BROWSER",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "traffic_source",
+                "target_col_name": "TRAFFIC_SOURCE",
+                "target_datatype": "string"
+            }
+        ]
+    },
+    "event_clickstream": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "parquet",
+        "container_folder_path": "behavioral_data",
+        "file_name": "event_clickstream.parquet",
+        "blob_name": "behavioral_data/event_clickstream.parquet",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "event_id",
+                "target_col_name": "EVENT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "event_time",
+                "target_col_name": "EVENT_TIME",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "event_type",
+                "target_col_name": "EVENT_TYPE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_id",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "session_id",
+                "target_col_name": "SESSION_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            }
+        ]
+    }
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/bronze/orders.json">
+{
+    "table_list": [
+        "order_details",
+        "order_item_pricing",
+        "order_items",
+        "order_status_history",
+        "orders"
+    ],
+    "order_details": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "parquet",
+        "container_folder_path": "orders_data",
+        "file_name": "order_details.parquet",
+        "blob_name": "orders_data/order_details.parquet",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_channel",
+                "target_col_name": "ORDER_CHANNEL",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "shipping_method",
+                "target_col_name": "SHIPPING_METHOD",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "freight_value",
+                "target_col_name": "SHIPPING_COST",
+                "target_datatype": "double"
+            }
+        ]
+    },
+    "order_item_pricing": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "parquet",
+        "container_folder_path": "orders_data",
+        "file_name": "order_item_pricing.parquet",
+        "blob_name": "orders_data/order_item_pricing.parquet",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "order_item_id",
+                "target_col_name": "ORDER_ITEM_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "unit_price",
+                "target_col_name": "UNIT_PRICE",
+                "target_datatype": "double"
+            },
+            {
+                "source_col_name": "discount",
+                "target_col_name": "DISCOUNT",
+                "target_datatype": "double"
+            }
+        ]
+    },
+    "order_items": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "parquet",
+        "container_folder_path": "orders_data",
+        "file_name": "order_items.parquet",
+        "blob_name": "orders_data/order_items.parquet",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "order_item_id",
+                "target_col_name": "ORDER_ITEM_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_item_seq",
+                "target_col_name": "ORDER_ITEM_SEQUENTIAL",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "product_id",
+                "target_col_name": "PRODUCT_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "quantity",
+                "target_col_name": "QUANTITY",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "order_status_history": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "parquet",
+        "container_folder_path": "orders_data",
+        "file_name": "order_status_history.parquet",
+        "blob_name": "orders_data/order_status_history.parquet",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "id",
+                "target_col_name": "ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status",
+                "target_col_name": "CURRENT_STATUS",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status_change_description",
+                "target_col_name": "STATUS_CHANGE_DESCRIPTION",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "orders": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "parquet",
+        "container_folder_path": "orders_data",
+        "file_name": "orders.parquet",
+        "blob_name": "orders_data/orders.parquet",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "order_id",
+                "target_col_name": "ORDER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "session_id",
+                "target_col_name": "SESSION_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "created_at",
+                "target_col_name": "CREATED_AT",
+                "target_datatype": "timestamp"
+            }
+        ]
+    }
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/silver/categories.json">
+{
+    "table_name": "categories"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/silver/event_clickstream.json">
+{
+    "table_name": "silver_events_clickstream"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/silver/products.json">
+{
+    "table_name": "products"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/silver/sessions.json">
+{
+    "table_name": "silver_sessions"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/bronze/users.json">
+{
+    "table_list": [
+        "locations",
+        "user_contacts",
+        "user_locations",
+        "user_profiles",
+        "user_status_history",
+        "users"
+    ],
+    "locations": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "location_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "location_id",
+                "target_col_name": "LOCATION_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "city",
+                "target_col_name": "CITY",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "state",
+                "target_col_name": "STATE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "zip_code",
+                "target_col_name": "ZIP_CODE",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "country",
+                "target_col_name": "COUNTRY",
+                "target_datatype": "string"
+            }
+        ]
+    },
+    "user_contacts": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "user_contact_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "email",
+                "target_col_name": "EMAIL",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "phone",
+                "target_col_name": "PHONE",
+                "target_datatype": "string"
+            }
+        ]
+    },
+    "user_locations": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "user_location_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "id",
+                "target_col_name": "SYSTEM_GENERATED_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "location_id",
+                "target_col_name": "LOCATION_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "user_profiles": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "user_profile_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "first_name",
+                "target_col_name": "FIRST_NAME",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "last_name",
+                "target_col_name": "LAST_NAME",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "birth_date",
+                "target_col_name": "BIRTH_DATE",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "gender",
+                "target_col_name": "GENDER",
+                "target_datatype": "string"
+            }
+        ]
+    },
+    "user_status_history": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "user_status_history_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "id",
+                "target_col_name": "SYSTEM_GENERATED_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status",
+                "target_col_name": "STATUS",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "status_change_description",
+                "target_col_name": "STATUS_CHANGE_DESCRIPTION",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "valid_from",
+                "target_col_name": "VALID_FROM",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "valid_to",
+                "target_col_name": "VALID_TO",
+                "target_datatype": "timestamp"
+            },
+            {
+                "source_col_name": "is_current",
+                "target_col_name": "IS_CURRENT",
+                "target_datatype": "integer"
+            }
+        ]
+    },
+    "users": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "csv",
+        "container_folder_path": "users_data",
+        "file_name": "users_table.csv",
+        "partition_key": [],
+
+        "schema": [
+            {
+                "source_col_name": "user_id",
+                "target_col_name": "USER_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "customer_unique_id",
+                "target_col_name": "CUSTOMER_UNIQUE_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "created_at",
+                "target_col_name": "CREATED_AT",
+                "target_datatype": "timestamp"
+            }
+        ]
+    }
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/silver/order_items.json">
+{
+    "table_name": "silver_order_items"
+}
+</file>
+
+<file path="ecommerce/table_properties/dev/silver/orders.json">
+{
+    "table_name": "silver_orders"
+}
+</file>
+
+</files>

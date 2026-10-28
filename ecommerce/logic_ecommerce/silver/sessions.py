@@ -41,13 +41,11 @@ def entry_point_sessions(spark: SparkSession, env: str, log_level: int) -> None:
     logger.info("Running entry_point for silver sessions table.")
 
     config = get_config(env=env, layer="silver", config_filename="sessions.json")[0]
-    table_name_uc = config["table_name"]
+    table_name_uc = config["table_name_uc"]
     partition_key = config["partition_key"]
 
     sessions = spark.read.table(f"databricks_{env}_domain.ecommerce_bronze.sessions")
-    silver_users = spark.read.table(
-        f"databricks_{env}_domain.ecommerce_silver.silver_users"
-    )
+    silver_users = spark.read.table(f"databricks_{env}_domain.ecommerce_silver.users")
 
     sessions_silver = prepare_sessions_data(
         sessions=sessions,
