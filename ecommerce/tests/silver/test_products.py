@@ -18,7 +18,7 @@ CATALOG_SCHEMA = StructType(
         StructField("brand", StringType(), True),
         StructField("description", StringType(), True),
         StructField("is_active", IntegerType(), True),
-        StructField("created_at", StringType(), True),
+        StructField("valid_from", StringType(), True),
     ]
 )
 

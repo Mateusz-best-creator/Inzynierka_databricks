@@ -1,4 +1,4 @@
 {
     "table_name": "fact_events",
-    "partition_key": "event_date_key"
+    "partition_key": "EVENT_DATE_KEY"
 }

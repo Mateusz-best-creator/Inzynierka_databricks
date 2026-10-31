@@ -27,13 +27,13 @@ def test_prepare_orders_data_schema_and_columns(spark: SparkSession) -> None:
         [
             StructField("order_id", StringType(), True),
             StructField("shipping_method", StringType(), True),
-            StructField("freight_value", DoubleType(), True),
+            StructField("shipping_cost", DoubleType(), True),
         ]
     )
     status_schema = StructType(
         [
             StructField("order_id", StringType(), True),
-            StructField("status", StringType(), True),
+            StructField("current_status", StringType(), True),
             StructField("valid_from", StringType(), True),
         ]
     )
@@ -119,13 +119,13 @@ def test_prepare_orders_data_calculations_and_pivots(spark: SparkSession) -> Non
         [
             StructField("order_id", StringType(), True),
             StructField("shipping_method", StringType(), True),
-            StructField("freight_value", DoubleType(), True),
+            StructField("shipping_cost", DoubleType(), True),
         ]
     )
     status_schema = StructType(
         [
             StructField("order_id", StringType(), True),
-            StructField("status", StringType(), True),
+            StructField("current_status", StringType(), True),
             StructField("valid_from", StringType(), True),
         ]
     )
@@ -220,13 +220,13 @@ def test_prepare_orders_data_left_join_missing_details(spark: SparkSession) -> N
         [
             StructField("order_id", StringType(), True),
             StructField("shipping_method", StringType(), True),
-            StructField("freight_value", DoubleType(), True),
+            StructField("shipping_cost", DoubleType(), True),
         ]
     )
     status_schema = StructType(
         [
             StructField("order_id", StringType(), True),
-            StructField("status", StringType(), True),
+            StructField("current_status", StringType(), True),
             StructField("valid_from", StringType(), True),
         ]
     )
@@ -320,13 +320,13 @@ def test_prepare_orders_data_empty_dataframes(spark: SparkSession) -> None:
         [
             StructField("order_id", StringType(), True),
             StructField("shipping_method", StringType(), True),
-            StructField("freight_value", DoubleType(), True),
+            StructField("shipping_cost", DoubleType(), True),
         ]
     )
     status_schema = StructType(
         [
             StructField("order_id", StringType(), True),
-            StructField("status", StringType(), True),
+            StructField("current_status", StringType(), True),
             StructField("valid_from", StringType(), True),
         ]
     )

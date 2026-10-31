@@ -15,7 +15,13 @@ def test_prepare_order_items_schema_and_columns(spark: SparkSession) -> None:
     # Arrange verifying output schema
     order_items_df = spark.createDataFrame(
         [("ITEM-1", "ORD-1", 1, "PROD-1", 1)],
-        ["order_item_id", "order_id", "order_item_seq", "product_id", "quantity"],
+        [
+            "order_item_id",
+            "order_id",
+            "order_item_sequential",
+            "product_id",
+            "quantity",
+        ],
     )
     order_item_pricing_df = spark.createDataFrame(
         [("ITEM-1", 50.0, 5.0)],
@@ -51,7 +57,13 @@ def test_prepare_order_items_mapping_and_values(spark: SparkSession) -> None:
     ]
     order_items_df = spark.createDataFrame(
         order_items_data,
-        ["order_item_id", "order_id", "order_item_seq", "product_id", "quantity"],
+        [
+            "order_item_id",
+            "order_id",
+            "order_item_sequential",
+            "product_id",
+            "quantity",
+        ],
     )
 
     pricing_data = [
@@ -94,7 +106,13 @@ def test_prepare_order_items_left_join_missing_pricing(spark: SparkSession) -> N
             ("ITEM-1", "ORD-1", 1, "PROD-1", 2),
             ("ITEM-2", "ORD-2", 1, "PROD-2", 5),
         ],
-        ["order_item_id", "order_id", "order_item_seq", "product_id", "quantity"],
+        [
+            "order_item_id",
+            "order_id",
+            "order_item_sequential",
+            "product_id",
+            "quantity",
+        ],
     )
     order_item_pricing_df = spark.createDataFrame(
         [("ITEM-1", 20.0, 2.0)],
@@ -122,7 +140,7 @@ def test_prepare_order_items_empty_dataframes(spark: SparkSession) -> None:
         [
             StructField("order_item_id", StringType(), True),
             StructField("order_id", StringType(), True),
-            StructField("order_item_seq", IntegerType(), True),
+            StructField("order_item_sequential", IntegerType(), True),
             StructField("product_id", StringType(), True),
             StructField("quantity", IntegerType(), True),
         ]

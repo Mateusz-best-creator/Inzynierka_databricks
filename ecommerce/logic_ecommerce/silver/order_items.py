@@ -18,7 +18,7 @@ def prepare_order_items_data(
     order_items_selected = order_items_joined.select(
         monotonically_increasing_id().alias("ORDER_ITEM_SURROGATE_KEY"),
         col("oi.ORDER_ITEM_ID").alias("ORDER_ITEM_ID"),
-        col("oi.ORDER_ITEM_SEQ").alias("ITEM_SEQUENCE"),
+        col("oi.ORDER_ITEM_SEQUENTIAL").cast("integer").alias("ITEM_SEQUENCE"),
         col("oi.QUANTITY").alias("QUANTITY"),
         col("oip.UNIT_PRICE").alias("UNIT_PRICE"),
         col("oip.DISCOUNT").alias("DISCOUNT"),
@@ -35,7 +35,7 @@ def entry_point_order_items(spark: SparkSession, env: str, log_level: int) -> No
     logger.info("Running entry_point for silver order_items table.")
 
     config = get_config(env=env, layer="silver", config_filename="order_items.json")[0]
-    table_name_uc = config["table_name"]
+    table_name_uc = config["table_name_uc"]
     partition_key = config["partition_key"]
 
     order_items = spark.read.table(
