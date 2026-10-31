@@ -1,0 +1,17 @@
+variables:
+
+  env:
+    description: "Enviroment to which we want to deploy the pipeline."
+    default: "dev"
+
+  ecommerce_product_tag:
+    description: "Key value pair used to indicate that given pipeline is related to ecommerce processing."
+    default: "ecommerce"
+
+  notification_email:
+    description: "Email used for notifications when job fails or succeeds."
+    default: "s197743@student.pg.edu.pl"
+
+  databricks_repo_path:
+    description: ""
+    default: "/Workspace/Users/s197743@student.pg.edu.pl"
