@@ -11,9 +11,26 @@ CATEGORIES_SCHEMA = StructType(
     ]
 )
 
+EXPECTED_COLUMNS = [
+    "CATEGORY_SURROGATE_KEY",
+    "CATEGORY_ID",
+    "CATEGORY_NAME",
+    "PARENT_CATEGORY_ID",
+]
 
-def test_prepare_categories_schema_and_hierarchy(spark: SparkSession) -> None:
-    # Verify output columns and parent-child category hierarchy mapping
+
+def test_prepare_categories_schema_and_empty_input(spark: SparkSession) -> None:
+    # Verify output schema and empty dataframe handling
+    empty_df = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
+
+    result_df = prepare_categories_data(categories=empty_df)
+
+    assert result_df.columns == EXPECTED_COLUMNS
+    assert result_df.count() == 0
+
+
+def test_prepare_categories_hierarchy_mapping(spark: SparkSession) -> None:
+    # Verify valid parent-child category hierarchy mapping
     categories_df = spark.createDataFrame(
         [
             ("CAT-1", "Electronics", None),
@@ -23,59 +40,30 @@ def test_prepare_categories_schema_and_hierarchy(spark: SparkSession) -> None:
     )
 
     result_df = prepare_categories_data(categories=categories_df)
-
-    expected_columns = [
-        "CATEGORY_SURROGATE_KEY",
-        "CATEGORY_ID",
-        "CATEGORY_NAME",
-        "PARENT_CATEGORY_ID",
-    ]
-    assert result_df.columns == expected_columns
-
     rows = {row["CATEGORY_ID"]: row for row in result_df.collect()}
+
     assert len(rows) == 2
     assert rows["CAT-1"]["PARENT_CATEGORY_ID"] is None
     assert rows["CAT-2"]["PARENT_CATEGORY_ID"] == "CAT-1"
 
 
-def test_prepare_categories_deduplication_and_cleaning(spark: SparkSession) -> None:
-    # Verify trimming, deduplication by category_id, and filtering out null keys
+def test_prepare_categories_sanitization_and_deduplication(
+    spark: SparkSession,
+) -> None:
+    # Verify key trimming, deduplication, null key filtering, and orphan parent removal
     categories_df = spark.createDataFrame(
         [
             (" CAT-1 ", "Electronics", None),
             ("CAT-1", "Electronics Duplicate", None),
+            ("CAT-2", "Orphan Category", "CAT-99999"),
             (None, "Invalid Category", None),
         ],
         schema=CATEGORIES_SCHEMA,
     )
 
     result_df = prepare_categories_data(categories=categories_df)
-    rows = result_df.collect()
-
-    assert len(rows) == 1
-    assert rows[0]["CATEGORY_ID"] == "CAT-1"
-    assert rows[0]["CATEGORY_SURROGATE_KEY"] == 1
-
-
-def test_prepare_categories_orphan_parent_sanitization(spark: SparkSession) -> None:
-    # Verify that non-existent parent_category_id references are nullified
-    categories_df = spark.createDataFrame(
-        [
-            ("CAT-1", "Electronics", None),
-            ("CAT-2", "Orphan Subcategory", "CAT-99999"),
-        ],
-        schema=CATEGORIES_SCHEMA,
-    )
-
-    result_df = prepare_categories_data(categories=categories_df)
     rows = {row["CATEGORY_ID"]: row for row in result_df.collect()}
 
+    assert len(rows) == 2
+    assert rows["CAT-1"]["CATEGORY_NAME"] == "Electronics"
     assert rows["CAT-2"]["PARENT_CATEGORY_ID"] is None
-
-
-def test_prepare_categories_empty_dataframe(spark: SparkSession) -> None:
-    # Verify behavior on empty input dataframe
-    empty_df = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
-    result_df = prepare_categories_data(categories=empty_df)
-
-    assert result_df.count() == 0

@@ -1,76 +1,55 @@
-import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.types import (
-    IntegerType,
-    StringType,
-    StructField,
-    StructType,
-)
+from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 
 from ecommerce.logic_ecommerce.silver.sessions import prepare_sessions_data
 
-
-def test_prepare_sessions_schema_and_columns(spark: SparkSession) -> None:
-    # Arrange verifying output schema and required inputs
-    sessions_df = spark.createDataFrame(
-        [
-            (
-                "SESS-1",
-                "USR-1",
-                "2025-01-15 10:00:00",
-                "2025-01-15 10:30:00",
-                "WEB",
-                "MOBILE",
-                "Chrome",
-                "Organic",
-            )
-        ],
-        [
-            "session_id",
-            "user_id",
-            "session_start",
-            "session_end",
-            "channel",
-            "device_type",
-            "browser",
-            "traffic_source",
-        ],
-    )
-    users_schema = StructType(
-        [
-            StructField("user_surrogate_key", IntegerType(), True),
-            StructField("user_id", StringType(), True),
-            StructField("valid_from", StringType(), True),
-            StructField("valid_to", StringType(), True),
-        ]
-    )
-    silver_users_df = spark.createDataFrame(
-        [(1, "USR-1", "2025-01-01 00:00:00", None)],
-        schema=users_schema,
-    )
-
-    # Act
-    result_df = prepare_sessions_data(
-        sessions=sessions_df,
-        silver_users=silver_users_df,
-    )
-
-    # Assert checking uppercase columns and expected order
-    expected_columns = [
-        "SESSION_SURROGATE_KEY",
-        "SESSION_ID",
-        "SESSION_START",
-        "SESSION_END",
-        "DEVICE_TYPE",
-        "BROWSER",
-        "TRAFFIC_SOURCE",
-        "USER_SURROGATE_KEY",
+SESSIONS_SCHEMA = StructType(
+    [
+        StructField("session_id", StringType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("session_start", StringType(), True),
+        StructField("session_end", StringType(), True),
+        StructField("channel", StringType(), True),
+        StructField("device_type", StringType(), True),
+        StructField("browser", StringType(), True),
+        StructField("traffic_source", StringType(), True),
     ]
-    assert result_df.columns == expected_columns
+)
+
+SILVER_USERS_SCHEMA = StructType(
+    [
+        StructField("user_surrogate_key", IntegerType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+    ]
+)
+
+EXPECTED_COLUMNS = [
+    "SESSION_SURROGATE_KEY",
+    "SESSION_ID",
+    "SESSION_START",
+    "SESSION_END",
+    "DEVICE_TYPE",
+    "BROWSER",
+    "TRAFFIC_SOURCE",
+    "USER_SURROGATE_KEY",
+]
 
 
-def test_prepare_sessions_transformations_and_user_lookup(spark: SparkSession) -> None:
-    # Arrange multiple sessions with valid user surrogate key lookup
+def test_prepare_sessions_schema_and_empty_input(spark: SparkSession) -> None:
+    # Verify output schema and empty dataframe handling
+    empty_sessions = spark.createDataFrame([], schema=SESSIONS_SCHEMA)
+    empty_users = spark.createDataFrame([], schema=SILVER_USERS_SCHEMA)
+
+    result_df = prepare_sessions_data(sessions=empty_sessions, silver_users=empty_users)
+
+    assert result_df.columns == EXPECTED_COLUMNS
+    assert result_df.count() == 0
+
+
+def test_prepare_sessions_user_scd2_lookup(spark: SparkSession) -> None:
+    # Verify session mapping and temporal user surrogate key resolution
     sessions_df = spark.createDataFrame(
         [
             (
@@ -94,41 +73,21 @@ def test_prepare_sessions_transformations_and_user_lookup(spark: SparkSession) -
                 "Organic",
             ),
         ],
-        [
-            "session_id",
-            "user_id",
-            "session_start",
-            "session_end",
-            "channel",
-            "device_type",
-            "browser",
-            "traffic_source",
-        ],
-    )
-    users_schema = StructType(
-        [
-            StructField("user_surrogate_key", IntegerType(), True),
-            StructField("user_id", StringType(), True),
-            StructField("valid_from", StringType(), True),
-            StructField("valid_to", StringType(), True),
-        ]
+        schema=SESSIONS_SCHEMA,
     )
     silver_users_df = spark.createDataFrame(
         [
             (100, "USR-10", "2025-01-01 00:00:00", None),
             (101, "USR-11", "2025-01-01 00:00:00", None),
         ],
-        schema=users_schema,
+        schema=SILVER_USERS_SCHEMA,
     )
 
-    # Act
     result_df = prepare_sessions_data(
-        sessions=sessions_df,
-        silver_users=silver_users_df,
+        sessions=sessions_df, silver_users=silver_users_df
     )
     rows = {row["SESSION_ID"]: row for row in result_df.collect()}
 
-    # Assert
     assert len(rows) == 2
     assert rows["SESS-10"]["USER_SURROGATE_KEY"] == 100
     assert rows["SESS-10"]["DEVICE_TYPE"] == "iOS"
@@ -136,8 +95,8 @@ def test_prepare_sessions_transformations_and_user_lookup(spark: SparkSession) -
     assert rows["SESS-11"]["DEVICE_TYPE"] == "Desktop"
 
 
-def test_prepare_sessions_missing_user_mapping(spark: SparkSession) -> None:
-    # Arrange a session where user_id does not exist in silver_users
+def test_prepare_sessions_missing_user_handling(spark: SparkSession) -> None:
+    # Verify that sessions with unknown users are preserved with a null surrogate key
     sessions_df = spark.createDataFrame(
         [
             (
@@ -151,34 +110,12 @@ def test_prepare_sessions_missing_user_mapping(spark: SparkSession) -> None:
                 "Organic",
             )
         ],
-        [
-            "session_id",
-            "user_id",
-            "session_start",
-            "session_end",
-            "channel",
-            "device_type",
-            "browser",
-            "traffic_source",
-        ],
+        schema=SESSIONS_SCHEMA,
     )
-    users_schema = StructType(
-        [
-            StructField("user_surrogate_key", IntegerType(), True),
-            StructField("user_id", StringType(), True),
-            StructField("valid_from", StringType(), True),
-            StructField("valid_to", StringType(), True),
-        ]
-    )
-    silver_users_df = spark.createDataFrame([], schema=users_schema)
+    empty_users_df = spark.createDataFrame([], schema=SILVER_USERS_SCHEMA)
 
-    # Act
-    result_df = prepare_sessions_data(
-        sessions=sessions_df,
-        silver_users=silver_users_df,
-    )
+    result_df = prepare_sessions_data(sessions=sessions_df, silver_users=empty_users_df)
     row = result_df.collect()[0]
 
-    # Assert left join keeps the session with null surrogate key
     assert row["SESSION_ID"] == "SESS-99"
     assert row["USER_SURROGATE_KEY"] is None

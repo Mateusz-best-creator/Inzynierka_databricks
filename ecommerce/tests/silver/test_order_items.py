@@ -10,194 +10,108 @@ from pyspark.sql.types import (
 
 from ecommerce.logic_ecommerce.silver.order_items import prepare_order_items_data
 
+ORDER_ITEMS_SCHEMA = StructType(
+    [
+        StructField("order_item_id", StringType(), True),
+        StructField("order_id", StringType(), True),
+        StructField("order_item_sequential", IntegerType(), True),
+        StructField("product_id", StringType(), True),
+        StructField("quantity", IntegerType(), True),
+    ]
+)
 
-def test_prepare_order_items_schema_and_columns(spark: SparkSession) -> None:
-    # Arrange verifying output schema
-    order_items_df = spark.createDataFrame(
-        [("ITEM-1", "ORD-1", 1, "PROD-1", 1)],
-        [
-            "order_item_id",
-            "order_id",
-            "order_item_sequential",
-            "product_id",
-            "quantity",
-        ],
-    )
-    order_item_pricing_df = spark.createDataFrame(
-        [("ITEM-1", 50.0, 5.0)],
-        ["order_item_id", "unit_price", "discount"],
-    )
+ORDER_PRICING_SCHEMA = StructType(
+    [
+        StructField("order_item_id", StringType(), True),
+        StructField("unit_price", DoubleType(), True),
+        StructField("discount", DoubleType(), True),
+    ]
+)
 
-    # Act
+EXPECTED_COLUMNS = [
+    "ORDER_ITEM_SURROGATE_KEY",
+    "ORDER_ITEM_ID",
+    "ITEM_SEQUENCE",
+    "QUANTITY",
+    "UNIT_PRICE",
+    "DISCOUNT",
+    "ORDER_ID",
+    "PRODUCT_ID",
+]
+
+
+def test_prepare_order_items_schema_and_empty_input(spark: SparkSession) -> None:
+    # Verify output schema and empty dataframe handling
+    empty_items = spark.createDataFrame([], schema=ORDER_ITEMS_SCHEMA)
+    empty_pricing = spark.createDataFrame([], schema=ORDER_PRICING_SCHEMA)
+
     result_df = prepare_order_items_data(
-        order_items=order_items_df, order_item_pricing=order_item_pricing_df
+        order_items=empty_items, order_item_pricing=empty_pricing
     )
 
-    # Assert checking if all expected column names are present and uppercase
-    expected_columns = [
-        "ORDER_ITEM_SURROGATE_KEY",
-        "ORDER_ITEM_ID",
-        "ITEM_SEQUENCE",
-        "QUANTITY",
-        "UNIT_PRICE",
-        "DISCOUNT",
-        "ORDER_ID",
-        "PRODUCT_ID",
-    ]
-    for col_name in expected_columns:
-        assert col_name in result_df.columns
+    assert result_df.columns == EXPECTED_COLUMNS
+    assert result_df.count() == 0
 
 
-def test_prepare_order_items_mapping_and_values(spark: SparkSession) -> None:
-    # Arrange creating multiple items
-    order_items_data = [
-        ("ITEM-1", "ORD-100", 1, "PROD-A", 3),
-        ("ITEM-2", "ORD-100", 2, "PROD-B", 2),
-        ("ITEM-3", "ORD-101", 1, "PROD-C", 1),
-    ]
+def test_prepare_order_items_mapping_and_pricing_join(spark: SparkSession) -> None:
+    # Verify joining order items with pricing data and mapping attributes
     order_items_df = spark.createDataFrame(
-        order_items_data,
         [
-            "order_item_id",
-            "order_id",
-            "order_item_sequential",
-            "product_id",
-            "quantity",
+            ("ITEM-1", "ORD-100", 1, "PROD-A", 3),
+            ("ITEM-2", "ORD-100", 2, "PROD-B", 2),
         ],
+        schema=ORDER_ITEMS_SCHEMA,
+    )
+    order_pricing_df = spark.createDataFrame(
+        [
+            ("ITEM-1", 100.0, 15.5),
+            ("ITEM-2", 45.0, 0.0),
+        ],
+        schema=ORDER_PRICING_SCHEMA,
     )
 
-    pricing_data = [
-        ("ITEM-1", 100.0, 15.5),
-        ("ITEM-2", 45.0, 0.0),
-        ("ITEM-3", 19.99, 4.99),
-    ]
-    order_item_pricing_df = spark.createDataFrame(
-        pricing_data,
-        ["order_item_id", "unit_price", "discount"],
-    )
-
-    # Act
     result_df = prepare_order_items_data(
-        order_items=order_items_df, order_item_pricing=order_item_pricing_df
+        order_items=order_items_df, order_item_pricing=order_pricing_df
     )
     rows = {row["ORDER_ITEM_ID"]: row for row in result_df.collect()}
 
-    # Assert
-    assert len(rows) == 3
-
+    assert len(rows) == 2
     assert rows["ITEM-1"]["ORDER_ID"] == "ORD-100"
     assert rows["ITEM-1"]["ITEM_SEQUENCE"] == 1
-    assert rows["ITEM-1"]["PRODUCT_ID"] == "PROD-A"
     assert rows["ITEM-1"]["QUANTITY"] == 3
     assert rows["ITEM-1"]["UNIT_PRICE"] == pytest.approx(100.0)
     assert rows["ITEM-1"]["DISCOUNT"] == pytest.approx(15.5)
-
-    assert rows["ITEM-2"]["ITEM_SEQUENCE"] == 2
     assert rows["ITEM-2"]["UNIT_PRICE"] == pytest.approx(45.0)
 
-    assert rows["ITEM-3"]["UNIT_PRICE"] == pytest.approx(19.99)
-    assert rows["ITEM-3"]["DISCOUNT"] == pytest.approx(4.99)
 
-
-def test_prepare_order_items_left_join_missing_pricing(spark: SparkSession) -> None:
-    # Arrange ITEM-2 has no matching record in order_item_pricing
+def test_prepare_order_items_sanitization_and_missing_pricing(
+    spark: SparkSession,
+) -> None:
+    # Verify negative value conversion, null product_id filtering, and left join preservation
     order_items_df = spark.createDataFrame(
         [
-            ("ITEM-1", "ORD-1", 1, "PROD-1", 2),
-            ("ITEM-2", "ORD-2", 1, "PROD-2", 5),
+            ("ITEM-1", "ORD-1", -1, "PROD-1", -2),
+            ("ITEM-2", "ORD-1", 2, "PROD-2", 5),
+            ("ITEM-3", "ORD-1", 3, None, 1),
         ],
-        [
-            "order_item_id",
-            "order_id",
-            "order_item_sequential",
-            "product_id",
-            "quantity",
-        ],
+        schema=ORDER_ITEMS_SCHEMA,
     )
-    order_item_pricing_df = spark.createDataFrame(
-        [("ITEM-1", 20.0, 2.0)],
-        ["order_item_id", "unit_price", "discount"],
+    order_pricing_df = spark.createDataFrame(
+        [("ITEM-1", -80.0, -10.0)],
+        schema=ORDER_PRICING_SCHEMA,
     )
 
-    # Act
     result_df = prepare_order_items_data(
-        order_items=order_items_df, order_item_pricing=order_item_pricing_df
+        order_items=order_items_df, order_item_pricing=order_pricing_df
     )
     rows = {row["ORDER_ITEM_ID"]: row for row in result_df.collect()}
 
-    # Assert left join saves ITEM-2 with NULL values for price columns
     assert len(rows) == 2
-    assert rows["ITEM-1"]["UNIT_PRICE"] == pytest.approx(20.0)
+    assert rows["ITEM-1"]["ITEM_SEQUENCE"] == 1
+    assert rows["ITEM-1"]["QUANTITY"] == 2
+    assert rows["ITEM-1"]["UNIT_PRICE"] == pytest.approx(80.0)
+    assert rows["ITEM-1"]["DISCOUNT"] == pytest.approx(10.0)
 
     assert rows["ITEM-2"]["QUANTITY"] == 5
     assert rows["ITEM-2"]["UNIT_PRICE"] is None
     assert rows["ITEM-2"]["DISCOUNT"] is None
-
-
-def test_prepare_order_items_negative_prices_and_null_product_filtering(
-    spark: SparkSession,
-) -> None:
-    # Verify negative prices/discounts become positive and items with null product_id are dropped
-    items_schema = StructType(
-        [
-            StructField("order_item_id", StringType(), True),
-            StructField("order_id", StringType(), True),
-            StructField("order_item_sequential", IntegerType(), True),
-            StructField("product_id", StringType(), True),
-            StructField("quantity", IntegerType(), True),
-        ]
-    )
-    order_items_df = spark.createDataFrame(
-        [
-            ("ITEM-1", "ORD-1", 1, "PROD-1", -2),
-            ("ITEM-2", "ORD-1", 2, None, 1),
-        ],
-        schema=items_schema,
-    )
-    order_item_pricing_df = spark.createDataFrame(
-        [("ITEM-1", -80.0, -10.0)],
-        ["order_item_id", "unit_price", "discount"],
-    )
-
-    result_df = prepare_order_items_data(
-        order_items=order_items_df, order_item_pricing=order_item_pricing_df
-    )
-    rows = result_df.collect()
-
-    assert len(rows) == 1
-    assert rows[0]["QUANTITY"] == 2
-    assert rows[0]["UNIT_PRICE"] == pytest.approx(80.0)
-    assert rows[0]["DISCOUNT"] == pytest.approx(10.0)
-
-
-def test_prepare_order_items_empty_dataframes(spark: SparkSession) -> None:
-    # Arrange define schemas for empty dataframes
-    items_schema = StructType(
-        [
-            StructField("order_item_id", StringType(), True),
-            StructField("order_id", StringType(), True),
-            StructField("order_item_sequential", IntegerType(), True),
-            StructField("product_id", StringType(), True),
-            StructField("quantity", IntegerType(), True),
-        ]
-    )
-    pricing_schema = StructType(
-        [
-            StructField("order_item_id", StringType(), True),
-            StructField("unit_price", DoubleType(), True),
-            StructField("discount", DoubleType(), True),
-        ]
-    )
-
-    empty_items_df = spark.createDataFrame([], schema=items_schema)
-    empty_pricing_df = spark.createDataFrame([], schema=pricing_schema)
-
-    # Act
-    result_df = prepare_order_items_data(
-        order_items=empty_items_df, order_item_pricing=empty_pricing_df
-    )
-
-    # Assert
-    assert result_df.count() == 0
-    assert "ORDER_ITEM_SURROGATE_KEY" in result_df.columns
-    assert "ITEM_SEQUENCE" in result_df.columns

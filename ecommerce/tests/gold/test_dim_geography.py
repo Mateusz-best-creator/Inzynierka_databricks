@@ -1,78 +1,53 @@
-import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType
+from pyspark.sql.types import StringType, StructField, StructType
+
 from ecommerce.logic_ecommerce.gold.dim_geography import prepare_dim_geography_data
 
-
-def test_prepare_dim_geography_schema(spark: SparkSession) -> None:
-    schema = StructType(
-        [
-            StructField("CITY", StringType(), True),
-            StructField("STATE", StringType(), True),
-            StructField("ZIP_CODE", StringType(), True),
-            StructField("COUNTRY", StringType(), True),
-        ]
-    )
-    users_df = spark.createDataFrame([], schema=schema)
-
-    result_df = prepare_dim_geography_data(silver_users=users_df)
-
-    expected_columns = [
-        "GEOGRAPHY_KEY",
-        "ZIP_CODE",
-        "CITY",
-        "STATE",
-        "COUNTRY",
+USERS_GEO_SCHEMA = StructType(
+    [
+        StructField("CITY", StringType(), True),
+        StructField("STATE", StringType(), True),
+        StructField("ZIP_CODE", StringType(), True),
+        StructField("COUNTRY", StringType(), True),
     ]
-    assert result_df.columns == expected_columns
+)
+
+EXPECTED_COLUMNS = [
+    "GEOGRAPHY_KEY",
+    "ZIP_CODE",
+    "CITY",
+    "STATE",
+    "COUNTRY",
+]
+
+
+def test_prepare_dim_geography_schema_and_empty_input(spark: SparkSession) -> None:
+    # Verify output schema and empty dataframe handling
+    empty_df = spark.createDataFrame([], schema=USERS_GEO_SCHEMA)
+
+    result_df = prepare_dim_geography_data(silver_users=empty_df)
+
+    assert result_df.columns == EXPECTED_COLUMNS
+    assert result_df.count() == 0
 
 
 def test_prepare_dim_geography_cleaning_and_deduplication(spark: SparkSession) -> None:
-    schema = StructType(
-        [
-            StructField("CITY", StringType(), True),
-            StructField("STATE", StringType(), True),
-            StructField("ZIP_CODE", StringType(), True),
-            StructField("COUNTRY", StringType(), True),
-        ]
-    )
-
+    # Verify whitespace trimming, deduplication, null zip fallback, and invalid row filtering
     users_df = spark.createDataFrame(
         [
             ("Warszawa  ", "Mazowieckie", "00-001", "Poland"),
-            ("Warszawa", "Mazowieckie", "00-001", " Poland "),  # Duplicate with spaces
-            ("Gdansk", "Pomorskie", None, "Poland"),  # Null zip code
-            (None, "Pomorskie", "80-000", "Poland"),  # Null city (should drop)
-            ("Krakow", None, "30-001", "Poland"),  # Null state (should drop)
+            ("Warszawa", "Mazowieckie", "00-001", " Poland "),
+            ("Gdansk", "Pomorskie", None, "Poland"),
+            (None, "Pomorskie", "80-000", "Poland"),
+            ("Krakow", None, "30-001", "Poland"),
         ],
-        schema=schema,
+        schema=USERS_GEO_SCHEMA,
     )
 
     result_df = prepare_dim_geography_data(silver_users=users_df)
     rows = {row["CITY"]: row for row in result_df.collect()}
 
-    # Assertions
-    assert len(rows) == 2  # 2 valid distinct locations
-    assert "GEOGRAPHY_KEY" in result_df.columns
-
-    # Verify trimming and deduplication
-    assert "Warszawa" in rows
+    assert len(rows) == 2
     assert rows["Warszawa"]["COUNTRY"] == "Poland"
-
-    # Verify null coalescing for zip code
-    assert "Gdansk" in rows
+    assert rows["Warszawa"]["ZIP_CODE"] == "00-001"
     assert rows["Gdansk"]["ZIP_CODE"] == ""
-
-
-def test_prepare_dim_geography_empty(spark: SparkSession) -> None:
-    schema = StructType(
-        [
-            StructField("CITY", StringType(), True),
-            StructField("STATE", StringType(), True),
-            StructField("ZIP_CODE", StringType(), True),
-            StructField("COUNTRY", StringType(), True),
-        ]
-    )
-    empty_df = spark.createDataFrame([], schema=schema)
-    result_df = prepare_dim_geography_data(silver_users=empty_df)
-    assert result_df.count() == 0

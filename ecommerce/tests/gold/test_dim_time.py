@@ -3,24 +3,25 @@ from pyspark.sql.functions import col
 
 from ecommerce.logic_ecommerce.gold.dim_time import prepare_dim_time_data
 
+EXPECTED_COLUMNS = [
+    "TIME_KEY",
+    "HOUR",
+    "MINUTE",
+    "SECONDS",
+    "DAY_PART",
+]
+
 
 def test_prepare_dim_time_schema_and_total_seconds(spark: SparkSession) -> None:
-    # Verify full 24-hour grid (86,400 seconds) and expected schema
+    # Verify output schema and full 24-hour grid generation (86,400 seconds)
     result_df = prepare_dim_time_data(spark=spark)
 
-    expected_columns = [
-        "TIME_KEY",
-        "HOUR",
-        "MINUTE",
-        "SECONDS",
-        "DAY_PART",
-    ]
-    assert result_df.columns == expected_columns
+    assert result_df.columns == EXPECTED_COLUMNS
     assert result_df.count() == 86400
 
 
 def test_prepare_dim_time_day_part_mapping(spark: SparkSession) -> None:
-    # Verify time-of-day bucket logic across boundary hours
+    # Verify time-of-day bucket classification across boundary hours
     result_df = prepare_dim_time_data(spark=spark)
 
     sample_hours = result_df.filter(

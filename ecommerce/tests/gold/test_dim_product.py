@@ -1,4 +1,3 @@
-import pytest
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     DoubleType,
@@ -41,44 +40,47 @@ CATEGORIES_SCHEMA = StructType(
     ]
 )
 
+EXPECTED_COLUMNS = [
+    "PRODUCT_SURROGATE_KEY",
+    "PRODUCT_ID",
+    "PRODUCT_NAME",
+    "BRAND",
+    "DESCRIPTION",
+    "BASE_PRICE",
+    "COST_PRICE",
+    "STOCK_QUANTITY",
+    "CATEGORY_ID",
+    "CATEGORY_NAME",
+    "PARENT_CATEGORY_ID",
+    "PARENT_CATEGORY_NAME",
+    "PRICE_TIER",
+    "MARGIN_TIER",
+    "WEIGHT_CLASS",
+    "PACKAGE_SIZE_TIER",
+    "STOCK_STATUS",
+    "PRODUCT_LIFECYCLE_STATUS",
+    "CREATED_AT",
+    "VALID_FROM",
+    "VALID_TO",
+    "SCD_RECORD_STATUS",
+]
 
-def test_prepare_dim_product_schema(spark: SparkSession) -> None:
-    categories_df = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
-    products_df = spark.createDataFrame([], schema=PRODUCTS_SCHEMA)
+
+def test_prepare_dim_product_schema_and_empty_input(spark: SparkSession) -> None:
+    # Verify output schema and empty dataframe handling
+    empty_products = spark.createDataFrame([], schema=PRODUCTS_SCHEMA)
+    empty_categories = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
 
     result_df = prepare_dim_product_data(
-        silver_products=products_df, silver_categories=categories_df
+        silver_products=empty_products, silver_categories=empty_categories
     )
 
-    expected_columns = [
-        "PRODUCT_SURROGATE_KEY",
-        "PRODUCT_ID",
-        "PRODUCT_NAME",
-        "BRAND",
-        "DESCRIPTION",
-        "BASE_PRICE",
-        "COST_PRICE",
-        "STOCK_QUANTITY",
-        "CATEGORY_ID",
-        "CATEGORY_NAME",
-        "PARENT_CATEGORY_ID",
-        "PARENT_CATEGORY_NAME",
-        "PRICE_TIER",
-        "MARGIN_TIER",
-        "WEIGHT_CLASS",
-        "PACKAGE_SIZE_TIER",
-        "STOCK_STATUS",
-        "PRODUCT_LIFECYCLE_STATUS",
-        "CREATED_AT",
-        "VALID_FROM",
-        "VALID_TO",
-        "SCD_RECORD_STATUS",
-    ]
-    assert result_df.columns == expected_columns
+    assert result_df.columns == EXPECTED_COLUMNS
+    assert result_df.count() == 0
 
 
 def test_prepare_dim_product_tiers_and_hierarchy(spark: SparkSession) -> None:
-    # Verify price, margin, weight, volume, stock, and SCD2 classifications alongside category hierarchy
+    # Verify price, margin, weight, volume, stock, and SCD2 tiers alongside category hierarchy
     categories_df = spark.createDataFrame(
         [
             (1, "CAT-1", "Electronics", None),
@@ -89,7 +91,6 @@ def test_prepare_dim_product_tiers_and_hierarchy(spark: SparkSession) -> None:
 
     products_df = spark.createDataFrame(
         [
-            # Budget (<50), Low Margin (<15%), Light (<500g), Small (<1000cm3), Out of Stock (0), Historical
             (
                 1,
                 "PROD-1",
@@ -109,7 +110,6 @@ def test_prepare_dim_product_tiers_and_hierarchy(spark: SparkSession) -> None:
                 1,
                 "CAT-2",
             ),
-            # Regular (50-200), Standard Margin (15-35%), Standard weight, Medium volume, Low Stock (1-10), Current
             (
                 2,
                 "PROD-2",
@@ -129,7 +129,6 @@ def test_prepare_dim_product_tiers_and_hierarchy(spark: SparkSession) -> None:
                 1,
                 "CAT-1",
             ),
-            # Premium (200-500), High Margin (>35%), Heavy weight, Large volume, In Stock (11-100), Discontinued
             (
                 3,
                 "PROD-3",
@@ -149,7 +148,6 @@ def test_prepare_dim_product_tiers_and_hierarchy(spark: SparkSession) -> None:
                 0,
                 "CAT-2",
             ),
-            # Luxury (>500), High Margin, Freight weight (>20kg), Oversized (>20000cm3), High Stock (>100)
             (
                 4,
                 "PROD-4",

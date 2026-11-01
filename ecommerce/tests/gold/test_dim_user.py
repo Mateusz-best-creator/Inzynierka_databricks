@@ -1,71 +1,57 @@
-import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 
 from ecommerce.logic_ecommerce.gold.dim_user import prepare_dim_user_data
 
-
-def test_prepare_dim_user_schema(spark: SparkSession) -> None:
-    schema = StructType(
-        [
-            StructField("USER_SURROGATE_KEY", IntegerType(), True),
-            StructField("USER_ID", StringType(), True),
-            StructField("CUSTOMER_UNIQUE_ID", StringType(), True),
-            StructField("FIRST_NAME", StringType(), True),
-            StructField("LAST_NAME", StringType(), True),
-            StructField("EMAIL", StringType(), True),
-            StructField("PHONE", StringType(), True),
-            StructField("BIRTH_DATE", StringType(), True),
-            StructField("GENDER", StringType(), True),
-            StructField("STATUS", StringType(), True),
-            StructField("CREATED_AT", StringType(), True),
-            StructField("VALID_FROM", StringType(), True),
-            StructField("VALID_TO", StringType(), True),
-        ]
-    )
-    users_df = spark.createDataFrame([], schema=schema)
-
-    result_df = prepare_dim_user_data(silver_users=users_df)
-
-    expected_columns = [
-        "USER_SURROGATE_KEY",
-        "USER_ID",
-        "CUSTOMER_UNIQUE_ID",
-        "FIRST_NAME",
-        "LAST_NAME",
-        "EMAIL",
-        "PHONE",
-        "BIRTH_DATE",
-        "AGE_GROUP",
-        "GENDER",
-        "STATUS",
-        "CREATED_AT",
-        "VALID_FROM",
-        "VALID_TO",
-        "SCD_RECORD_STATUS",
+USERS_SCHEMA = StructType(
+    [
+        StructField("USER_SURROGATE_KEY", IntegerType(), True),
+        StructField("USER_ID", StringType(), True),
+        StructField("CUSTOMER_UNIQUE_ID", StringType(), True),
+        StructField("FIRST_NAME", StringType(), True),
+        StructField("LAST_NAME", StringType(), True),
+        StructField("EMAIL", StringType(), True),
+        StructField("PHONE", StringType(), True),
+        StructField("BIRTH_DATE", StringType(), True),
+        StructField("GENDER", StringType(), True),
+        StructField("STATUS", StringType(), True),
+        StructField("CREATED_AT", StringType(), True),
+        StructField("VALID_FROM", StringType(), True),
+        StructField("VALID_TO", StringType(), True),
     ]
-    assert result_df.columns == expected_columns
+)
+
+EXPECTED_COLUMNS = [
+    "USER_SURROGATE_KEY",
+    "USER_ID",
+    "CUSTOMER_UNIQUE_ID",
+    "FIRST_NAME",
+    "LAST_NAME",
+    "EMAIL",
+    "PHONE",
+    "BIRTH_DATE",
+    "AGE_GROUP",
+    "GENDER",
+    "STATUS",
+    "CREATED_AT",
+    "VALID_FROM",
+    "VALID_TO",
+    "SCD_RECORD_STATUS",
+]
 
 
-def test_prepare_dim_user_age_groups_and_scd(spark: SparkSession) -> None:
-    schema = StructType(
-        [
-            StructField("USER_SURROGATE_KEY", IntegerType(), True),
-            StructField("USER_ID", StringType(), True),
-            StructField("CUSTOMER_UNIQUE_ID", StringType(), True),
-            StructField("FIRST_NAME", StringType(), True),
-            StructField("LAST_NAME", StringType(), True),
-            StructField("EMAIL", StringType(), True),
-            StructField("PHONE", StringType(), True),
-            StructField("BIRTH_DATE", StringType(), True),
-            StructField("GENDER", StringType(), True),
-            StructField("STATUS", StringType(), True),
-            StructField("CREATED_AT", StringType(), True),
-            StructField("VALID_FROM", StringType(), True),
-            StructField("VALID_TO", StringType(), True),
-        ]
-    )
+def test_prepare_dim_user_schema_and_empty_input(spark: SparkSession) -> None:
+    # Verify output schema and empty dataframe handling
+    empty_df = spark.createDataFrame([], schema=USERS_SCHEMA)
 
+    result_df = prepare_dim_user_data(silver_users=empty_df)
+
+    assert result_df.columns == EXPECTED_COLUMNS
+    assert result_df.count() == 0
+
+
+def test_prepare_dim_user_age_groups_and_scd_status(spark: SparkSession) -> None:
+    # Verify age bracket derivation and SCD2 record status classification
     users_df = spark.createDataFrame(
         [
             (
@@ -82,7 +68,7 @@ def test_prepare_dim_user_age_groups_and_scd(spark: SparkSession) -> None:
                 "2025-01-01",
                 "2025-01-01",
                 None,
-            ),  # Current, 18-24
+            ),
             (
                 2,
                 "U2",
@@ -97,7 +83,7 @@ def test_prepare_dim_user_age_groups_and_scd(spark: SparkSession) -> None:
                 "2025-01-01",
                 "2025-01-01",
                 "2025-02-01",
-            ),  # Historical, 25-34
+            ),
             (
                 3,
                 "U3",
@@ -112,7 +98,7 @@ def test_prepare_dim_user_age_groups_and_scd(spark: SparkSession) -> None:
                 "2025-01-01",
                 "2025-01-01",
                 None,
-            ),  # Current, 35-49
+            ),
             (
                 4,
                 "U4",
@@ -127,7 +113,7 @@ def test_prepare_dim_user_age_groups_and_scd(spark: SparkSession) -> None:
                 "2025-01-01",
                 "2025-01-01",
                 None,
-            ),  # Current, 50+
+            ),
             (
                 5,
                 "U5",
@@ -142,16 +128,15 @@ def test_prepare_dim_user_age_groups_and_scd(spark: SparkSession) -> None:
                 "2025-01-01",
                 "2025-01-01",
                 None,
-            ),  # Current, Unknown
+            ),
         ],
-        schema=schema,
+        schema=USERS_SCHEMA,
     )
 
     result_df = prepare_dim_user_data(silver_users=users_df)
     rows = {r["USER_ID"]: r for r in result_df.collect()}
 
     assert len(rows) == 5
-
     assert rows["U1"]["SCD_RECORD_STATUS"] == "Current"
     assert rows["U2"]["SCD_RECORD_STATUS"] == "Historical"
 

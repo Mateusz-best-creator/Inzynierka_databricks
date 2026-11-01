@@ -1,66 +1,56 @@
-import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType
+from pyspark.sql.types import StringType, StructField, StructType
 
 from ecommerce.logic_ecommerce.gold.dim_session import prepare_dim_session_data
 
+SESSIONS_SCHEMA = StructType(
+    [
+        StructField("SESSION_ID", StringType(), True),
+        StructField("SESSION_START", StringType(), True),
+        StructField("SESSION_END", StringType(), True),
+        StructField("DEVICE_TYPE", StringType(), True),
+        StructField("BROWSER", StringType(), True),
+        StructField("TRAFFIC_SOURCE", StringType(), True),
+    ]
+)
 
-def test_prepare_dim_session_schema(spark: SparkSession) -> None:
-    sessions_schema = StructType(
-        [
-            StructField("SESSION_ID", StringType(), True),
-            StructField("SESSION_START", StringType(), True),
-            StructField("SESSION_END", StringType(), True),
-            StructField("DEVICE_TYPE", StringType(), True),
-            StructField("BROWSER", StringType(), True),
-            StructField("TRAFFIC_SOURCE", StringType(), True),
-        ]
-    )
-    events_schema = StructType(
-        [
-            StructField("SESSION_ID", StringType(), True),
-            StructField("EVENT_TYPE", StringType(), True),
-        ]
-    )
-    sessions_df = spark.createDataFrame([], schema=sessions_schema)
-    events_df = spark.createDataFrame([], schema=events_schema)
+EVENTS_SCHEMA = StructType(
+    [
+        StructField("SESSION_ID", StringType(), True),
+        StructField("EVENT_TYPE", StringType(), True),
+    ]
+)
+
+EXPECTED_COLUMNS = [
+    "SESSION_SURROGATE_KEY",
+    "SESSION_ID",
+    "SESSION_START",
+    "SESSION_END",
+    "SESSION_DURATION_BUCKET",
+    "DEVICE_TYPE",
+    "BROWSER",
+    "TRAFFIC_SOURCE",
+    "CONVERSION_STATUS",
+]
+
+
+def test_prepare_dim_session_schema_and_empty_input(spark: SparkSession) -> None:
+    # Verify output schema and empty dataframe handling
+    empty_sessions = spark.createDataFrame([], schema=SESSIONS_SCHEMA)
+    empty_events = spark.createDataFrame([], schema=EVENTS_SCHEMA)
 
     result_df = prepare_dim_session_data(
-        silver_sessions=sessions_df, silver_events=events_df
+        silver_sessions=empty_sessions, silver_events=empty_events
     )
 
-    expected_columns = [
-        "SESSION_SURROGATE_KEY",
-        "SESSION_ID",
-        "SESSION_START",
-        "SESSION_END",
-        "SESSION_DURATION_BUCKET",
-        "DEVICE_TYPE",
-        "BROWSER",
-        "TRAFFIC_SOURCE",
-        "CONVERSION_STATUS",
-    ]
-    assert result_df.columns == expected_columns
+    assert result_df.columns == EXPECTED_COLUMNS
+    assert result_df.count() == 0
 
 
-def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> None:
-    sessions_schema = StructType(
-        [
-            StructField("SESSION_ID", StringType(), True),
-            StructField("SESSION_START", StringType(), True),
-            StructField("SESSION_END", StringType(), True),
-            StructField("DEVICE_TYPE", StringType(), True),
-            StructField("BROWSER", StringType(), True),
-            StructField("TRAFFIC_SOURCE", StringType(), True),
-        ]
-    )
-    events_schema = StructType(
-        [
-            StructField("SESSION_ID", StringType(), True),
-            StructField("EVENT_TYPE", StringType(), True),
-        ]
-    )
-
+def test_prepare_dim_session_duration_buckets_and_conversion(
+    spark: SparkSession,
+) -> None:
+    # Verify session duration bucketing and case-insensitive conversion status detection
     sessions_df = spark.createDataFrame(
         [
             (
@@ -70,7 +60,7 @@ def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> Non
                 "Mobile",
                 "Safari",
                 "Direct",
-            ),  # 5s -> Bounce
+            ),
             (
                 "S2",
                 "2025-01-01 10:00:00",
@@ -78,7 +68,7 @@ def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> Non
                 "Desktop",
                 "Chrome",
                 "Paid",
-            ),  # 30s -> Brief, Converted
+            ),
             (
                 "S3",
                 "2025-01-01 10:00:00",
@@ -86,7 +76,7 @@ def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> Non
                 "Mobile",
                 "Chrome",
                 "Direct",
-            ),  # 120s -> Engaged
+            ),
             (
                 "S4",
                 "2025-01-01 10:00:00",
@@ -94,9 +84,9 @@ def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> Non
                 "Desktop",
                 "Firefox",
                 "Paid",
-            ),  # 600s -> Extended
+            ),
         ],
-        schema=sessions_schema,
+        schema=SESSIONS_SCHEMA,
     )
 
     events_df = spark.createDataFrame(
@@ -106,7 +96,7 @@ def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> Non
             ("S3", "View"),
             ("S4", "checkout"),
         ],
-        schema=events_schema,
+        schema=EVENTS_SCHEMA,
     )
 
     result_df = prepare_dim_session_data(
@@ -115,8 +105,6 @@ def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> Non
     rows = {r["SESSION_ID"]: r for r in result_df.collect()}
 
     assert len(rows) == 4
-    assert "SESSION_SURROGATE_KEY" in result_df.columns
-
     assert rows["S1"]["SESSION_DURATION_BUCKET"] == "Bounce (< 10s)"
     assert rows["S1"]["CONVERSION_STATUS"] == "Browsing Only"
 
@@ -127,3 +115,4 @@ def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> Non
     assert rows["S3"]["CONVERSION_STATUS"] == "Browsing Only"
 
     assert rows["S4"]["SESSION_DURATION_BUCKET"] == "Extended (> 5m)"
+    assert rows["S4"]["CONVERSION_STATUS"] == "Converted (Purchase)"
