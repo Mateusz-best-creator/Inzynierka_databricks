@@ -143,6 +143,44 @@ def test_join_users_data_schema_and_scd2_timeline(spark: SparkSession) -> None:
     assert rows[1]["IS_ACTIVE"] == 1
 
 
+def test_join_users_data_contact_sanitization(spark: SparkSession) -> None:
+    # Verify email and phone cleaning and invalid pattern nullification
+    locations_df = spark.createDataFrame([], schema=LOCATIONS_SCHEMA)
+    user_locations_df = spark.createDataFrame([], schema=USER_LOCATIONS_SCHEMA)
+    profiles_df = spark.createDataFrame([], schema=PROFILES_SCHEMA)
+    status_df = spark.createDataFrame([], schema=STATUS_SCHEMA)
+
+    users_df = spark.createDataFrame(
+        [
+            ("USR-1", "C-1", "2025-01-01 00:00:00"),
+            ("USR-2", "C-2", "2025-01-01 00:00:00"),
+        ],
+        schema=USERS_SCHEMA,
+    )
+    contacts_df = spark.createDataFrame(
+        [
+            ("USR-1", " jan@@example.com ", " 123-456-789 "),
+            ("USR-2", "broken_email_no_at", "123"),
+        ],
+        schema=CONTACTS_SCHEMA,
+    )
+
+    result_df = join_users_data(
+        locations=locations_df,
+        user_contacts=contacts_df,
+        user_locations=user_locations_df,
+        user_profiles=profiles_df,
+        user_status_history=status_df,
+        users=users_df,
+    )
+    rows = {r["USER_ID"]: r for r in result_df.collect()}
+
+    assert rows["USR-1"]["EMAIL"] == "jan@example.com"
+    assert rows["USR-1"]["PHONE"] == "123-456-789"
+    assert rows["USR-2"]["EMAIL"] is None
+    assert rows["USR-2"]["PHONE"] is None
+
+
 def test_join_users_data_empty_dataframes(spark: SparkSession) -> None:
     # Verify behavior on empty input dataframes
     result_df = join_users_data(

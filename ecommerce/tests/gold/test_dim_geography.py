@@ -4,6 +4,29 @@ from pyspark.sql.types import StructType, StructField, StringType
 from ecommerce.logic_ecommerce.gold.dim_geography import prepare_dim_geography_data
 
 
+def test_prepare_dim_geography_schema(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("CITY", StringType(), True),
+            StructField("STATE", StringType(), True),
+            StructField("ZIP_CODE", StringType(), True),
+            StructField("COUNTRY", StringType(), True),
+        ]
+    )
+    users_df = spark.createDataFrame([], schema=schema)
+
+    result_df = prepare_dim_geography_data(silver_users=users_df)
+
+    expected_columns = [
+        "GEOGRAPHY_KEY",
+        "ZIP_CODE",
+        "CITY",
+        "STATE",
+        "COUNTRY",
+    ]
+    assert result_df.columns == expected_columns
+
+
 def test_prepare_dim_geography_cleaning_and_deduplication(spark: SparkSession) -> None:
     schema = StructType(
         [

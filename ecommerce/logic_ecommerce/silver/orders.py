@@ -1,23 +1,25 @@
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import (
+    abs as spark_abs,
+    coalesce,
+    col,
+    concat,
+    lit,
+    max as spark_max,
+    monotonically_increasing_id,
+    month,
+    row_number,
+    sum,
+    trim,
+    upper,
+    when,
+    year,
+)
+from pyspark.sql.types import DecimalType, IntegerType
+from pyspark.sql.window import Window
 
 from ecommerce.common_functions.config_utils import get_config, set_logger
 from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
-
-from pyspark.sql.functions import (
-    col,
-    lit,
-    trim,
-    upper,
-    year,
-    month,
-    when,
-    concat,
-    coalesce,
-    sum,
-    max as spark_max,
-    monotonically_increasing_id,
-)
-from pyspark.sql.types import IntegerType, DecimalType
 
 
 def add_date_columns(
@@ -54,8 +56,10 @@ def prepare_orders_data(
     silver_users: DataFrame,
 ) -> DataFrame:
     """Prepare and pivot orders data matching the silver relational logic."""
+    # Sanitize negative prices, discounts, and quantities when calculating order totals
     item_totals = (
         order_items.alias("oi")
+        .filter(col("oi.ORDER_ID").isNotNull())
         .join(
             order_item_pricing.alias("ip"),
             upper(trim(col("oi.ORDER_ITEM_ID")))
@@ -65,14 +69,57 @@ def prepare_orders_data(
         .groupBy(col("oi.ORDER_ID"))
         .agg(
             sum(
-                col("oi.QUANTITY").cast(DecimalType(10, 2))
-                * (col("ip.UNIT_PRICE") - coalesce(col("ip.DISCOUNT"), lit(0.00)))
+                spark_abs(col("oi.QUANTITY")).cast(DecimalType(10, 2))
+                * (
+                    spark_abs(col("ip.UNIT_PRICE"))
+                    - coalesce(spark_abs(col("ip.DISCOUNT")), lit(0.00))
+                )
             ).alias("ITEMS_TOTAL")
         )
     )
 
+    # Heal inverted status timestamps by aligning lifecycle stage rank with chronological order
+    status_dedup = (
+        order_status_history.filter(
+            col("ORDER_ID").isNotNull()
+            & col("CURRENT_STATUS").isNotNull()
+            & col("VALID_FROM").isNotNull()
+        )
+        .groupBy(col("ORDER_ID"), col("CURRENT_STATUS"))
+        .agg(spark_max(col("VALID_FROM")).alias("VALID_FROM"))
+    )
+
+    status_ranked = status_dedup.withColumn(
+        "status_rank",
+        when(col("CURRENT_STATUS") == "CREATED", lit(0))
+        .when(col("CURRENT_STATUS") == "PENDING_PAYMENT", lit(1))
+        .when(col("CURRENT_STATUS") == "PAID", lit(2))
+        .when(col("CURRENT_STATUS") == "PROCESSING", lit(3))
+        .when(col("CURRENT_STATUS") == "SHIPPED", lit(4))
+        .when(col("CURRENT_STATUS") == "DELIVERED", lit(5))
+        .otherwise(lit(99)),
+    )
+
+    rank_win = Window.partitionBy("ORDER_ID").orderBy("status_rank")
+    time_win = Window.partitionBy("ORDER_ID").orderBy("VALID_FROM")
+
+    status_by_rank = status_ranked.select(
+        col("ORDER_ID"),
+        col("CURRENT_STATUS"),
+        row_number().over(rank_win).alias("rn"),
+    )
+    status_by_time = status_ranked.select(
+        col("ORDER_ID"),
+        col("VALID_FROM"),
+        row_number().over(time_win).alias("rn"),
+    )
+
+    healed_status = status_by_rank.join(
+        status_by_time, on=["ORDER_ID", "rn"], how="inner"
+    )
+
     pivoted_status = (
-        order_status_history.alias("osh")
+        healed_status.alias("osh")
         .groupBy(col("ORDER_ID"))
         .agg(
             spark_max(
@@ -93,48 +140,72 @@ def prepare_orders_data(
         )
     )
 
-    joined_orders = (
-        orders.alias("o")
-        .join(
-            order_details.alias("od"),
-            upper(trim(col("o.ORDER_ID"))) == upper(trim(col("od.ORDER_ID"))),
-            how="left",
-        )
+    # Join orders with status history first to repair corrupted CREATED_AT dates
+    orders_with_status = (
+        orders.filter(col("ORDER_ID").isNotNull())
+        .alias("o")
         .join(
             pivoted_status.alias("osh"),
             upper(trim(col("o.ORDER_ID"))) == upper(trim(col("osh.ORDER_ID"))),
             how="left",
         )
+        .drop(col("osh.ORDER_ID"))  # Drop to prevent ambiguity downstream
+        .withColumn(
+            "effective_created_at",
+            when(
+                col("CREATED_AT").isNull()
+                | (year(col("CREATED_AT")) < 2000)
+                | (year(col("CREATED_AT")) > 2030),
+                coalesce(
+                    col("PENDING_PAYMENT_TIMESTAMP"),
+                    col("PAID_TIMESTAMP"),
+                    col("CREATED_AT"),
+                ),
+            ).otherwise(col("CREATED_AT")),
+        )
+    )
+
+    joined_orders = (
+        orders_with_status.alias("os")
+        .join(
+            order_details.alias("od"),
+            upper(trim(col("os.ORDER_ID"))) == upper(trim(col("od.ORDER_ID"))),
+            how="left",
+        )
         .join(
             item_totals.alias("it"),
-            upper(trim(col("o.ORDER_ID"))) == upper(trim(col("it.ORDER_ID"))),
+            upper(trim(col("os.ORDER_ID"))) == upper(trim(col("it.ORDER_ID"))),
             how="left",
         )
         .join(
             silver_users.alias("u"),
-            (upper(trim(col("o.USER_ID"))) == upper(trim(col("u.USER_ID"))))
-            & (col("o.CREATED_AT") >= col("u.VALID_FROM"))
-            & ((col("o.CREATED_AT") < col("u.VALID_TO")) | col("u.VALID_TO").isNull()),
+            (upper(trim(col("os.USER_ID"))) == upper(trim(col("u.USER_ID"))))
+            & (col("os.effective_created_at") >= col("u.VALID_FROM"))
+            & (
+                (col("os.effective_created_at") < col("u.VALID_TO"))
+                | col("u.VALID_TO").isNull()
+            ),
             how="left",
         )
     )
 
+    clean_shipping_cost = coalesce(spark_abs(col("od.SHIPPING_COST")), lit(0.00))
+
     orders_selected = joined_orders.select(
         monotonically_increasing_id().alias("ORDER_SURROGATE_KEY"),
-        col("o.ORDER_ID").alias("ORDER_ID"),
-        (
-            coalesce(col("it.ITEMS_TOTAL"), lit(0.00))
-            + coalesce(col("od.SHIPPING_COST"), lit(0.00))
-        ).alias("TOTAL_AMOUNT"),
-        coalesce(col("od.SHIPPING_COST"), lit(0.00)).alias("FREIGHT_VALUE"),
+        col("os.ORDER_ID").alias("ORDER_ID"),
+        (coalesce(col("it.ITEMS_TOTAL"), lit(0.00)) + clean_shipping_cost).alias(
+            "TOTAL_AMOUNT"
+        ),
+        clean_shipping_cost.alias("FREIGHT_VALUE"),
         col("od.SHIPPING_METHOD").alias("SHIPPING_METHOD"),
-        col("o.CREATED_AT").alias("CREATED_AT_TIMESTAMP"),
-        col("osh.PENDING_PAYMENT_TIMESTAMP"),
-        col("osh.PAID_TIMESTAMP"),
-        col("osh.PROCESSING_TIMESTAMP"),
-        col("osh.SHIPPED_TIMESTAMP"),
-        col("osh.DELIVERED_TIMESTAMP"),
-        col("o.SESSION_ID").alias("SESSION_ID"),
+        col("os.effective_created_at").alias("CREATED_AT_TIMESTAMP"),
+        col("os.PENDING_PAYMENT_TIMESTAMP"),
+        col("os.PAID_TIMESTAMP"),
+        col("os.PROCESSING_TIMESTAMP"),
+        col("os.SHIPPED_TIMESTAMP"),
+        col("os.DELIVERED_TIMESTAMP"),
+        col("os.SESSION_ID").alias("SESSION_ID"),
         col("u.USER_SURROGATE_KEY").alias("USER_SURROGATE_KEY"),
     )
 

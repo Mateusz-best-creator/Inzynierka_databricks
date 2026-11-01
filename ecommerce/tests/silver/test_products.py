@@ -151,13 +151,67 @@ def test_prepare_products_schema_and_time_slicing(spark: SparkSession) -> None:
 
 
 def test_prepare_products_error_sanitization(spark: SparkSession) -> None:
-    # Verify negative prices are converted to positive and null stock defaults to 0
+    # Verify negative prices/dimensions/stock are converted to positive and empty name replaced
     catalog_df = spark.createDataFrame(
-        [("PROD-2", "CAT-1", "Keyboard", "Keychron", "Mech", 1, "2025-01-01 00:00:00")],
+        [("PROD-2", "CAT-1", "", "Keychron", "Mech", 1, "2025-01-01 00:00:00")],
         schema=CATALOG_SCHEMA,
     )
     pricing_df = spark.createDataFrame(
         [("P-1", "PROD-2", -250.0, -100.0, "2025-01-01 00:00:00", None, 1)],
+        schema=PRICING_SCHEMA,
+    )
+    inventory_df = spark.createDataFrame(
+        [
+            (
+                "I-1",
+                "PROD-2",
+                -800.0,
+                -30.0,
+                -4.0,
+                -12.0,
+                -15,
+                "2025-01-01 00:00:00",
+                None,
+                1,
+            )
+        ],
+        schema=INVENTORY_SCHEMA,
+    )
+
+    result_df = prepare_products_data(
+        product_catalog=catalog_df,
+        product_pricing_history=pricing_df,
+        product_inventory=inventory_df,
+    )
+    row = result_df.collect()[0]
+
+    assert row["PRODUCT_NAME"] == "Unknown Product"
+    assert row["BASE_PRICE"] == pytest.approx(250.0)
+    assert row["COST_PRICE"] == pytest.approx(100.0)
+    assert row["WEIGHT_G"] == pytest.approx(800.0)
+    assert row["LENGTH_CM"] == pytest.approx(30.0)
+    assert row["STOCK_QUANTITY"] == 15
+
+
+def test_prepare_products_scd2_gap_healing(spark: SparkSession) -> None:
+    # Verify 2-day gap in pricing valid_to is healed seamlessly without zero-price slices
+    catalog_df = spark.createDataFrame(
+        [("PROD-3", "CAT-1", "Monitor", "Dell", "4K", 1, "2025-01-01 00:00:00")],
+        schema=CATALOG_SCHEMA,
+    )
+    pricing_df = spark.createDataFrame(
+        [
+            (
+                "P-1",
+                "PROD-3",
+                300.0,
+                200.0,
+                "2025-01-01 00:00:00",
+                "2025-01-28 00:00:00",
+                0,
+            ),
+            ("P-2", "PROD-3", 350.0, 200.0, "2025-01-30 00:00:00", None, 1),
+        ],
         schema=PRICING_SCHEMA,
     )
     inventory_df = spark.createDataFrame([], schema=INVENTORY_SCHEMA)
@@ -167,11 +221,12 @@ def test_prepare_products_error_sanitization(spark: SparkSession) -> None:
         product_pricing_history=pricing_df,
         product_inventory=inventory_df,
     )
-    row = result_df.collect()[0]
+    rows = sorted(result_df.collect(), key=lambda r: r["VALID_FROM"])
 
-    assert row["BASE_PRICE"] == pytest.approx(250.0)
-    assert row["COST_PRICE"] == pytest.approx(100.0)
-    assert row["STOCK_QUANTITY"] == 0
+    assert len(rows) == 2
+    assert rows[0]["VALID_TO"] == "2025-01-30 00:00:00"
+    assert rows[0]["BASE_PRICE"] == pytest.approx(300.0)
+    assert rows[1]["BASE_PRICE"] == pytest.approx(350.0)
 
 
 def test_prepare_products_empty_dataframes(spark: SparkSession) -> None:

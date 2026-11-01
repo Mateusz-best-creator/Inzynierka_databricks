@@ -5,6 +5,44 @@ from pyspark.sql.types import StructType, StructField, StringType
 from ecommerce.logic_ecommerce.gold.dim_session import prepare_dim_session_data
 
 
+def test_prepare_dim_session_schema(spark: SparkSession) -> None:
+    sessions_schema = StructType(
+        [
+            StructField("SESSION_ID", StringType(), True),
+            StructField("SESSION_START", StringType(), True),
+            StructField("SESSION_END", StringType(), True),
+            StructField("DEVICE_TYPE", StringType(), True),
+            StructField("BROWSER", StringType(), True),
+            StructField("TRAFFIC_SOURCE", StringType(), True),
+        ]
+    )
+    events_schema = StructType(
+        [
+            StructField("SESSION_ID", StringType(), True),
+            StructField("EVENT_TYPE", StringType(), True),
+        ]
+    )
+    sessions_df = spark.createDataFrame([], schema=sessions_schema)
+    events_df = spark.createDataFrame([], schema=events_schema)
+
+    result_df = prepare_dim_session_data(
+        silver_sessions=sessions_df, silver_events=events_df
+    )
+
+    expected_columns = [
+        "SESSION_SURROGATE_KEY",
+        "SESSION_ID",
+        "SESSION_START",
+        "SESSION_END",
+        "SESSION_DURATION_BUCKET",
+        "DEVICE_TYPE",
+        "BROWSER",
+        "TRAFFIC_SOURCE",
+        "CONVERSION_STATUS",
+    ]
+    assert result_df.columns == expected_columns
+
+
 def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> None:
     sessions_schema = StructType(
         [
@@ -66,6 +104,7 @@ def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> Non
             ("S2", "Purchase"),
             ("S2", "View"),
             ("S3", "View"),
+            ("S4", "checkout"),
         ],
         schema=events_schema,
     )

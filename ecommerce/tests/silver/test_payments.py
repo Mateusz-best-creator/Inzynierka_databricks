@@ -64,6 +64,26 @@ def test_prepare_payments_value_sanitization_and_null_filtering(
     assert rows["PAY-2"]["PAYMENT_VALUE"] == pytest.approx(0.0)
 
 
+def test_prepare_payments_duplicate_sequence_and_installment_fix(
+    spark: SparkSession,
+) -> None:
+    # Verify duplicate sequences per order are removed and non-credit installments reset to 1
+    payments_df = spark.createDataFrame(
+        [
+            ("PAY-1", "ORD-1", 1, "VOUCHER", 12, 50.0),
+            ("PAY-2", "ORD-1", 1, "BLIK", 1, 50.0),
+        ],
+        schema=PAYMENTS_SCHEMA,
+    )
+
+    result_df = prepare_payments_data(payment_details=payments_df)
+    rows = result_df.collect()
+
+    assert len(rows) == 1
+    assert rows[0]["PAYMENT_ID"] == "PAY-1"
+    assert rows[0]["PAYMENT_INSTALLMENTS"] == 1
+
+
 def test_prepare_payments_empty_dataframe(spark: SparkSession) -> None:
     # Verify behavior on empty input dataframe
     empty_df = spark.createDataFrame([], schema=PAYMENTS_SCHEMA)

@@ -5,7 +5,10 @@ from pyspark.sql.functions import (
     col,
     lead,
     lit,
+    min as spark_min,
     row_number,
+    trim,
+    when,
 )
 from pyspark.sql.types import IntegerType
 from pyspark.sql.window import Window
@@ -19,27 +22,61 @@ def prepare_products_data(
     product_pricing_history: DataFrame,
     product_inventory: DataFrame,
 ) -> DataFrame:
-    # Step 1: Collect all unique boundary timestamps from pricing and inventory
-    pricing_from = product_pricing_history.select(
+    # Heal potential SCD2 gaps in pricing and inventory timelines
+    price_win = Window.partitionBy("product_id").orderBy("valid_from")
+    pricing_healed = product_pricing_history.withColumn(
+        "valid_to", coalesce(lead("valid_from").over(price_win), col("valid_to"))
+    )
+
+    inv_win = Window.partitionBy("product_id").orderBy("valid_from")
+    inventory_healed = product_inventory.withColumn(
+        "valid_to", coalesce(lead("valid_from").over(inv_win), col("valid_to"))
+    )
+
+    has_catalog_valid_to = "valid_to" in [c.lower() for c in product_catalog.columns]
+    if has_catalog_valid_to:
+        cat_win = Window.partitionBy("product_id").orderBy("valid_from")
+        catalog_healed = product_catalog.withColumn(
+            "valid_to", coalesce(lead("valid_from").over(cat_win), col("valid_to"))
+        ).withColumn(
+            "product_created_at",
+            spark_min("valid_from").over(Window.partitionBy("product_id")),
+        )
+    else:
+        catalog_healed = product_catalog.withColumn(
+            "product_created_at", col("valid_from")
+        )
+
+    # Step 1: Collect all unique boundary timestamps across product tables
+    pricing_from = pricing_healed.select(
         col("product_id"), col("valid_from").alias("timeline_point")
     )
-    pricing_to = product_pricing_history.filter(col("valid_to").isNotNull()).select(
+    pricing_to = pricing_healed.filter(col("valid_to").isNotNull()).select(
         col("product_id"), col("valid_to").alias("timeline_point")
     )
-    inventory_from = product_inventory.select(
+    inventory_from = inventory_healed.select(
         col("product_id"), col("valid_from").alias("timeline_point")
     )
-    inventory_to = product_inventory.filter(col("valid_to").isNotNull()).select(
+    inventory_to = inventory_healed.filter(col("valid_to").isNotNull()).select(
         col("product_id"), col("valid_to").alias("timeline_point")
     )
 
     product_timelines = (
-        pricing_from.union(pricing_to)
-        .union(inventory_from)
-        .union(inventory_to)
-        .filter(col("timeline_point").isNotNull())
-        .distinct()
+        pricing_from.union(pricing_to).union(inventory_from).union(inventory_to)
     )
+
+    if has_catalog_valid_to:
+        cat_from = catalog_healed.select(
+            col("product_id"), col("valid_from").alias("timeline_point")
+        )
+        cat_to = catalog_healed.filter(col("valid_to").isNotNull()).select(
+            col("product_id"), col("valid_to").alias("timeline_point")
+        )
+        product_timelines = product_timelines.union(cat_from).union(cat_to)
+
+    product_timelines = product_timelines.filter(
+        col("timeline_point").isNotNull()
+    ).distinct()
 
     # Step 2: Create continuous, non-overlapping time intervals per product
     timeline_window = Window.partitionBy("product_id").orderBy("timeline_point")
@@ -52,22 +89,36 @@ def prepare_products_data(
     # Step 3: Join catalog, active price window, and active inventory window
     surrogate_window = Window.orderBy(col("ot.product_id"), col("ot.valid_from"))
 
+    if has_catalog_valid_to:
+        catalog_join_cond = (
+            (col("ot.product_id") == col("c.product_id"))
+            & (col("ot.valid_from") >= col("c.valid_from"))
+            & ((col("ot.valid_from") < col("c.valid_to")) | col("c.valid_to").isNull())
+        )
+    else:
+        catalog_join_cond = col("ot.product_id") == col("c.product_id")
+
+    clean_product_name = when(
+        col("c.product_name").isNull() | (trim(col("c.product_name")) == ""),
+        lit("Unknown Product"),
+    ).otherwise(trim(col("c.product_name")))
+
     joined_products = (
         ordered_timelines.alias("ot")
         .join(
-            other=product_catalog.alias("c"),
-            on=col("ot.product_id") == col("c.product_id"),
+            other=catalog_healed.alias("c"),
+            on=catalog_join_cond,
             how="inner",
         )
         .join(
-            other=product_pricing_history.alias("p"),
+            other=pricing_healed.alias("p"),
             on=(col("ot.product_id") == col("p.product_id"))
             & (col("ot.valid_from") >= col("p.valid_from"))
             & ((col("ot.valid_from") < col("p.valid_to")) | col("p.valid_to").isNull()),
             how="left",
         )
         .join(
-            other=product_inventory.alias("i"),
+            other=inventory_healed.alias("i"),
             on=(col("ot.product_id") == col("i.product_id"))
             & (col("ot.valid_from") >= col("i.valid_from"))
             & ((col("ot.valid_from") < col("i.valid_to")) | col("i.valid_to").isNull()),
@@ -76,7 +127,7 @@ def prepare_products_data(
         .select(
             row_number().over(surrogate_window).alias("PRODUCT_SURROGATE_KEY"),
             col("c.product_id").alias("PRODUCT_ID"),
-            col("c.product_name").alias("PRODUCT_NAME"),
+            clean_product_name.alias("PRODUCT_NAME"),
             col("c.brand").alias("BRAND"),
             col("c.description").alias("DESCRIPTION"),
             spark_abs(coalesce(col("p.price").cast("double"), lit(0.0))).alias(
@@ -85,14 +136,14 @@ def prepare_products_data(
             spark_abs(coalesce(col("p.cost_price").cast("double"), lit(0.0))).alias(
                 "COST_PRICE"
             ),
-            col("i.weight_g").cast("double").alias("WEIGHT_G"),
-            col("i.length_cm").cast("double").alias("LENGTH_CM"),
-            col("i.height_cm").cast("double").alias("HEIGHT_CM"),
-            col("i.width_cm").cast("double").alias("WIDTH_CM"),
-            coalesce(col("i.stock_quantity").cast(IntegerType()), lit(0)).alias(
-                "STOCK_QUANTITY"
-            ),
-            col("c.valid_from").alias("CREATED_AT"),
+            spark_abs(col("i.weight_g").cast("double")).alias("WEIGHT_G"),
+            spark_abs(col("i.length_cm").cast("double")).alias("LENGTH_CM"),
+            spark_abs(col("i.height_cm").cast("double")).alias("HEIGHT_CM"),
+            spark_abs(col("i.width_cm").cast("double")).alias("WIDTH_CM"),
+            spark_abs(
+                coalesce(col("i.stock_quantity").cast(IntegerType()), lit(0))
+            ).alias("STOCK_QUANTITY"),
+            col("c.product_created_at").alias("CREATED_AT"),
             col("ot.valid_from").alias("VALID_FROM"),
             col("ot.valid_to").alias("VALID_TO"),
             col("c.is_active").cast(IntegerType()).alias("IS_ACTIVE"),

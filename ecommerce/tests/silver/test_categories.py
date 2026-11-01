@@ -57,6 +57,22 @@ def test_prepare_categories_deduplication_and_cleaning(spark: SparkSession) -> N
     assert rows[0]["CATEGORY_SURROGATE_KEY"] == 1
 
 
+def test_prepare_categories_orphan_parent_sanitization(spark: SparkSession) -> None:
+    # Verify that non-existent parent_category_id references are nullified
+    categories_df = spark.createDataFrame(
+        [
+            ("CAT-1", "Electronics", None),
+            ("CAT-2", "Orphan Subcategory", "CAT-99999"),
+        ],
+        schema=CATEGORIES_SCHEMA,
+    )
+
+    result_df = prepare_categories_data(categories=categories_df)
+    rows = {row["CATEGORY_ID"]: row for row in result_df.collect()}
+
+    assert rows["CAT-2"]["PARENT_CATEGORY_ID"] is None
+
+
 def test_prepare_categories_empty_dataframe(spark: SparkSession) -> None:
     # Verify behavior on empty input dataframe
     empty_df = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)

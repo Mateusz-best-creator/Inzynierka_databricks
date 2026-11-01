@@ -134,6 +134,42 @@ def test_prepare_order_items_left_join_missing_pricing(spark: SparkSession) -> N
     assert rows["ITEM-2"]["DISCOUNT"] is None
 
 
+def test_prepare_order_items_negative_prices_and_null_product_filtering(
+    spark: SparkSession,
+) -> None:
+    # Verify negative prices/discounts become positive and items with null product_id are dropped
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("order_item_sequential", IntegerType(), True),
+            StructField("product_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    order_items_df = spark.createDataFrame(
+        [
+            ("ITEM-1", "ORD-1", 1, "PROD-1", -2),
+            ("ITEM-2", "ORD-1", 2, None, 1),
+        ],
+        schema=items_schema,
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", -80.0, -10.0)],
+        ["order_item_id", "unit_price", "discount"],
+    )
+
+    result_df = prepare_order_items_data(
+        order_items=order_items_df, order_item_pricing=order_item_pricing_df
+    )
+    rows = result_df.collect()
+
+    assert len(rows) == 1
+    assert rows[0]["QUANTITY"] == 2
+    assert rows[0]["UNIT_PRICE"] == pytest.approx(80.0)
+    assert rows[0]["DISCOUNT"] == pytest.approx(10.0)
+
+
 def test_prepare_order_items_empty_dataframes(spark: SparkSession) -> None:
     # Arrange define schemas for empty dataframes
     items_schema = StructType(

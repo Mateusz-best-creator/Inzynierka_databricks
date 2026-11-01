@@ -6,6 +6,25 @@ from ecommerce.logic_ecommerce.gold.dim_payment_type import (
 )
 
 
+def test_prepare_dim_payment_type_schema(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("PAYMENT_TYPE", StringType(), True),
+            StructField("PAYMENT_INSTALLMENTS", IntegerType(), True),
+        ]
+    )
+    payments_df = spark.createDataFrame([], schema=schema)
+
+    result_df = prepare_dim_payment_type_data(silver_payments=payments_df)
+
+    expected_columns = [
+        "PAYMENT_TYPE_KEY",
+        "PAYMENT_TYPE_NAME",
+        "INSTALLMENT_TIER",
+    ]
+    assert result_df.columns == expected_columns
+
+
 def test_prepare_dim_payment_type_tiers_and_deduplication(spark: SparkSession) -> None:
     schema = StructType(
         [

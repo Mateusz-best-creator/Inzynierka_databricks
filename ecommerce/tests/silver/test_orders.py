@@ -307,6 +307,56 @@ def test_prepare_orders_data_left_join_missing_details(spark: SparkSession) -> N
     assert rows["ORD-2"]["PENDING_PAYMENT_TIMESTAMP"] is None
 
 
+def test_prepare_orders_data_anomaly_healing(spark: SparkSession) -> None:
+    # Verify healing of 1900 created_at date, swapped status timestamps, and negative prices
+    orders_df = spark.createDataFrame(
+        [("ORD-ERR", "USR-1", "SESS-1", "1900-01-01 00:00:00")],
+        ["order_id", "user_id", "session_id", "created_at"],
+    )
+    order_details_df = spark.createDataFrame(
+        [("ORD-ERR", "EXPRESS", -15.0)],
+        ["order_id", "shipping_method", "shipping_cost"],
+    )
+    # PAID and SHIPPED timestamps are intentionally swapped
+    order_status_history_df = spark.createDataFrame(
+        [
+            ("ORD-ERR", "PENDING_PAYMENT", "2025-04-10 10:01:00"),
+            ("ORD-ERR", "PAID", "2025-04-11 15:00:00"),
+            ("ORD-ERR", "SHIPPED", "2025-04-10 10:05:00"),
+        ],
+        ["order_id", "current_status", "valid_from"],
+    )
+    order_items_df = spark.createDataFrame(
+        [("ITEM-1", "ORD-ERR", "PROD-1", 2)],
+        ["order_item_id", "order_id", "product_id", "quantity"],
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", -50.0, -5.0)],
+        ["order_item_id", "unit_price", "discount"],
+    )
+    silver_users_df = spark.createDataFrame(
+        [(77, "USR-1", "2025-01-01 00:00:00", None)],
+        "user_surrogate_key int, user_id string, valid_from string, valid_to string",
+    )
+
+    result_df = prepare_orders_data(
+        orders=orders_df,
+        order_details=order_details_df,
+        order_status_history=order_status_history_df,
+        order_items=order_items_df,
+        order_item_pricing=order_item_pricing_df,
+        silver_users=silver_users_df,
+    )
+    row = result_df.collect()[0]
+
+    assert row["CREATED_AT_TIMESTAMP"] == "2025-04-10 10:01:00"
+    assert row["USER_SURROGATE_KEY"] == 77
+    assert row["PAID_TIMESTAMP"] == "2025-04-10 10:05:00"
+    assert row["SHIPPED_TIMESTAMP"] == "2025-04-11 15:00:00"
+    assert row["FREIGHT_VALUE"] == pytest.approx(15.0)
+    assert row["TOTAL_AMOUNT"] == pytest.approx(105.0)
+
+
 def test_prepare_orders_data_empty_dataframes(spark: SparkSession) -> None:
     orders_schema = StructType(
         [

@@ -1,0 +1,3295 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: ecommerce/tests
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+ecommerce/
+  tests/
+    common/
+      __init__.py
+      test_config_utils.py
+      test_delta_utils.py
+      test_file_ingestion.py
+    gold/
+      __init__.py
+      test_dim_date.py
+      test_dim_event_type.py
+      test_dim_geography.py
+      test_dim_payment_type.py
+      test_dim_product.py
+      test_dim_sales_context.py
+      test_dim_session.py
+      test_dim_time.py
+      test_dim_user.py
+      test_fact_events.py
+      test_fact_sales.py
+    silver/
+      __init__.py
+      test_categories.py
+      test_event_clickstream.py
+      test_order_items.py
+      test_orders.py
+      test_payments.py
+      test_products.py
+      test_sessions.py
+      test_users.py
+    __init__.py
+    conftest.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="ecommerce/tests/gold/test_dim_product.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import (
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
+
+from ecommerce.logic_ecommerce.gold.dim_product import prepare_dim_product_data
+
+PRODUCTS_SCHEMA = StructType(
+    [
+        StructField("PRODUCT_SURROGATE_KEY", IntegerType(), True),
+        StructField("PRODUCT_ID", StringType(), True),
+        StructField("PRODUCT_NAME", StringType(), True),
+        StructField("BRAND", StringType(), True),
+        StructField("DESCRIPTION", StringType(), True),
+        StructField("BASE_PRICE", DoubleType(), True),
+        StructField("COST_PRICE", DoubleType(), True),
+        StructField("WEIGHT_G", DoubleType(), True),
+        StructField("LENGTH_CM", DoubleType(), True),
+        StructField("HEIGHT_CM", DoubleType(), True),
+        StructField("WIDTH_CM", DoubleType(), True),
+        StructField("STOCK_QUANTITY", IntegerType(), True),
+        StructField("CREATED_AT", StringType(), True),
+        StructField("VALID_FROM", StringType(), True),
+        StructField("VALID_TO", StringType(), True),
+        StructField("IS_ACTIVE", IntegerType(), True),
+        StructField("CATEGORY_ID", StringType(), True),
+    ]
+)
+
+CATEGORIES_SCHEMA = StructType(
+    [
+        StructField("CATEGORY_SURROGATE_KEY", IntegerType(), True),
+        StructField("CATEGORY_ID", StringType(), True),
+        StructField("CATEGORY_NAME", StringType(), True),
+        StructField("PARENT_CATEGORY_ID", StringType(), True),
+    ]
+)
+
+
+def test_prepare_dim_product_schema(spark: SparkSession) -> None:
+    categories_df = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
+    products_df = spark.createDataFrame([], schema=PRODUCTS_SCHEMA)
+
+    result_df = prepare_dim_product_data(
+        silver_products=products_df, silver_categories=categories_df
+    )
+
+    expected_columns = [
+        "PRODUCT_SURROGATE_KEY",
+        "PRODUCT_ID",
+        "PRODUCT_NAME",
+        "BRAND",
+        "DESCRIPTION",
+        "BASE_PRICE",
+        "COST_PRICE",
+        "STOCK_QUANTITY",
+        "CATEGORY_ID",
+        "CATEGORY_NAME",
+        "PARENT_CATEGORY_ID",
+        "PARENT_CATEGORY_NAME",
+        "PRICE_TIER",
+        "MARGIN_TIER",
+        "WEIGHT_CLASS",
+        "PACKAGE_SIZE_TIER",
+        "STOCK_STATUS",
+        "PRODUCT_LIFECYCLE_STATUS",
+        "CREATED_AT",
+        "VALID_FROM",
+        "VALID_TO",
+        "SCD_RECORD_STATUS",
+    ]
+    assert result_df.columns == expected_columns
+
+def test_prepare_dim_product_tiers_and_hierarchy(spark: SparkSession) -> None:
+    # Verify price, margin, weight, volume, stock, and SCD2 classifications alongside category hierarchy
+    categories_df = spark.createDataFrame(
+        [
+            (1, "CAT-1", "Electronics", None),
+            (2, "CAT-2", "Laptops", "CAT-1"),
+        ],
+        schema=CATEGORIES_SCHEMA,
+    )
+
+    products_df = spark.createDataFrame(
+        [
+            # Budget (<50), Low Margin (<15%), Light (<500g), Small (<1000cm3), Out of Stock (0), Historical
+            (
+                1,
+                "PROD-1",
+                "Cable",
+                "Baseus",
+                "USB",
+                20.0,
+                18.0,
+                100.0,
+                5.0,
+                2.0,
+                5.0,
+                0,
+                "2025-01-01",
+                "2025-01-01",
+                "2025-02-01",
+                1,
+                "CAT-2",
+            ),
+            # Regular (50-200), Standard Margin (15-35%), Standard weight, Medium volume, Low Stock (1-10), Current
+            (
+                2,
+                "PROD-2",
+                "Mouse",
+                "Logi",
+                "Pro",
+                100.0,
+                75.0,
+                800.0,
+                10.0,
+                10.0,
+                20.0,
+                5,
+                "2025-01-01",
+                "2025-01-01",
+                None,
+                1,
+                "CAT-1",
+            ),
+            # Premium (200-500), High Margin (>35%), Heavy weight, Large volume, In Stock (11-100), Discontinued
+            (
+                3,
+                "PROD-3",
+                "Monitor",
+                "Dell",
+                "4K",
+                400.0,
+                200.0,
+                8000.0,
+                50.0,
+                20.0,
+                10.0,
+                50,
+                "2025-01-01",
+                "2025-01-01",
+                None,
+                0,
+                "CAT-2",
+            ),
+            # Luxury (>500), High Margin, Freight weight (>20kg), Oversized (>20000cm3), High Stock (>100)
+            (
+                4,
+                "PROD-4",
+                "Server",
+                "HP",
+                "Rack",
+                1000.0,
+                500.0,
+                25000.0,
+                50.0,
+                50.0,
+                20.0,
+                150,
+                "2025-01-01",
+                "2025-01-01",
+                None,
+                1,
+                "CAT-2",
+            ),
+        ],
+        schema=PRODUCTS_SCHEMA,
+    )
+
+    result_df = prepare_dim_product_data(
+        silver_products=products_df, silver_categories=categories_df
+    )
+    rows = {r["PRODUCT_ID"]: r for r in result_df.collect()}
+
+    assert len(rows) == 4
+
+    assert rows["PROD-1"]["CATEGORY_NAME"] == "Laptops"
+    assert rows["PROD-1"]["PARENT_CATEGORY_NAME"] == "Electronics"
+    assert rows["PROD-1"]["PRICE_TIER"] == "Budget (< 50)"
+    assert rows["PROD-1"]["MARGIN_TIER"] == "Low Margin (< 15%)"
+    assert rows["PROD-1"]["WEIGHT_CLASS"] == "Light (< 0.5 kg)"
+    assert rows["PROD-1"]["PACKAGE_SIZE_TIER"] == "Small (Parcel A)"
+    assert rows["PROD-1"]["STOCK_STATUS"] == "Out of Stock (0)"
+    assert rows["PROD-1"]["SCD_RECORD_STATUS"] == "Historical"
+
+    assert rows["PROD-2"]["PARENT_CATEGORY_NAME"] == "Root / None"
+    assert rows["PROD-2"]["PRICE_TIER"] == "Regular (50-200)"
+    assert rows["PROD-2"]["MARGIN_TIER"] == "Standard Margin (15-35%)"
+    assert rows["PROD-2"]["WEIGHT_CLASS"] == "Standard (0.5-5 kg)"
+    assert rows["PROD-2"]["PACKAGE_SIZE_TIER"] == "Medium (Parcel B)"
+    assert rows["PROD-2"]["STOCK_STATUS"] == "Low Stock (1-10)"
+    assert rows["PROD-2"]["SCD_RECORD_STATUS"] == "Current"
+
+    assert rows["PROD-3"]["PRICE_TIER"] == "Premium (200-500)"
+    assert rows["PROD-3"]["MARGIN_TIER"] == "High Margin (> 35%)"
+    assert rows["PROD-3"]["WEIGHT_CLASS"] == "Heavy (5-20 kg)"
+    assert rows["PROD-3"]["PACKAGE_SIZE_TIER"] == "Large (Parcel C)"
+    assert rows["PROD-3"]["STOCK_STATUS"] == "In Stock (11-100)"
+    assert rows["PROD-3"]["PRODUCT_LIFECYCLE_STATUS"] == "Discontinued"
+
+    assert rows["PROD-4"]["PRICE_TIER"] == "Luxury (> 500)"
+    assert rows["PROD-4"]["WEIGHT_CLASS"] == "Freight (> 20 kg)"
+    assert rows["PROD-4"]["PACKAGE_SIZE_TIER"] == "Oversized"
+    assert rows["PROD-4"]["STOCK_STATUS"] == "High Stock (> 100)"
+    assert rows["PROD-4"]["PRODUCT_LIFECYCLE_STATUS"] == "Active Catalog"
+
+
+def test_prepare_dim_product_missing_category_and_zero_price_safety(
+    spark: SparkSession,
+) -> None:
+    # Verify fallback values when category_id is missing or base_price is zero
+    categories_df = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
+    products_df = spark.createDataFrame(
+        [
+            (
+                1,
+                "PROD-ZERO",
+                "Freebie",
+                "BrandX",
+                "Promo",
+                0.0,
+                0.0,
+                None,
+                None,
+                None,
+                None,
+                None,
+                "2025-01-01",
+                "2025-01-01",
+                None,
+                1,
+                None,
+            )
+        ],
+        schema=PRODUCTS_SCHEMA,
+    )
+
+    result_df = prepare_dim_product_data(
+        silver_products=products_df, silver_categories=categories_df
+    )
+    row = result_df.collect()[0]
+
+    assert row["CATEGORY_NAME"] == "Unknown"
+    assert row["PARENT_CATEGORY_NAME"] == "Root / None"
+    assert row["MARGIN_TIER"] == "Low Margin (< 15%)"
+    assert row["WEIGHT_CLASS"] == "Light (< 0.5 kg)"
+    assert row["PACKAGE_SIZE_TIER"] == "Small (Parcel A)"
+    assert row["STOCK_STATUS"] == "Out of Stock (0)"
+</file>
+
+<file path="ecommerce/tests/common/__init__.py">
+
+</file>
+
+<file path="ecommerce/tests/common/test_config_utils.py">
+import os
+import pytest
+
+from ecommerce.common_functions.config_utils import (
+    get_config_path,
+    get_default_config_path,
+)
+
+
+def test_get_config_path() -> None:
+    # Verify environment-specific config path construction
+    root = "/mock/root"
+    layer = "silver"
+    env = "dev"
+    filename = "users.json"
+
+    expected = os.path.join(root, "ecommerce", "table_properties", env, layer, filename)
+    actual = get_config_path(root, layer, env, filename)
+
+    assert actual == expected
+
+
+def test_get_default_config_path() -> None:
+    # Verify default config path construction
+    root = "/mock/root"
+    filename = "default_properties.json"
+
+    expected = os.path.join(root, "ecommerce", "table_properties", filename)
+    actual = get_default_config_path(root, filename)
+
+    assert actual == expected
+</file>
+
+<file path="ecommerce/tests/common/test_delta_utils.py">
+from pyspark.sql import SparkSession
+from pyspark.sql.types import TimestampType
+
+from ecommerce.common_functions.delta_utils import add_ingestion_timestamp_column
+
+
+def test_add_ingestion_timestamp_column(spark: SparkSession) -> None:
+    # Verify if timestamp column is added with correct data type
+    df = spark.createDataFrame([("test_data",)], ["col1"])
+
+    result_df = add_ingestion_timestamp_column(df)
+
+    assert "INGESTED_AT" in result_df.columns
+    assert isinstance(result_df.schema["INGESTED_AT"].dataType, TimestampType)
+    assert result_df.count() == 1
+</file>
+
+<file path="ecommerce/tests/common/test_file_ingestion.py">
+from unittest.mock import patch
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import DoubleType, IntegerType, StringType
+
+from ecommerce.common_functions.file_ingestion import read_file
+
+
+@patch("ecommerce.common_functions.file_ingestion.read_csv_file")
+def test_read_file_schema_mapping(mock_read_csv, spark: SparkSession) -> None:
+    # Mock CSV reader to return an empty dataframe and verify schema type mapping
+    mock_read_csv.return_value = spark.createDataFrame([], schema="dummy_source STRING")
+
+    schema_config = [
+        {
+            "source_col_name": "id_src",
+            "target_col_name": "ID",
+            "target_datatype": "integer",
+        },
+        {
+            "source_col_name": "name_src",
+            "target_col_name": "NAME",
+            "target_datatype": "string",
+        },
+        {
+            "source_col_name": "price_src",
+            "target_col_name": "PRICE",
+            "target_datatype": "double",
+        },
+    ]
+
+    read_file(
+        spark=spark,
+        dbutils=None,
+        file_cloud_loc="mock/path.csv",
+        schema=schema_config,
+        file_format="csv",
+    )
+
+    # Extract the schema passed to read_csv_file
+    call_args = mock_read_csv.call_args[1]
+    applied_schema = call_args["schema"]
+
+    # Verify PySpark types generated from string configuration
+    assert isinstance(applied_schema["id_src"].dataType, IntegerType)
+    assert isinstance(applied_schema["name_src"].dataType, StringType)
+    assert isinstance(applied_schema["price_src"].dataType, DoubleType)
+
+
+def test_read_file_invalid_format(spark: SparkSession) -> None:
+    # Verify exception is raised for unsupported file format
+    with pytest.raises(ValueError, match="Invalid file format specified: txt"):
+        read_file(
+            spark=spark,
+            dbutils=None,
+            file_cloud_loc="path",
+            schema=[
+                {
+                    "source_col_name": "id",
+                    "target_col_name": "id",
+                    "target_datatype": "string",
+                }
+            ],
+            file_format="txt",
+        )
+</file>
+
+<file path="ecommerce/tests/gold/__init__.py">
+
+</file>
+
+<file path="ecommerce/tests/gold/test_dim_date.py">
+import datetime
+from pyspark.sql import SparkSession
+
+from ecommerce.logic_ecommerce.gold.dim_date import prepare_dim_date_data
+
+
+def test_prepare_dim_date_schema_and_range(spark: SparkSession) -> None:
+    # Verify output columns and row count for a specific date range
+    result_df = prepare_dim_date_data(
+        spark=spark, start_date="2025-05-01", end_date="2025-05-07"
+    )
+
+    expected_columns = [
+        "DATE_KEY",
+        "FULL_DATE",
+        "DAY",
+        "MONTH",
+        "QUARTER",
+        "YEAR",
+        "MONTH_NAME",
+        "DAY_OF_MONTH",
+        "DAY_OF_WEEK",
+        "IS_WEEKEND",
+    ]
+    assert result_df.columns == expected_columns
+    assert result_df.count() == 7
+
+
+def test_prepare_dim_date_iso_weekday_and_weekend_flags(spark: SparkSession) -> None:
+    # Verify ISO day of week shift (Monday=1, Sunday=7) and weekend detection
+    # 2025-05-05 is Monday, 2025-05-10 is Saturday, 2025-05-11 is Sunday
+    result_df = prepare_dim_date_data(
+        spark=spark, start_date="2025-05-05", end_date="2025-05-11"
+    )
+    rows = {row["FULL_DATE"]: row for row in result_df.collect()}
+
+    monday = rows[datetime.date(2025, 5, 5)]
+    assert monday["DAY_OF_WEEK"] == 1
+    assert monday["IS_WEEKEND"] == 0
+    assert monday["QUARTER"] == "Q2"
+    assert monday["MONTH_NAME"] == "May"
+
+    saturday = rows[datetime.date(2025, 5, 10)]
+    assert saturday["DAY_OF_WEEK"] == 6
+    assert saturday["IS_WEEKEND"] == 1
+
+    sunday = rows[datetime.date(2025, 5, 11)]
+    assert sunday["DAY_OF_WEEK"] == 7
+    assert sunday["IS_WEEKEND"] == 1
+</file>
+
+<file path="ecommerce/tests/gold/test_dim_event_type.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, StringType
+from ecommerce.logic_ecommerce.gold.dim_event_type import prepare_dim_event_type_data
+
+
+
+
+def test_prepare_dim_event_type_schema(spark: SparkSession) -> None:
+    schema = StructType([StructField("EVENT_TYPE", StringType(), True)])
+    events_df = spark.createDataFrame([], schema=schema)
+
+    result_df = prepare_dim_event_type_data(silver_events=events_df)
+
+    expected_columns = [
+        "EVENT_TYPE_KEY",
+        "EVENT_TYPE_NAME",
+        "FUNNEL_STEP_ORDER",
+        "FUNNEL_STAGE_NAME",
+    ]
+    assert result_df.columns == expected_columns
+
+
+def test_prepare_dim_event_type_mapping_and_order(spark: SparkSession) -> None:
+    schema = StructType([StructField("EVENT_TYPE", StringType(), True)])
+
+    # Mix of known and unknown event types
+    events_df = spark.createDataFrame(
+        [
+            ("View",),
+            ("AddToCart",),
+            ("Purchase",),
+            ("CustomEventXYZ",),
+            (None,),  # Should be filtered out
+        ],
+        schema=schema,
+    )
+
+    result_df = prepare_dim_event_type_data(silver_events=events_df)
+
+    # Extract results as a dictionary for easy assertion
+    rows = {row["EVENT_TYPE_NAME"]: row for row in result_df.collect()}
+
+    # Assertions
+    assert len(rows) == 4  # Null should be dropped
+    assert "EVENT_TYPE_KEY" in result_df.columns
+
+    assert rows["View"]["FUNNEL_STEP_ORDER"] == 1
+    assert "Awareness" in rows["View"]["FUNNEL_STAGE_NAME"]
+
+    assert rows["AddToCart"]["FUNNEL_STEP_ORDER"] == 2
+    assert "Consideration" in rows["AddToCart"]["FUNNEL_STAGE_NAME"]
+
+    assert rows["Purchase"]["FUNNEL_STEP_ORDER"] == 4
+    assert "Conversion" in rows["Purchase"]["FUNNEL_STAGE_NAME"]
+
+    assert rows["CustomEventXYZ"]["FUNNEL_STEP_ORDER"] == 5
+    assert "Other" in rows["CustomEventXYZ"]["FUNNEL_STAGE_NAME"]
+
+def test_prepare_dim_event_type_snake_case_generator_events(spark: SparkSession) -> None:
+    # Verify snake_case event types produced by the data generator are mapped accurately
+    schema = StructType([StructField("EVENT_TYPE", StringType(), True)])
+    events_df = spark.createDataFrame(
+        [
+            ("page_view",),
+            ("view_product",),
+            ("search",),
+            ("add_to_cart",),
+            ("remove_from_cart",),
+            ("checkout",),
+        ],
+        schema=schema,
+    )
+
+    result_df = prepare_dim_event_type_data(silver_events=events_df)
+    rows = {row["EVENT_TYPE_NAME"]: row for row in result_df.collect()}
+
+    assert rows["page_view"]["FUNNEL_STEP_ORDER"] == 1
+    assert rows["view_product"]["FUNNEL_STEP_ORDER"] == 1
+    assert rows["search"]["FUNNEL_STEP_ORDER"] == 1
+    assert rows["add_to_cart"]["FUNNEL_STEP_ORDER"] == 2
+    assert rows["remove_from_cart"]["FUNNEL_STEP_ORDER"] == 2
+    assert rows["checkout"]["FUNNEL_STEP_ORDER"] == 3
+    assert "Conversion" in rows["checkout"]["FUNNEL_STAGE_NAME"]
+
+def test_prepare_dim_event_type_deduplication(spark: SparkSession) -> None:
+    schema = StructType([StructField("EVENT_TYPE", StringType(), True)])
+    events_df = spark.createDataFrame([("Cart",), ("Cart",), ("Cart",)], schema=schema)
+
+    result_df = prepare_dim_event_type_data(silver_events=events_df)
+    assert result_df.count() == 1
+</file>
+
+<file path="ecommerce/tests/gold/test_dim_geography.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, StringType
+from ecommerce.logic_ecommerce.gold.dim_geography import prepare_dim_geography_data
+
+
+def test_prepare_dim_geography_schema(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("CITY", StringType(), True),
+            StructField("STATE", StringType(), True),
+            StructField("ZIP_CODE", StringType(), True),
+            StructField("COUNTRY", StringType(), True),
+        ]
+    )
+    users_df = spark.createDataFrame([], schema=schema)
+
+    result_df = prepare_dim_geography_data(silver_users=users_df)
+
+    expected_columns = [
+        "GEOGRAPHY_KEY",
+        "ZIP_CODE",
+        "CITY",
+        "STATE",
+        "COUNTRY",
+    ]
+    assert result_df.columns == expected_columns
+
+def test_prepare_dim_geography_cleaning_and_deduplication(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("CITY", StringType(), True),
+            StructField("STATE", StringType(), True),
+            StructField("ZIP_CODE", StringType(), True),
+            StructField("COUNTRY", StringType(), True),
+        ]
+    )
+
+    users_df = spark.createDataFrame(
+        [
+            ("Warszawa  ", "Mazowieckie", "00-001", "Poland"),
+            ("Warszawa", "Mazowieckie", "00-001", " Poland "),  # Duplicate with spaces
+            ("Gdansk", "Pomorskie", None, "Poland"),  # Null zip code
+            (None, "Pomorskie", "80-000", "Poland"),  # Null city (should drop)
+            ("Krakow", None, "30-001", "Poland"),  # Null state (should drop)
+        ],
+        schema=schema,
+    )
+
+    result_df = prepare_dim_geography_data(silver_users=users_df)
+    rows = {row["CITY"]: row for row in result_df.collect()}
+
+    # Assertions
+    assert len(rows) == 2  # 2 valid distinct locations
+    assert "GEOGRAPHY_KEY" in result_df.columns
+
+    # Verify trimming and deduplication
+    assert "Warszawa" in rows
+    assert rows["Warszawa"]["COUNTRY"] == "Poland"
+
+    # Verify null coalescing for zip code
+    assert "Gdansk" in rows
+    assert rows["Gdansk"]["ZIP_CODE"] == ""
+
+
+def test_prepare_dim_geography_empty(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("CITY", StringType(), True),
+            StructField("STATE", StringType(), True),
+            StructField("ZIP_CODE", StringType(), True),
+            StructField("COUNTRY", StringType(), True),
+        ]
+    )
+    empty_df = spark.createDataFrame([], schema=schema)
+    result_df = prepare_dim_geography_data(silver_users=empty_df)
+    assert result_df.count() == 0
+</file>
+
+<file path="ecommerce/tests/gold/test_dim_payment_type.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from ecommerce.logic_ecommerce.gold.dim_payment_type import (
+    prepare_dim_payment_type_data,
+)
+
+
+def test_prepare_dim_payment_type_schema(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("PAYMENT_TYPE", StringType(), True),
+            StructField("PAYMENT_INSTALLMENTS", IntegerType(), True),
+        ]
+    )
+    payments_df = spark.createDataFrame([], schema=schema)
+
+    result_df = prepare_dim_payment_type_data(silver_payments=payments_df)
+
+    expected_columns = [
+        "PAYMENT_TYPE_KEY",
+        "PAYMENT_TYPE_NAME",
+        "INSTALLMENT_TIER",
+    ]
+    assert result_df.columns == expected_columns
+
+def test_prepare_dim_payment_type_tiers_and_deduplication(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("PAYMENT_TYPE", StringType(), True),
+            StructField("PAYMENT_INSTALLMENTS", IntegerType(), True),
+        ]
+    )
+
+    # Mix of payment types and installments, including duplicates
+    payments_df = spark.createDataFrame(
+        [
+            ("CREDIT_CARD", 1),
+            ("CREDIT_CARD", None),  # Should default to 1 (Single Payment)
+            ("CREDIT_CARD", 3),  # 2-3 Installments
+            ("CREDIT_CARD", 3),  # Duplicate, should be dropped
+            ("BLIK", 6),  # 4+ Installments
+        ],
+        schema=schema,
+    )
+
+    result_df = prepare_dim_payment_type_data(silver_payments=payments_df)
+    rows = result_df.collect()
+
+    # Assertions
+    assert len(rows) == 3  # Deduplicated to 3 unique combinations
+    assert "PAYMENT_TYPE_KEY" in result_df.columns
+
+    # Verify logic tiers
+    results_map = {f"{r['PAYMENT_TYPE_NAME']}-{r['INSTALLMENT_TIER']}": r for r in rows}
+
+    assert "CREDIT_CARD-Single Payment" in results_map
+    assert "CREDIT_CARD-2-3 Installments" in results_map
+    assert "BLIK-4+ Installments" in results_map
+
+
+def test_prepare_dim_payment_type_empty(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("PAYMENT_TYPE", StringType(), True),
+            StructField("PAYMENT_INSTALLMENTS", IntegerType(), True),
+        ]
+    )
+    payments_df = spark.createDataFrame([], schema=schema)
+    result_df = prepare_dim_payment_type_data(silver_payments=payments_df)
+    assert result_df.count() == 0
+</file>
+
+<file path="ecommerce/tests/gold/test_dim_sales_context.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, StringType, DoubleType
+from ecommerce.logic_ecommerce.gold.dim_sales_context import (
+    prepare_dim_sales_context_data,
+)
+
+def test_prepare_dim_sales_context_schema(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("SHIPPING_METHOD", StringType(), True),
+            StructField("DISCOUNT_AMOUNT", DoubleType(), True),
+            StructField("ACTUAL_DELIVERY_DATE", StringType(), True),
+            StructField("ESTIMATED_DELIVERY_DATE", StringType(), True),
+        ]
+    )
+    orders_df = spark.createDataFrame([], schema=schema)
+
+    result_df = prepare_dim_sales_context_data(silver_orders=orders_df)
+
+    expected_columns = [
+        "SALES_CONTEXT_KEY",
+        "SHIPPING_METHOD",
+        "DISCOUNT_STATUS",
+        "DELIVERY_SLA_STATUS",
+    ]
+    assert result_df.columns == expected_columns
+
+def test_prepare_dim_sales_context_with_optional_columns(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("SHIPPING_METHOD", StringType(), True),
+            StructField("DISCOUNT_AMOUNT", DoubleType(), True),
+            StructField("ACTUAL_DELIVERY_DATE", StringType(), True),
+            StructField("ESTIMATED_DELIVERY_DATE", StringType(), True),
+        ]
+    )
+
+    orders_df = spark.createDataFrame(
+        [
+            ("Standard", 0.0, "2025-01-10", "2025-01-12"),  # Full Price, On-Time
+            ("Express", 15.5, "2025-01-13", "2025-01-12"),  # Discounted, Delayed
+            (None, None, None, None),  # Full Price (null), On-Time (nulls) -> Standard
+        ],
+        schema=schema,
+    )
+
+    result_df = prepare_dim_sales_context_data(silver_orders=orders_df)
+    rows = result_df.collect()
+
+    assert len(rows) == 2
+    assert "SALES_CONTEXT_KEY" in result_df.columns
+
+    res_map = {
+        f"{r['SHIPPING_METHOD']}-{r['DISCOUNT_STATUS']}-{r['DELIVERY_SLA_STATUS']}": r
+        for r in rows
+    }
+
+    assert "Standard-Full Price-On-Time Delivery" in res_map
+    assert "Express-Discounted-Delayed Delivery" in res_map
+    assert "Standard-Full Price-On-Time Delivery" in res_map
+
+
+def test_prepare_dim_sales_context_missing_optional_columns(
+    spark: SparkSession,
+) -> None:
+    schema = StructType([StructField("SHIPPING_METHOD", StringType(), True)])
+    orders_df = spark.createDataFrame([("Courier",)], schema=schema)
+
+    result_df = prepare_dim_sales_context_data(silver_orders=orders_df)
+    row = result_df.collect()[0]
+
+    assert row["SHIPPING_METHOD"] == "Courier"
+    assert row["DISCOUNT_STATUS"] == "Full Price"
+    assert row["DELIVERY_SLA_STATUS"] == "On-Time Delivery"
+</file>
+
+<file path="ecommerce/tests/gold/test_dim_session.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, StringType
+
+from ecommerce.logic_ecommerce.gold.dim_session import prepare_dim_session_data
+
+
+def test_prepare_dim_session_schema(spark: SparkSession) -> None:
+    sessions_schema = StructType(
+        [
+            StructField("SESSION_ID", StringType(), True),
+            StructField("SESSION_START", StringType(), True),
+            StructField("SESSION_END", StringType(), True),
+            StructField("DEVICE_TYPE", StringType(), True),
+            StructField("BROWSER", StringType(), True),
+            StructField("TRAFFIC_SOURCE", StringType(), True),
+        ]
+    )
+    events_schema = StructType(
+        [
+            StructField("SESSION_ID", StringType(), True),
+            StructField("EVENT_TYPE", StringType(), True),
+        ]
+    )
+    sessions_df = spark.createDataFrame([], schema=sessions_schema)
+    events_df = spark.createDataFrame([], schema=events_schema)
+
+    result_df = prepare_dim_session_data(
+        silver_sessions=sessions_df, silver_events=events_df
+    )
+
+    expected_columns = [
+        "SESSION_SURROGATE_KEY",
+        "SESSION_ID",
+        "SESSION_START",
+        "SESSION_END",
+        "SESSION_DURATION_BUCKET",
+        "DEVICE_TYPE",
+        "BROWSER",
+        "TRAFFIC_SOURCE",
+        "CONVERSION_STATUS",
+    ]
+    assert result_df.columns == expected_columns
+
+def test_prepare_dim_session_duration_and_conversion(spark: SparkSession) -> None:
+    sessions_schema = StructType(
+        [
+            StructField("SESSION_ID", StringType(), True),
+            StructField("SESSION_START", StringType(), True),
+            StructField("SESSION_END", StringType(), True),
+            StructField("DEVICE_TYPE", StringType(), True),
+            StructField("BROWSER", StringType(), True),
+            StructField("TRAFFIC_SOURCE", StringType(), True),
+        ]
+    )
+    events_schema = StructType(
+        [
+            StructField("SESSION_ID", StringType(), True),
+            StructField("EVENT_TYPE", StringType(), True),
+        ]
+    )
+
+    sessions_df = spark.createDataFrame(
+        [
+            (
+                "S1",
+                "2025-01-01 10:00:00",
+                "2025-01-01 10:00:05",
+                "Mobile",
+                "Safari",
+                "Direct",
+            ),  # 5s -> Bounce
+            (
+                "S2",
+                "2025-01-01 10:00:00",
+                "2025-01-01 10:00:30",
+                "Desktop",
+                "Chrome",
+                "Paid",
+            ),  # 30s -> Brief, Converted
+            (
+                "S3",
+                "2025-01-01 10:00:00",
+                "2025-01-01 10:02:00",
+                "Mobile",
+                "Chrome",
+                "Direct",
+            ),  # 120s -> Engaged
+            (
+                "S4",
+                "2025-01-01 10:00:00",
+                "2025-01-01 10:10:00",
+                "Desktop",
+                "Firefox",
+                "Paid",
+            ),  # 600s -> Extended
+        ],
+        schema=sessions_schema,
+    )
+
+    events_df = spark.createDataFrame(
+        [
+            ("S2", "Purchase"),
+            ("S2", "View"),
+            ("S3", "View"),
+            ("S4", "checkout"),
+        ],
+        schema=events_schema,
+    )
+
+    result_df = prepare_dim_session_data(
+        silver_sessions=sessions_df, silver_events=events_df
+    )
+    rows = {r["SESSION_ID"]: r for r in result_df.collect()}
+
+    assert len(rows) == 4
+    assert "SESSION_SURROGATE_KEY" in result_df.columns
+
+    assert rows["S1"]["SESSION_DURATION_BUCKET"] == "Bounce (< 10s)"
+    assert rows["S1"]["CONVERSION_STATUS"] == "Browsing Only"
+
+    assert rows["S2"]["SESSION_DURATION_BUCKET"] == "Brief (10s-60s)"
+    assert rows["S2"]["CONVERSION_STATUS"] == "Converted (Purchase)"
+
+    assert rows["S3"]["SESSION_DURATION_BUCKET"] == "Engaged (1m-5m)"
+    assert rows["S3"]["CONVERSION_STATUS"] == "Browsing Only"
+
+    assert rows["S4"]["SESSION_DURATION_BUCKET"] == "Extended (> 5m)"
+</file>
+
+<file path="ecommerce/tests/gold/test_dim_time.py">
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+from ecommerce.logic_ecommerce.gold.dim_time import prepare_dim_time_data
+
+
+def test_prepare_dim_time_schema_and_total_seconds(spark: SparkSession) -> None:
+    # Verify full 24-hour grid (86,400 seconds) and expected schema
+    result_df = prepare_dim_time_data(spark=spark)
+
+    expected_columns = [
+        "TIME_KEY",
+        "HOUR",
+        "MINUTE",
+        "SECONDS",
+        "DAY_PART",
+    ]
+    assert result_df.columns == expected_columns
+    assert result_df.count() == 86400
+
+
+def test_prepare_dim_time_day_part_mapping(spark: SparkSession) -> None:
+    # Verify time-of-day bucket logic across boundary hours
+    result_df = prepare_dim_time_data(spark=spark)
+
+    sample_hours = result_df.filter(
+        (col("MINUTE") == 0) & (col("SECONDS") == 0) & col("HOUR").isin([3, 8, 14, 19])
+    ).collect()
+    rows_by_hour = {row["HOUR"]: row for row in sample_hours}
+
+    assert rows_by_hour[3]["DAY_PART"] == "Night"
+    assert rows_by_hour[8]["DAY_PART"] == "Morning"
+    assert rows_by_hour[14]["DAY_PART"] == "Afternoon"
+    assert rows_by_hour[19]["DAY_PART"] == "Evening"
+    assert rows_by_hour[3]["TIME_KEY"] < rows_by_hour[8]["TIME_KEY"]
+</file>
+
+<file path="ecommerce/tests/gold/test_dim_user.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+
+from ecommerce.logic_ecommerce.gold.dim_user import prepare_dim_user_data
+
+def test_prepare_dim_user_schema(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("USER_SURROGATE_KEY", IntegerType(), True),
+            StructField("USER_ID", StringType(), True),
+            StructField("CUSTOMER_UNIQUE_ID", StringType(), True),
+            StructField("FIRST_NAME", StringType(), True),
+            StructField("LAST_NAME", StringType(), True),
+            StructField("EMAIL", StringType(), True),
+            StructField("PHONE", StringType(), True),
+            StructField("BIRTH_DATE", StringType(), True),
+            StructField("GENDER", StringType(), True),
+            StructField("STATUS", StringType(), True),
+            StructField("CREATED_AT", StringType(), True),
+            StructField("VALID_FROM", StringType(), True),
+            StructField("VALID_TO", StringType(), True),
+        ]
+    )
+    users_df = spark.createDataFrame([], schema=schema)
+
+    result_df = prepare_dim_user_data(silver_users=users_df)
+
+    expected_columns = [
+        "USER_SURROGATE_KEY",
+        "USER_ID",
+        "CUSTOMER_UNIQUE_ID",
+        "FIRST_NAME",
+        "LAST_NAME",
+        "EMAIL",
+        "PHONE",
+        "BIRTH_DATE",
+        "AGE_GROUP",
+        "GENDER",
+        "STATUS",
+        "CREATED_AT",
+        "VALID_FROM",
+        "VALID_TO",
+        "SCD_RECORD_STATUS",
+    ]
+    assert result_df.columns == expected_columns
+
+def test_prepare_dim_user_age_groups_and_scd(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("USER_SURROGATE_KEY", IntegerType(), True),
+            StructField("USER_ID", StringType(), True),
+            StructField("CUSTOMER_UNIQUE_ID", StringType(), True),
+            StructField("FIRST_NAME", StringType(), True),
+            StructField("LAST_NAME", StringType(), True),
+            StructField("EMAIL", StringType(), True),
+            StructField("PHONE", StringType(), True),
+            StructField("BIRTH_DATE", StringType(), True),
+            StructField("GENDER", StringType(), True),
+            StructField("STATUS", StringType(), True),
+            StructField("CREATED_AT", StringType(), True),
+            StructField("VALID_FROM", StringType(), True),
+            StructField("VALID_TO", StringType(), True),
+        ]
+    )
+
+    users_df = spark.createDataFrame(
+        [
+            (
+                1,
+                "U1",
+                "C1",
+                "A",
+                "B",
+                "a@b",
+                "123",
+                "2005-01-01",
+                "M",
+                "Active",
+                "2025-01-01",
+                "2025-01-01",
+                None,
+            ),  # Current, 18-24
+            (
+                2,
+                "U2",
+                "C2",
+                "C",
+                "D",
+                "c@d",
+                "456",
+                "1995-01-01",
+                "F",
+                "Active",
+                "2025-01-01",
+                "2025-01-01",
+                "2025-02-01",
+            ),  # Historical, 25-34
+            (
+                3,
+                "U3",
+                "C3",
+                "E",
+                "F",
+                "e@f",
+                "789",
+                "1985-01-01",
+                "M",
+                "Active",
+                "2025-01-01",
+                "2025-01-01",
+                None,
+            ),  # Current, 35-49
+            (
+                4,
+                "U4",
+                "C4",
+                "G",
+                "H",
+                "g@h",
+                "000",
+                "1960-01-01",
+                "F",
+                "Active",
+                "2025-01-01",
+                "2025-01-01",
+                None,
+            ),  # Current, 50+
+            (
+                5,
+                "U5",
+                "C5",
+                "I",
+                "J",
+                "i@j",
+                "111",
+                None,
+                "M",
+                "Active",
+                "2025-01-01",
+                "2025-01-01",
+                None,
+            ),  # Current, Unknown
+        ],
+        schema=schema,
+    )
+
+    result_df = prepare_dim_user_data(silver_users=users_df)
+    rows = {r["USER_ID"]: r for r in result_df.collect()}
+
+    assert len(rows) == 5
+
+    assert rows["U1"]["SCD_RECORD_STATUS"] == "Current"
+    assert rows["U2"]["SCD_RECORD_STATUS"] == "Historical"
+
+    assert rows["U1"]["AGE_GROUP"] == "18-24"
+    assert rows["U2"]["AGE_GROUP"] == "25-34"
+    assert rows["U3"]["AGE_GROUP"] == "35-49"
+    assert rows["U4"]["AGE_GROUP"] == "50+"
+    assert rows["U5"]["AGE_GROUP"] == "Unknown"
+</file>
+
+<file path="ecommerce/tests/gold/test_fact_events.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import to_timestamp
+from ecommerce.logic_ecommerce.gold.fact_events import prepare_fact_events_data
+
+def test_prepare_fact_events_schema(spark: SparkSession) -> None:
+    # Verify the exact output columns and their order in the resulting fact table
+    silver_events = spark.createDataFrame([], schema="EVENT_ID string, SESSION_ID string, EVENT_TIME timestamp, EVENT_TYPE string, PRODUCT_ID string")
+    silver_sessions = spark.createDataFrame([], schema="SESSION_ID string, USER_SURROGATE_KEY int")
+    silver_users = spark.createDataFrame([], schema="USER_SURROGATE_KEY int, CITY string, STATE string, COUNTRY string, ZIP_CODE string")
+    dim_date = spark.createDataFrame([], schema="FULL_DATE date, DATE_KEY int")
+    dim_time = spark.createDataFrame([], schema="HOUR int, MINUTE int, SECONDS int, TIME_KEY int")
+    dim_session = spark.createDataFrame([], schema="SESSION_ID string, SESSION_SURROGATE_KEY int")
+    dim_user = spark.createDataFrame([], schema="USER_SURROGATE_KEY int")
+    dim_geography = spark.createDataFrame([], schema="CITY string, STATE string, COUNTRY string, ZIP_CODE string, GEOGRAPHY_KEY int")
+    dim_event_type = spark.createDataFrame([], schema="EVENT_TYPE_NAME string, EVENT_TYPE_KEY int")
+    dim_product = spark.createDataFrame([], schema="PRODUCT_SURROGATE_KEY int, PRODUCT_ID string, BASE_PRICE double, STOCK_QUANTITY int, VALID_FROM timestamp, VALID_TO timestamp")
+
+    result_df = prepare_fact_events_data(
+        silver_events, silver_sessions, silver_users, dim_date, dim_time,
+        dim_session, dim_user, dim_geography, dim_product, dim_event_type
+    )
+
+    expected_columns = [
+        "EVENT_DATE_KEY",
+        "EVENT_TIME_KEY",
+        "SESSION_SURROGATE_KEY",
+        "USER_SURROGATE_KEY",
+        "GEOGRAPHY_KEY",
+        "PRODUCT_SURROGATE_KEY",
+        "EVENT_TYPE_KEY",
+        "EVENT_ID",
+        "SESSION_ID",
+        "EVENT_SEQUENCE_IN_SESSION",
+        "TIME_ON_STEP_SECONDS",
+        "PRODUCT_PRICE_AT_EVENT",
+        "PRODUCT_STOCK_AT_EVENT",
+    ]
+    assert result_df.columns == expected_columns
+
+def test_prepare_fact_events_calculations_and_joins(spark: SparkSession) -> None:
+    # Setup mock data for silver layer and dimensions to test event sequence and SCD2 product logic
+    silver_events = spark.createDataFrame(
+        [
+            ("EVT-1", "SESS-1", "2025-01-01 10:00:00", "View", "PROD-1"),
+            ("EVT-2", "SESS-1", "2025-01-01 10:00:45", "Cart", "PROD-1"),
+        ],
+        ["EVENT_ID", "SESSION_ID", "EVENT_TIME", "EVENT_TYPE", "PRODUCT_ID"],
+    ).withColumn("EVENT_TIME", to_timestamp("EVENT_TIME"))
+
+    silver_sessions = spark.createDataFrame(
+        [("SESS-1", 99)], ["SESSION_ID", "USER_SURROGATE_KEY"]
+    )
+
+    silver_users = spark.createDataFrame(
+        [(99, "Warsaw", "Mazowieckie", "Poland", "00-001")],
+        ["USER_SURROGATE_KEY", "CITY", "STATE", "COUNTRY", "ZIP_CODE"],
+    )
+
+    dim_date = spark.createDataFrame(
+        [("2025-01-01", 20250101)], ["FULL_DATE", "DATE_KEY"]
+    )
+    dim_time = spark.createDataFrame(
+        [(10, 0, 0, 100000), (10, 0, 45, 100045)],
+        ["HOUR", "MINUTE", "SECONDS", "TIME_KEY"],
+    )
+    dim_session = spark.createDataFrame(
+        [("SESS-1", 101)], ["SESSION_ID", "SESSION_SURROGATE_KEY"]
+    )
+    dim_user = spark.createDataFrame([(99,)], ["USER_SURROGATE_KEY"])
+    dim_geography = spark.createDataFrame(
+        [("Warsaw", "Mazowieckie", "Poland", 55)],
+        ["CITY", "STATE", "COUNTRY", "GEOGRAPHY_KEY"],
+    )
+    dim_event_type = spark.createDataFrame(
+        [("View", 1), ("Cart", 2)], ["EVENT_TYPE_NAME", "EVENT_TYPE_KEY"]
+    )
+
+    # Setup SCD2 product history to verify correct time-based join
+    dim_product = (
+        spark.createDataFrame(
+            [
+                (
+                    1,
+                    "PROD-1",
+                    100.0,
+                    10,
+                    "2024-01-01 00:00:00",
+                    "2025-01-01 10:00:30",
+                ),  # Old price
+                (2, "PROD-1", 120.0, 5, "2025-01-01 10:00:30", None),  # New price
+            ],
+            [
+                "PRODUCT_SURROGATE_KEY",
+                "PRODUCT_ID",
+                "BASE_PRICE",
+                "STOCK_QUANTITY",
+                "VALID_FROM",
+                "VALID_TO",
+            ],
+        )
+        .withColumn("VALID_FROM", to_timestamp("VALID_FROM"))
+        .withColumn("VALID_TO", to_timestamp("VALID_TO"))
+    )
+
+    # Execute fact transformation
+    result_df = prepare_fact_events_data(
+        silver_events,
+        silver_sessions,
+        silver_users,
+        dim_date,
+        dim_time,
+        dim_session,
+        dim_user,
+        dim_geography,
+        dim_product,
+        dim_event_type,
+    )
+
+    rows = {r["EVENT_ID"]: r for r in result_df.collect()}
+
+    # Verify event sequencing and duration calculations
+    assert len(rows) == 2
+    assert rows["EVT-1"]["EVENT_SEQUENCE_IN_SESSION"] == 1
+    assert rows["EVT-1"]["TIME_ON_STEP_SECONDS"] == 45
+    assert rows["EVT-2"]["EVENT_SEQUENCE_IN_SESSION"] == 2
+    assert rows["EVT-2"]["TIME_ON_STEP_SECONDS"] == 0
+
+    # Verify dimension surrogate key resolution
+    assert rows["EVT-1"]["USER_SURROGATE_KEY"] == 99
+    assert rows["EVT-1"]["GEOGRAPHY_KEY"] == 55
+    assert rows["EVT-1"]["SESSION_SURROGATE_KEY"] == 101
+    assert rows["EVT-1"]["EVENT_TYPE_KEY"] == 1
+    assert rows["EVT-1"]["EVENT_DATE_KEY"] == 20250101
+    assert rows["EVT-1"]["EVENT_TIME_KEY"] == 100000
+
+    # Verify SCD2 logic for product properties at the exact time of the event
+    assert rows["EVT-1"]["PRODUCT_SURROGATE_KEY"] == 1
+    assert rows["EVT-1"]["PRODUCT_PRICE_AT_EVENT"] == 100.0
+
+    assert rows["EVT-2"]["PRODUCT_SURROGATE_KEY"] == 2
+    assert rows["EVT-2"]["PRODUCT_PRICE_AT_EVENT"] == 120.0
+
+
+def test_prepare_fact_events_no_multiplication_on_zip_and_scd_boundary(
+    spark: SparkSession,
+) -> None:
+    # Verify exact SCD2 boundary timestamp and multiple zip codes per city do not duplicate rows
+    silver_events = spark.createDataFrame(
+        [("EVT-BOUNDARY", "SESS-1", "2025-01-01 10:00:30", "View", "PROD-1")],
+        ["EVENT_ID", "SESSION_ID", "EVENT_TIME", "EVENT_TYPE", "PRODUCT_ID"],
+    ).withColumn("EVENT_TIME", to_timestamp("EVENT_TIME"))
+
+    silver_sessions = spark.createDataFrame(
+        [("SESS-1", 99)], ["SESSION_ID", "USER_SURROGATE_KEY"]
+    )
+    silver_users = spark.createDataFrame(
+        [(99, "Warsaw", "Mazowieckie", "Poland", "00-002")],
+        ["USER_SURROGATE_KEY", "CITY", "STATE", "COUNTRY", "ZIP_CODE"],
+    )
+    dim_date = spark.createDataFrame(
+        [("2025-01-01", 20250101)], ["FULL_DATE", "DATE_KEY"]
+    )
+    dim_time = spark.createDataFrame(
+        [(10, 0, 30, 100030)], ["HOUR", "MINUTE", "SECONDS", "TIME_KEY"]
+    )
+    dim_session = spark.createDataFrame(
+        [("SESS-1", 101)], ["SESSION_ID", "SESSION_SURROGATE_KEY"]
+    )
+    dim_user = spark.createDataFrame([(99,)], ["USER_SURROGATE_KEY"])
+    dim_geography = spark.createDataFrame(
+        [
+            ("Warsaw", "Mazowieckie", "Poland", "00-001", 55),
+            ("Warsaw", "Mazowieckie", "Poland", "00-002", 56),
+        ],
+        ["CITY", "STATE", "COUNTRY", "ZIP_CODE", "GEOGRAPHY_KEY"],
+    )
+    dim_event_type = spark.createDataFrame(
+        [("View", 1)], ["EVENT_TYPE_NAME", "EVENT_TYPE_KEY"]
+    )
+    dim_product = (
+        spark.createDataFrame(
+            [
+                (1, "PROD-1", 100.0, 10, "2024-01-01 00:00:00", "2025-01-01 10:00:30"),
+                (2, "PROD-1", 120.0, 5, "2025-01-01 10:00:30", None),
+            ],
+            schema="PRODUCT_SURROGATE_KEY int, PRODUCT_ID string, BASE_PRICE double, STOCK_QUANTITY int, VALID_FROM string, VALID_TO string",
+        )
+        .withColumn("VALID_FROM", to_timestamp("VALID_FROM"))
+        .withColumn("VALID_TO", to_timestamp("VALID_TO"))
+    )
+
+    result_df = prepare_fact_events_data(
+        silver_events,
+        silver_sessions,
+        silver_users,
+        dim_date,
+        dim_time,
+        dim_session,
+        dim_user,
+        dim_geography,
+        dim_product,
+        dim_event_type,
+    )
+    rows = result_df.collect()
+
+    assert len(rows) == 1
+    assert rows[0]["PRODUCT_SURROGATE_KEY"] == 2
+    assert rows[0]["GEOGRAPHY_KEY"] == 56
+</file>
+
+<file path="ecommerce/tests/gold/test_fact_sales.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import to_timestamp
+from ecommerce.logic_ecommerce.gold.fact_sales import prepare_fact_sales_data
+
+def test_prepare_fact_sales_schema(spark: SparkSession) -> None:
+    # Verify the exact output columns and their order in the resulting fact table
+    silver_order_items = spark.createDataFrame([], schema="ORDER_ID string, ITEM_SEQUENCE int, PRODUCT_ID string, QUANTITY int, UNIT_PRICE double, DISCOUNT double")
+    silver_orders = spark.createDataFrame([], schema="ORDER_ID string, FREIGHT_VALUE double, SHIPPING_METHOD string, CREATED_AT_TIMESTAMP timestamp, PAID_TIMESTAMP timestamp, PROCESSING_TIMESTAMP timestamp, SHIPPED_TIMESTAMP timestamp, DELIVERED_TIMESTAMP timestamp, SESSION_ID string, USER_SURROGATE_KEY int")
+    silver_payments = spark.createDataFrame([], schema="ORDER_ID string, PAYMENT_INSTALLMENTS int, PAYMENT_TYPE string")
+    silver_users = spark.createDataFrame([], schema="USER_SURROGATE_KEY int, CITY string, STATE string, COUNTRY string, ZIP_CODE string")
+
+    dim_date = spark.createDataFrame([], schema="FULL_DATE date, DATE_KEY int")
+    dim_time = spark.createDataFrame([], schema="HOUR int, MINUTE int, SECONDS int, TIME_KEY int")
+    dim_session = spark.createDataFrame([], schema="SESSION_ID string, SESSION_SURROGATE_KEY int")
+    dim_user = spark.createDataFrame([], schema="USER_SURROGATE_KEY int")
+    dim_geography = spark.createDataFrame([], schema="CITY string, STATE string, COUNTRY string, ZIP_CODE string, GEOGRAPHY_KEY int")
+    dim_payment_type = spark.createDataFrame([], schema="PAYMENT_TYPE_NAME string, INSTALLMENT_TIER string, PAYMENT_TYPE_KEY int")
+    dim_sales_context = spark.createDataFrame([], schema="SHIPPING_METHOD string, SALES_CONTEXT_KEY int")
+    dim_product = spark.createDataFrame([], schema="PRODUCT_SURROGATE_KEY int, PRODUCT_ID string, BASE_PRICE double, COST_PRICE double, WEIGHT_G double, LENGTH_CM double, WIDTH_CM double, HEIGHT_CM double, VALID_FROM timestamp, VALID_TO timestamp")
+
+    result_df = prepare_fact_sales_data(
+        silver_orders, silver_order_items, silver_payments, silver_users,
+        dim_date, dim_time, dim_session, dim_user, dim_geography, dim_product,
+        dim_payment_type, dim_sales_context
+    )
+
+    expected_columns = [
+        "ORDER_DATE_KEY",
+        "ORDER_TIME_KEY",
+        "PAID_DATE_KEY",
+        "SHIPPED_DATE_KEY",
+        "DELIVERED_DATE_KEY",
+        "USER_SURROGATE_KEY",
+        "GEOGRAPHY_KEY",
+        "PRODUCT_SURROGATE_KEY",
+        "SESSION_SURROGATE_KEY",
+        "PAYMENT_TYPE_KEY",
+        "SALES_CONTEXT_KEY",
+        "ORDER_ID",
+        "ITEM_SEQUENCE",
+        "QUANTITY",
+        "UNIT_PRICE",
+        "UNIT_COST_PRICE",
+        "DISCOUNT_AMOUNT",
+        "GROSS_ITEM_AMOUNT",
+        "NET_ITEM_AMOUNT",
+        "FREIGHT_VALUE",
+        "TOTAL_LINE_AMOUNT",
+        "NET_PROFIT_MARGIN",
+        "TOTAL_ITEM_WEIGHT_G",
+        "TOTAL_ITEM_VOLUME_CM3",
+        "PAYMENT_INSTALLMENTS_COUNT",
+        "PAYMENT_METHODS_USED_COUNT",
+        "MINUTES_TO_PAY",
+        "HOURS_TO_PROCESS",
+        "HOURS_TO_SHIP",
+        "HOURS_TO_DELIVER",
+        "TOTAL_FULFILLMENT_DAYS",
+    ]
+    assert result_df.columns == expected_columns
+
+def test_prepare_fact_sales_metrics_and_aggregations(spark: SparkSession) -> None:
+    # Setup mock sales data to verify complex financial measures and timestamp differences
+    silver_order_items = spark.createDataFrame(
+        [("ORD-1", 1, "PROD-1", 2, 100.0, 10.0)],
+        [
+            "ORDER_ID",
+            "ITEM_SEQUENCE",
+            "PRODUCT_ID",
+            "QUANTITY",
+            "UNIT_PRICE",
+            "DISCOUNT",
+        ],
+    )
+
+    silver_orders = spark.createDataFrame(
+        [
+            (
+                "ORD-1",
+                15.0,
+                "Express",
+                "2025-01-01 10:00:00",
+                "2025-01-01 10:30:00",
+                "2025-01-02 10:30:00",
+                "2025-01-04 10:30:00",
+                "SESS-1",
+                99,
+            )
+        ],
+        [
+            "ORDER_ID",
+            "FREIGHT_VALUE",
+            "SHIPPING_METHOD",
+            "CREATED_AT_TIMESTAMP",
+            "PAID_TIMESTAMP",
+            "SHIPPED_TIMESTAMP",
+            "DELIVERED_TIMESTAMP",
+            "SESSION_ID",
+            "USER_SURROGATE_KEY",
+        ],
+    ).select(
+        "ORDER_ID",
+        "FREIGHT_VALUE",
+        "SHIPPING_METHOD",
+        "SESSION_ID",
+        "USER_SURROGATE_KEY",
+        to_timestamp("CREATED_AT_TIMESTAMP").alias("CREATED_AT_TIMESTAMP"),
+        to_timestamp("PAID_TIMESTAMP").alias("PAID_TIMESTAMP"),
+        to_timestamp("SHIPPED_TIMESTAMP").alias("SHIPPED_TIMESTAMP"),
+        to_timestamp("DELIVERED_TIMESTAMP").alias("DELIVERED_TIMESTAMP"),
+    )
+
+    silver_payments = spark.createDataFrame(
+        [("ORD-1", 1, "CREDIT_CARD"), ("ORD-1", 3, "BLIK")],
+        ["ORDER_ID", "PAYMENT_INSTALLMENTS", "PAYMENT_TYPE"],
+    )
+
+    silver_users = spark.createDataFrame(
+        [(99, "Warsaw", "Maz", "PL")],
+        ["USER_SURROGATE_KEY", "CITY", "STATE", "COUNTRY"],
+    )
+    dim_date = spark.createDataFrame(
+        [("2025-01-01", 20250101)], ["FULL_DATE", "DATE_KEY"]
+    )
+    dim_time = spark.createDataFrame(
+        [(10, 0, 0, 100000)], ["HOUR", "MINUTE", "SECONDS", "TIME_KEY"]
+    )
+    dim_session = spark.createDataFrame(
+        [("SESS-1", 101)], ["SESSION_ID", "SESSION_SURROGATE_KEY"]
+    )
+    dim_user = spark.createDataFrame([(99,)], ["USER_SURROGATE_KEY"])
+    dim_geography = spark.createDataFrame(
+        [("Warsaw", "Maz", "PL", 55)], ["CITY", "STATE", "COUNTRY", "GEOGRAPHY_KEY"]
+    )
+    dim_payment_type = spark.createDataFrame(
+        [("CREDIT_CARD", 1)], ["PAYMENT_TYPE_NAME", "PAYMENT_TYPE_KEY"]
+    )
+    dim_sales_context = spark.createDataFrame(
+        [("Express", 11)], ["SHIPPING_METHOD", "SALES_CONTEXT_KEY"]
+    )
+
+    dim_product = (
+        spark.createDataFrame(
+            [(1, "PROD-1", 100.0, 50.0, "2024-01-01 00:00:00", None)],
+            schema="PRODUCT_SURROGATE_KEY int, PRODUCT_ID string, BASE_PRICE double, COST_PRICE double, VALID_FROM string, VALID_TO string",
+        )
+        .withColumn("VALID_FROM", to_timestamp("VALID_FROM"))
+        .withColumn("VALID_TO", to_timestamp("VALID_TO"))
+    )
+
+    # Execute fact transformation
+    result_df = prepare_fact_sales_data(
+        silver_orders,
+        silver_order_items,
+        silver_payments,
+        silver_users,
+        dim_date,
+        dim_time,
+        dim_session,
+        dim_user,
+        dim_geography,
+        dim_product,
+        dim_payment_type,
+        dim_sales_context,
+    )
+
+    row = result_df.collect()[0]
+
+    # Verify payments aggregation (Max installments, count of methods)
+    assert row["PAYMENT_INSTALLMENTS_COUNT"] == 3
+    assert row["PAYMENT_METHODS_USED_COUNT"] == 2
+
+    # Verify financial line calculations:
+    # Qty 2 * 100 = 200 Gross
+    # 200 - 10 discount = 190 Net
+    assert row["GROSS_ITEM_AMOUNT"] == 200.0
+    assert row["NET_ITEM_AMOUNT"] == 190.0
+    assert row["TOTAL_LINE_AMOUNT"] == 190.0 + 15.0  # Net + Freight
+
+    # Verify profit margin calculation:
+    # Item net is 190. Cost is 50 per unit * 2 = 100.
+    # Profit = (190 - 100) / 190 = 90 / 190 = 0.4736... -> rounded to 0.47
+    assert float(row["NET_PROFIT_MARGIN"]) == pytest.approx(0.47, 0.01)
+
+    # Verify duration metrics
+    assert row["MINUTES_TO_PAY"] == 30  # 10:00 to 10:30
+    assert row["HOURS_TO_PROCESS"] == 24  # 10:30 to next day 10:30
+    assert row["HOURS_TO_DELIVER"] == 48  # Jan 02 to Jan 04
+    assert float(row["TOTAL_FULFILLMENT_DAYS"]) == pytest.approx(
+        3.02, 0.01
+    )  # Jan 01 to Jan 04
+
+    # Verify surrogate keys
+    assert row["ORDER_DATE_KEY"] == 20250101
+    assert row["PRODUCT_SURROGATE_KEY"] == 1
+
+
+def test_prepare_fact_sales_no_fanout_and_extended_metrics(spark: SparkSession) -> None:
+    # Verify no row multiplication across multi-tier payment types and zip codes, plus physical and processing metrics
+    silver_order_items = spark.createDataFrame(
+        [("ORD-2", 1, "PROD-2", 3, 50.0, 0.0)],
+        ["ORDER_ID", "ITEM_SEQUENCE", "PRODUCT_ID", "QUANTITY", "UNIT_PRICE", "DISCOUNT"],
+    )
+
+    # Use a DDL schema string so Spark knows None maps to a string type for SHIPPING_METHOD
+    silver_orders = spark.createDataFrame(
+        [
+            (
+                "ORD-2",
+                10.0,
+                None,
+                "2025-01-01 10:00:00",
+                "2025-01-01 10:15:00",
+                "2025-01-01 14:15:00",
+                "2025-01-02 02:15:00",
+                "2025-01-03 02:15:00",
+                "SESS-2",
+                99,
+            )
+        ],
+        schema="ORDER_ID string, FREIGHT_VALUE double, SHIPPING_METHOD string, CREATED_AT_TIMESTAMP string, PAID_TIMESTAMP string, PROCESSING_TIMESTAMP string, SHIPPED_TIMESTAMP string, DELIVERED_TIMESTAMP string, SESSION_ID string, USER_SURROGATE_KEY int",
+    ).select(
+        "ORDER_ID",
+        "FREIGHT_VALUE",
+        "SHIPPING_METHOD",
+        "SESSION_ID",
+        "USER_SURROGATE_KEY",
+        to_timestamp("CREATED_AT_TIMESTAMP").alias("CREATED_AT_TIMESTAMP"),
+        to_timestamp("PAID_TIMESTAMP").alias("PAID_TIMESTAMP"),
+        to_timestamp("PROCESSING_TIMESTAMP").alias("PROCESSING_TIMESTAMP"),
+        to_timestamp("SHIPPED_TIMESTAMP").alias("SHIPPED_TIMESTAMP"),
+        to_timestamp("DELIVERED_TIMESTAMP").alias("DELIVERED_TIMESTAMP"),
+    )
+
+    silver_payments = spark.createDataFrame(
+        [("ORD-2", 6, "CREDIT_CARD")],
+        ["ORDER_ID", "PAYMENT_INSTALLMENTS", "PAYMENT_TYPE"],
+    )
+
+    silver_users = spark.createDataFrame(
+        [(99, "Warsaw", "Maz", "PL", "00-002")],
+        ["USER_SURROGATE_KEY", "CITY", "STATE", "COUNTRY", "ZIP_CODE"],
+    )
+    dim_date = spark.createDataFrame(
+        [("2025-01-01", 20250101)], ["FULL_DATE", "DATE_KEY"]
+    )
+    dim_time = spark.createDataFrame(
+        [(10, 0, 0, 100000)], ["HOUR", "MINUTE", "SECONDS", "TIME_KEY"]
+    )
+    dim_session = spark.createDataFrame(
+        [("SESS-2", 102)], ["SESSION_ID", "SESSION_SURROGATE_KEY"]
+    )
+    dim_user = spark.createDataFrame([(99,)], ["USER_SURROGATE_KEY"])
+    dim_geography = spark.createDataFrame(
+        [
+            ("Warsaw", "Maz", "PL", "00-001", 55),
+            ("Warsaw", "Maz", "PL", "00-002", 56),
+        ],
+        ["CITY", "STATE", "COUNTRY", "ZIP_CODE", "GEOGRAPHY_KEY"],
+    )
+    dim_payment_type = spark.createDataFrame(
+        [
+            ("CREDIT_CARD", "Single Payment", 1),
+            ("CREDIT_CARD", "2-3 Installments", 2),
+            ("CREDIT_CARD", "4+ Installments", 3),
+        ],
+        ["PAYMENT_TYPE_NAME", "INSTALLMENT_TIER", "PAYMENT_TYPE_KEY"],
+    )
+    dim_sales_context = spark.createDataFrame(
+        [
+            ("Standard", "Full Price", "On-Time Delivery", 20),
+            ("Standard", "Discounted", "Delayed Delivery", 21),
+        ],
+        ["SHIPPING_METHOD", "DISCOUNT_STATUS", "DELIVERY_SLA_STATUS", "SALES_CONTEXT_KEY"],
+    )
+
+    dim_product = (
+        spark.createDataFrame(
+            [
+                (
+                    10,
+                    "PROD-2",
+                    50.0,
+                    30.0,
+                    200.0,
+                    10.0,
+                    5.0,
+                    4.0,
+                    "2024-01-01 00:00:00",
+                    None,
+                )
+            ],
+            schema="PRODUCT_SURROGATE_KEY int, PRODUCT_ID string, BASE_PRICE double, COST_PRICE double, WEIGHT_G double, LENGTH_CM double, WIDTH_CM double, HEIGHT_CM double, VALID_FROM string, VALID_TO string",
+        )
+        .withColumn("VALID_FROM", to_timestamp("VALID_FROM"))
+        .withColumn("VALID_TO", to_timestamp("VALID_TO"))
+    )
+
+    result_df = prepare_fact_sales_data(
+        silver_orders,
+        silver_order_items,
+        silver_payments,
+        silver_users,
+        dim_date,
+        dim_time,
+        dim_session,
+        dim_user,
+        dim_geography,
+        dim_product,
+        dim_payment_type,
+        dim_sales_context,
+    )
+
+    rows = result_df.collect()
+    assert len(rows) == 1
+
+    row = rows[0]
+    assert row["PAYMENT_TYPE_KEY"] == 3
+    assert row["GEOGRAPHY_KEY"] == 56
+    assert row["HOURS_TO_PROCESS"] == 4
+    assert row["HOURS_TO_SHIP"] == 12
+    assert row["TOTAL_ITEM_WEIGHT_G"] == 600
+    assert row["TOTAL_ITEM_VOLUME_CM3"] == 600
+</file>
+
+<file path="ecommerce/tests/silver/__init__.py">
+
+</file>
+
+<file path="ecommerce/tests/silver/test_categories.py">
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StringType, StructField, StructType
+
+from ecommerce.logic_ecommerce.silver.categories import prepare_categories_data
+
+CATEGORIES_SCHEMA = StructType(
+    [
+        StructField("category_id", StringType(), True),
+        StructField("category_name", StringType(), True),
+        StructField("parent_category_id", StringType(), True),
+    ]
+)
+
+
+def test_prepare_categories_schema_and_hierarchy(spark: SparkSession) -> None:
+    # Verify output columns and parent-child category hierarchy mapping
+    categories_df = spark.createDataFrame(
+        [
+            ("CAT-1", "Electronics", None),
+            ("CAT-2", "Laptops", "CAT-1"),
+        ],
+        schema=CATEGORIES_SCHEMA,
+    )
+
+    result_df = prepare_categories_data(categories=categories_df)
+
+    expected_columns = [
+        "CATEGORY_SURROGATE_KEY",
+        "CATEGORY_ID",
+        "CATEGORY_NAME",
+        "PARENT_CATEGORY_ID",
+    ]
+    assert result_df.columns == expected_columns
+
+    rows = {row["CATEGORY_ID"]: row for row in result_df.collect()}
+    assert len(rows) == 2
+    assert rows["CAT-1"]["PARENT_CATEGORY_ID"] is None
+    assert rows["CAT-2"]["PARENT_CATEGORY_ID"] == "CAT-1"
+
+
+def test_prepare_categories_deduplication_and_cleaning(spark: SparkSession) -> None:
+    # Verify trimming, deduplication by category_id, and filtering out null keys
+    categories_df = spark.createDataFrame(
+        [
+            (" CAT-1 ", "Electronics", None),
+            ("CAT-1", "Electronics Duplicate", None),
+            (None, "Invalid Category", None),
+        ],
+        schema=CATEGORIES_SCHEMA,
+    )
+
+    result_df = prepare_categories_data(categories=categories_df)
+    rows = result_df.collect()
+
+    assert len(rows) == 1
+    assert rows[0]["CATEGORY_ID"] == "CAT-1"
+    assert rows[0]["CATEGORY_SURROGATE_KEY"] == 1
+
+
+def test_prepare_categories_orphan_parent_sanitization(spark: SparkSession) -> None:
+    # Verify that non-existent parent_category_id references are nullified
+    categories_df = spark.createDataFrame(
+        [
+            ("CAT-1", "Electronics", None),
+            ("CAT-2", "Orphan Subcategory", "CAT-99999"),
+        ],
+        schema=CATEGORIES_SCHEMA,
+    )
+
+    result_df = prepare_categories_data(categories=categories_df)
+    rows = {row["CATEGORY_ID"]: row for row in result_df.collect()}
+
+    assert rows["CAT-2"]["PARENT_CATEGORY_ID"] is None
+
+
+def test_prepare_categories_empty_dataframe(spark: SparkSession) -> None:
+    # Verify behavior on empty input dataframe
+    empty_df = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
+    result_df = prepare_categories_data(categories=empty_df)
+
+    assert result_df.count() == 0
+</file>
+
+<file path="ecommerce/tests/silver/test_event_clickstream.py">
+import pytest
+from pyspark.sql import SparkSession
+
+from ecommerce.logic_ecommerce.silver.event_clickstream import prepare_clickstream_data
+
+
+def test_prepare_clickstream_schema_and_columns(spark: SparkSession) -> None:
+    # Arrange verifying output schema and required inputs
+    events_df = spark.createDataFrame(
+        [("EVT-1", "CLICK", "2025-01-15 10:05:00", "SESS-1", "PROD-1")],
+        ["event_id", "event_type", "event_time", "session_id", "product_id"],
+    )
+
+    # Act
+    result_df = prepare_clickstream_data(
+        event_clickstream=events_df,
+    )
+
+    # Assert checking uppercase columns and expected order
+    expected_columns = [
+        "EVENT_SURROGATE_KEY",
+        "EVENT_ID",
+        "EVENT_TYPE",
+        "EVENT_TIME",
+        "SESSION_ID",
+        "PRODUCT_ID",
+    ]
+    assert result_df.columns == expected_columns
+
+
+def test_prepare_clickstream_transformations(spark: SparkSession) -> None:
+    # Arrange multiple clickstream events
+    events_df = spark.createDataFrame(
+        [
+            ("EVT-10", "VIEW", "2025-03-10 12:00:00", "SESS-10", "PROD-100"),
+            ("EVT-11", "PURCHASE", "2025-03-11 14:00:00", "SESS-11", "PROD-101"),
+        ],
+        ["event_id", "event_type", "event_time", "session_id", "product_id"],
+    )
+
+    # Act
+    result_df = prepare_clickstream_data(
+        event_clickstream=events_df,
+    )
+    rows = {row["EVENT_ID"]: row for row in result_df.collect()}
+
+    # Assert
+    assert len(rows) == 2
+    assert rows["EVT-10"]["EVENT_TYPE"] == "VIEW"
+    assert rows["EVT-10"]["SESSION_ID"] == "SESS-10"
+    assert rows["EVT-10"]["PRODUCT_ID"] == "PROD-100"
+    assert rows["EVT-11"]["EVENT_TYPE"] == "PURCHASE"
+    assert rows["EVT-11"]["SESSION_ID"] == "SESS-11"
+    assert rows["EVT-11"]["PRODUCT_ID"] == "PROD-101"
+
+
+def test_prepare_clickstream_surrogate_key_generation(spark: SparkSession) -> None:
+    # Arrange multiple events to ensure surrogate key is generated for every row
+    events_df = spark.createDataFrame(
+        [
+            ("EVT-20", "CLICK", "2025-04-01 08:00:00", "SESS-20", "PROD-200"),
+            ("EVT-21", "HOVER", "2025-04-01 08:05:00", "SESS-20", "PROD-200"),
+        ],
+        ["event_id", "event_type", "event_time", "session_id", "product_id"],
+    )
+
+    # Act
+    result_df = prepare_clickstream_data(
+        event_clickstream=events_df,
+    )
+    rows = result_df.collect()
+
+    # Assert surrogate keys exist and are unique/present
+    assert len(rows) == 2
+    assert rows[0]["EVENT_SURROGATE_KEY"] is not None
+    assert rows[1]["EVENT_SURROGATE_KEY"] is not None
+    assert rows[0]["EVENT_SURROGATE_KEY"] != rows[1]["EVENT_SURROGATE_KEY"]
+</file>
+
+<file path="ecommerce/tests/silver/test_order_items.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import (
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
+
+from ecommerce.logic_ecommerce.silver.order_items import prepare_order_items_data
+
+
+def test_prepare_order_items_schema_and_columns(spark: SparkSession) -> None:
+    # Arrange verifying output schema
+    order_items_df = spark.createDataFrame(
+        [("ITEM-1", "ORD-1", 1, "PROD-1", 1)],
+        [
+            "order_item_id",
+            "order_id",
+            "order_item_sequential",
+            "product_id",
+            "quantity",
+        ],
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", 50.0, 5.0)],
+        ["order_item_id", "unit_price", "discount"],
+    )
+
+    # Act
+    result_df = prepare_order_items_data(
+        order_items=order_items_df, order_item_pricing=order_item_pricing_df
+    )
+
+    # Assert checking if all expected column names are present and uppercase
+    expected_columns = [
+        "ORDER_ITEM_SURROGATE_KEY",
+        "ORDER_ITEM_ID",
+        "ITEM_SEQUENCE",
+        "QUANTITY",
+        "UNIT_PRICE",
+        "DISCOUNT",
+        "ORDER_ID",
+        "PRODUCT_ID",
+    ]
+    for col_name in expected_columns:
+        assert col_name in result_df.columns
+
+
+def test_prepare_order_items_mapping_and_values(spark: SparkSession) -> None:
+    # Arrange creating multiple items
+    order_items_data = [
+        ("ITEM-1", "ORD-100", 1, "PROD-A", 3),
+        ("ITEM-2", "ORD-100", 2, "PROD-B", 2),
+        ("ITEM-3", "ORD-101", 1, "PROD-C", 1),
+    ]
+    order_items_df = spark.createDataFrame(
+        order_items_data,
+        [
+            "order_item_id",
+            "order_id",
+            "order_item_sequential",
+            "product_id",
+            "quantity",
+        ],
+    )
+
+    pricing_data = [
+        ("ITEM-1", 100.0, 15.5),
+        ("ITEM-2", 45.0, 0.0),
+        ("ITEM-3", 19.99, 4.99),
+    ]
+    order_item_pricing_df = spark.createDataFrame(
+        pricing_data,
+        ["order_item_id", "unit_price", "discount"],
+    )
+
+    # Act
+    result_df = prepare_order_items_data(
+        order_items=order_items_df, order_item_pricing=order_item_pricing_df
+    )
+    rows = {row["ORDER_ITEM_ID"]: row for row in result_df.collect()}
+
+    # Assert
+    assert len(rows) == 3
+
+    assert rows["ITEM-1"]["ORDER_ID"] == "ORD-100"
+    assert rows["ITEM-1"]["ITEM_SEQUENCE"] == 1
+    assert rows["ITEM-1"]["PRODUCT_ID"] == "PROD-A"
+    assert rows["ITEM-1"]["QUANTITY"] == 3
+    assert rows["ITEM-1"]["UNIT_PRICE"] == pytest.approx(100.0)
+    assert rows["ITEM-1"]["DISCOUNT"] == pytest.approx(15.5)
+
+    assert rows["ITEM-2"]["ITEM_SEQUENCE"] == 2
+    assert rows["ITEM-2"]["UNIT_PRICE"] == pytest.approx(45.0)
+
+    assert rows["ITEM-3"]["UNIT_PRICE"] == pytest.approx(19.99)
+    assert rows["ITEM-3"]["DISCOUNT"] == pytest.approx(4.99)
+
+
+def test_prepare_order_items_left_join_missing_pricing(spark: SparkSession) -> None:
+    # Arrange ITEM-2 has no matching record in order_item_pricing
+    order_items_df = spark.createDataFrame(
+        [
+            ("ITEM-1", "ORD-1", 1, "PROD-1", 2),
+            ("ITEM-2", "ORD-2", 1, "PROD-2", 5),
+        ],
+        [
+            "order_item_id",
+            "order_id",
+            "order_item_sequential",
+            "product_id",
+            "quantity",
+        ],
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", 20.0, 2.0)],
+        ["order_item_id", "unit_price", "discount"],
+    )
+
+    # Act
+    result_df = prepare_order_items_data(
+        order_items=order_items_df, order_item_pricing=order_item_pricing_df
+    )
+    rows = {row["ORDER_ITEM_ID"]: row for row in result_df.collect()}
+
+    # Assert left join saves ITEM-2 with NULL values for price columns
+    assert len(rows) == 2
+    assert rows["ITEM-1"]["UNIT_PRICE"] == pytest.approx(20.0)
+
+    assert rows["ITEM-2"]["QUANTITY"] == 5
+    assert rows["ITEM-2"]["UNIT_PRICE"] is None
+    assert rows["ITEM-2"]["DISCOUNT"] is None
+
+
+def test_prepare_order_items_negative_prices_and_null_product_filtering(
+    spark: SparkSession,
+) -> None:
+    # Verify negative prices/discounts become positive and items with null product_id are dropped
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("order_item_sequential", IntegerType(), True),
+            StructField("product_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    order_items_df = spark.createDataFrame(
+        [
+            ("ITEM-1", "ORD-1", 1, "PROD-1", -2),
+            ("ITEM-2", "ORD-1", 2, None, 1),
+        ],
+        schema=items_schema,
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", -80.0, -10.0)],
+        ["order_item_id", "unit_price", "discount"],
+    )
+
+    result_df = prepare_order_items_data(
+        order_items=order_items_df, order_item_pricing=order_item_pricing_df
+    )
+    rows = result_df.collect()
+
+    assert len(rows) == 1
+    assert rows[0]["QUANTITY"] == 2
+    assert rows[0]["UNIT_PRICE"] == pytest.approx(80.0)
+    assert rows[0]["DISCOUNT"] == pytest.approx(10.0)
+
+
+def test_prepare_order_items_empty_dataframes(spark: SparkSession) -> None:
+    # Arrange define schemas for empty dataframes
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("order_item_sequential", IntegerType(), True),
+            StructField("product_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    pricing_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("unit_price", DoubleType(), True),
+            StructField("discount", DoubleType(), True),
+        ]
+    )
+
+    empty_items_df = spark.createDataFrame([], schema=items_schema)
+    empty_pricing_df = spark.createDataFrame([], schema=pricing_schema)
+
+    # Act
+    result_df = prepare_order_items_data(
+        order_items=empty_items_df, order_item_pricing=empty_pricing_df
+    )
+
+    # Assert
+    assert result_df.count() == 0
+    assert "ORDER_ITEM_SURROGATE_KEY" in result_df.columns
+    assert "ITEM_SEQUENCE" in result_df.columns
+</file>
+
+<file path="ecommerce/tests/silver/test_orders.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import (
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
+
+from ecommerce.logic_ecommerce.silver.orders import (
+    add_date_columns,
+    prepare_orders_data,
+)
+
+
+def test_prepare_orders_data_schema_and_columns(spark: SparkSession) -> None:
+    orders_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("session_id", StringType(), True),
+            StructField("created_at", StringType(), True),
+        ]
+    )
+    details_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("shipping_method", StringType(), True),
+            StructField("shipping_cost", DoubleType(), True),
+        ]
+    )
+    status_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("current_status", StringType(), True),
+            StructField("valid_from", StringType(), True),
+        ]
+    )
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    pricing_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("unit_price", DoubleType(), True),
+            StructField("discount", DoubleType(), True),
+        ]
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
+
+    orders_df = spark.createDataFrame(
+        [("ORD-1", "USR-1", "SESS-1", "2025-01-15 10:00:00")], schema=orders_schema
+    )
+    order_details_df = spark.createDataFrame(
+        [("ORD-1", "COURIER", 15.0)], schema=details_schema
+    )
+    order_status_history_df = spark.createDataFrame(
+        [("ORD-1", "DELIVERED", "2025-01-18 14:00:00")], schema=status_schema
+    )
+    order_items_df = spark.createDataFrame(
+        [("ITEM-1", "ORD-1", 2)], schema=items_schema
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", 50.0, 5.0)], schema=pricing_schema
+    )
+    silver_users_df = spark.createDataFrame(
+        [(1, "USR-1", "2025-01-01 00:00:00", None)], schema=users_schema
+    )
+
+    result_df = prepare_orders_data(
+        orders=orders_df,
+        order_details=order_details_df,
+        order_status_history=order_status_history_df,
+        order_items=order_items_df,
+        order_item_pricing=order_item_pricing_df,
+        silver_users=silver_users_df,
+    )
+
+    expected_columns = [
+        "ORDER_SURROGATE_KEY",
+        "ORDER_ID",
+        "TOTAL_AMOUNT",
+        "FREIGHT_VALUE",
+        "SHIPPING_METHOD",
+        "CREATED_AT_TIMESTAMP",
+        "PENDING_PAYMENT_TIMESTAMP",
+        "PAID_TIMESTAMP",
+        "PROCESSING_TIMESTAMP",
+        "SHIPPED_TIMESTAMP",
+        "DELIVERED_TIMESTAMP",
+        "SESSION_ID",
+        "USER_SURROGATE_KEY",
+    ]
+    assert result_df.columns == expected_columns
+
+
+def test_prepare_orders_data_calculations_and_pivots(spark: SparkSession) -> None:
+    orders_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("session_id", StringType(), True),
+            StructField("created_at", StringType(), True),
+        ]
+    )
+    details_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("shipping_method", StringType(), True),
+            StructField("shipping_cost", DoubleType(), True),
+        ]
+    )
+    status_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("current_status", StringType(), True),
+            StructField("valid_from", StringType(), True),
+        ]
+    )
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    pricing_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("unit_price", DoubleType(), True),
+            StructField("discount", DoubleType(), True),
+        ]
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
+
+    orders_df = spark.createDataFrame(
+        [("ORD-100", "USR-10", "SESS-10", "2025-03-10 12:00:00")], schema=orders_schema
+    )
+    order_details_df = spark.createDataFrame(
+        [("ORD-100", "EXPRESS", 10.0)], schema=details_schema
+    )
+    order_status_history_df = spark.createDataFrame(
+        [
+            ("ORD-100", "PENDING_PAYMENT", "2025-03-10 12:01:00"),
+            ("ORD-100", "PAID", "2025-03-10 12:05:00"),
+            ("ORD-100", "SHIPPED", "2025-03-11 08:00:00"),
+        ],
+        schema=status_schema,
+    )
+    order_items_df = spark.createDataFrame(
+        [
+            ("ITEM-1", "ORD-100", 2),
+            ("ITEM-2", "ORD-100", 1),
+        ],
+        schema=items_schema,
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [
+            ("ITEM-1", 100.0, 10.0),
+            ("ITEM-2", 50.0, 0.0),
+        ],
+        schema=pricing_schema,
+    )
+    silver_users_df = spark.createDataFrame(
+        [(99, "USR-10", "2025-01-01 00:00:00", None)], schema=users_schema
+    )
+
+    result_df = prepare_orders_data(
+        orders=orders_df,
+        order_details=order_details_df,
+        order_status_history=order_status_history_df,
+        order_items=order_items_df,
+        order_item_pricing=order_item_pricing_df,
+        silver_users=silver_users_df,
+    )
+    rows = {row["ORDER_ID"]: row for row in result_df.collect()}
+
+    assert len(rows) == 1
+    row = rows["ORD-100"]
+
+    assert row["TOTAL_AMOUNT"] == pytest.approx(240.0)
+    assert row["FREIGHT_VALUE"] == pytest.approx(10.0)
+    assert row["SHIPPING_METHOD"] == "EXPRESS"
+    assert row["USER_SURROGATE_KEY"] == 99
+    assert row["PENDING_PAYMENT_TIMESTAMP"] == "2025-03-10 12:01:00"
+    assert row["PAID_TIMESTAMP"] == "2025-03-10 12:05:00"
+    assert row["SHIPPED_TIMESTAMP"] == "2025-03-11 08:00:00"
+    assert row["DELIVERED_TIMESTAMP"] is None
+
+
+def test_prepare_orders_data_left_join_missing_details(spark: SparkSession) -> None:
+    orders_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("session_id", StringType(), True),
+            StructField("created_at", StringType(), True),
+        ]
+    )
+    details_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("shipping_method", StringType(), True),
+            StructField("shipping_cost", DoubleType(), True),
+        ]
+    )
+    status_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("current_status", StringType(), True),
+            StructField("valid_from", StringType(), True),
+        ]
+    )
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    pricing_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("unit_price", DoubleType(), True),
+            StructField("discount", DoubleType(), True),
+        ]
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
+
+    orders_df = spark.createDataFrame(
+        [
+            ("ORD-1", "USR-1", "SESS-1", "2025-05-01 10:00:00"),
+            ("ORD-2", "USR-2", "SESS-2", "2025-05-02 11:00:00"),
+        ],
+        schema=orders_schema,
+    )
+
+    order_details_df = spark.createDataFrame(
+        [("ORD-1", "STANDARD", 12.5)], schema=details_schema
+    )
+
+    order_status_history_df = spark.createDataFrame(
+        [("ORD-1", "PENDING_PAYMENT", "2025-05-01 10:01:00")], schema=status_schema
+    )
+
+    order_items_df = spark.createDataFrame(
+        [("ITEM-1", "ORD-1", 1)], schema=items_schema
+    )
+
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", 20.0, 0.0)], schema=pricing_schema
+    )
+
+    silver_users_df = spark.createDataFrame(
+        [
+            (1, "USR-1", "2025-01-01 00:00:00", None),
+            (2, "USR-2", "2025-01-01 00:00:00", None),
+        ],
+        schema=users_schema,
+    )
+
+    result_df = prepare_orders_data(
+        orders=orders_df,
+        order_details=order_details_df,
+        order_status_history=order_status_history_df,
+        order_items=order_items_df,
+        order_item_pricing=order_item_pricing_df,
+        silver_users=silver_users_df,
+    )
+    rows = {row["ORDER_ID"]: row for row in result_df.collect()}
+
+    assert len(rows) == 2
+    assert rows["ORD-1"]["PENDING_PAYMENT_TIMESTAMP"] == "2025-05-01 10:01:00"
+    assert rows["ORD-1"]["FREIGHT_VALUE"] == pytest.approx(12.5)
+    assert rows["ORD-1"]["TOTAL_AMOUNT"] == pytest.approx(32.5)
+
+    assert rows["ORD-2"]["USER_SURROGATE_KEY"] == 2
+    assert rows["ORD-2"]["SHIPPING_METHOD"] is None
+    assert rows["ORD-2"]["FREIGHT_VALUE"] == pytest.approx(0.0)
+    assert rows["ORD-2"]["TOTAL_AMOUNT"] == pytest.approx(0.0)
+    assert rows["ORD-2"]["PENDING_PAYMENT_TIMESTAMP"] is None
+
+
+def test_prepare_orders_data_anomaly_healing(spark: SparkSession) -> None:
+    # Verify healing of 1900 created_at date, swapped status timestamps, and negative prices
+    orders_df = spark.createDataFrame(
+        [("ORD-ERR", "USR-1", "SESS-1", "1900-01-01 00:00:00")],
+        ["order_id", "user_id", "session_id", "created_at"],
+    )
+    order_details_df = spark.createDataFrame(
+        [("ORD-ERR", "EXPRESS", -15.0)],
+        ["order_id", "shipping_method", "shipping_cost"],
+    )
+    # PAID and SHIPPED timestamps are intentionally swapped
+    order_status_history_df = spark.createDataFrame(
+        [
+            ("ORD-ERR", "PENDING_PAYMENT", "2025-04-10 10:01:00"),
+            ("ORD-ERR", "PAID", "2025-04-11 15:00:00"),
+            ("ORD-ERR", "SHIPPED", "2025-04-10 10:05:00"),
+        ],
+        ["order_id", "current_status", "valid_from"],
+    )
+    order_items_df = spark.createDataFrame(
+        [("ITEM-1", "ORD-ERR", "PROD-1", 2)],
+        ["order_item_id", "order_id", "product_id", "quantity"],
+    )
+    order_item_pricing_df = spark.createDataFrame(
+        [("ITEM-1", -50.0, -5.0)],
+        ["order_item_id", "unit_price", "discount"],
+    )
+    silver_users_df = spark.createDataFrame(
+        [(77, "USR-1", "2025-01-01 00:00:00", None)],
+        "user_surrogate_key int, user_id string, valid_from string, valid_to string",
+    )
+
+    result_df = prepare_orders_data(
+        orders=orders_df,
+        order_details=order_details_df,
+        order_status_history=order_status_history_df,
+        order_items=order_items_df,
+        order_item_pricing=order_item_pricing_df,
+        silver_users=silver_users_df,
+    )
+    row = result_df.collect()[0]
+
+    assert row["CREATED_AT_TIMESTAMP"] == "2025-04-10 10:01:00"
+    assert row["USER_SURROGATE_KEY"] == 77
+    assert row["PAID_TIMESTAMP"] == "2025-04-10 10:05:00"
+    assert row["SHIPPED_TIMESTAMP"] == "2025-04-11 15:00:00"
+    assert row["FREIGHT_VALUE"] == pytest.approx(15.0)
+    assert row["TOTAL_AMOUNT"] == pytest.approx(105.0)
+
+
+def test_prepare_orders_data_empty_dataframes(spark: SparkSession) -> None:
+    orders_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("session_id", StringType(), True),
+            StructField("created_at", StringType(), True),
+        ]
+    )
+    details_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("shipping_method", StringType(), True),
+            StructField("shipping_cost", DoubleType(), True),
+        ]
+    )
+    status_schema = StructType(
+        [
+            StructField("order_id", StringType(), True),
+            StructField("current_status", StringType(), True),
+            StructField("valid_from", StringType(), True),
+        ]
+    )
+    items_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("order_id", StringType(), True),
+            StructField("quantity", IntegerType(), True),
+        ]
+    )
+    pricing_schema = StructType(
+        [
+            StructField("order_item_id", StringType(), True),
+            StructField("unit_price", DoubleType(), True),
+            StructField("discount", DoubleType(), True),
+        ]
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
+
+    empty_orders = spark.createDataFrame([], schema=orders_schema)
+    empty_details = spark.createDataFrame([], schema=details_schema)
+    empty_status = spark.createDataFrame([], schema=status_schema)
+    empty_items = spark.createDataFrame([], schema=items_schema)
+    empty_pricing = spark.createDataFrame([], schema=pricing_schema)
+    empty_users = spark.createDataFrame([], schema=users_schema)
+
+    joined_df = prepare_orders_data(
+        orders=empty_orders,
+        order_details=empty_details,
+        order_status_history=empty_status,
+        order_items=empty_items,
+        order_item_pricing=empty_pricing,
+        silver_users=empty_users,
+    )
+    result_df = add_date_columns(joined_df)
+
+    assert result_df.count() == 0
+    assert "YEAR" in result_df.columns
+    assert "MONTH" in result_df.columns
+    assert "QUARTER" in result_df.columns
+</file>
+
+<file path="ecommerce/tests/silver/test_payments.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import (
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
+
+from ecommerce.logic_ecommerce.silver.payments import prepare_payments_data
+
+PAYMENTS_SCHEMA = StructType(
+    [
+        StructField("payment_id", StringType(), True),
+        StructField("order_id", StringType(), True),
+        StructField("payment_sequential", IntegerType(), True),
+        StructField("payment_type", StringType(), True),
+        StructField("payment_installments", IntegerType(), True),
+        StructField("payment_value", DoubleType(), True),
+    ]
+)
+
+
+def test_prepare_payments_schema_and_columns(spark: SparkSession) -> None:
+    # Verify output schema and column names
+    payments_df = spark.createDataFrame(
+        [("PAY-1", "ORD-1", 1, "CREDIT_CARD", 3, 150.0)],
+        schema=PAYMENTS_SCHEMA,
+    )
+
+    result_df = prepare_payments_data(payment_details=payments_df)
+
+    expected_columns = [
+        "PAYMENT_SURROGATE_KEY",
+        "PAYMENT_ID",
+        "PAYMENT_SEQUENTIAL",
+        "PAYMENT_TYPE",
+        "PAYMENT_INSTALLMENTS",
+        "PAYMENT_VALUE",
+        "ORDER_ID",
+    ]
+    assert result_df.columns == expected_columns
+
+
+def test_prepare_payments_value_sanitization_and_null_filtering(
+    spark: SparkSession,
+) -> None:
+    # Verify negative values are converted to positive, nulls to 0.0, and null IDs dropped
+    payments_df = spark.createDataFrame(
+        [
+            ("PAY-1", "ORD-1", 1, "CREDIT_CARD", 1, -99.50),
+            ("PAY-2", "ORD-2", 1, "BLIK", 1, None),
+            (None, "ORD-3", 1, "VOUCHER", 1, 50.0),
+        ],
+        schema=PAYMENTS_SCHEMA,
+    )
+
+    result_df = prepare_payments_data(payment_details=payments_df)
+    rows = {row["PAYMENT_ID"]: row for row in result_df.collect()}
+
+    assert len(rows) == 2
+    assert rows["PAY-1"]["PAYMENT_VALUE"] == pytest.approx(99.50)
+    assert rows["PAY-2"]["PAYMENT_VALUE"] == pytest.approx(0.0)
+
+def test_prepare_payments_duplicate_sequence_and_installment_fix(
+    spark: SparkSession,
+) -> None:
+    # Verify duplicate sequences per order are removed and non-credit installments reset to 1
+    payments_df = spark.createDataFrame(
+        [
+            ("PAY-1", "ORD-1", 1, "VOUCHER", 12, 50.0),
+            ("PAY-2", "ORD-1", 1, "BLIK", 1, 50.0),
+        ],
+        schema=PAYMENTS_SCHEMA,
+    )
+
+    result_df = prepare_payments_data(payment_details=payments_df)
+    rows = result_df.collect()
+
+    assert len(rows) == 1
+    assert rows[0]["PAYMENT_ID"] == "PAY-1"
+    assert rows[0]["PAYMENT_INSTALLMENTS"] == 1
+
+def test_prepare_payments_empty_dataframe(spark: SparkSession) -> None:
+    # Verify behavior on empty input dataframe
+    empty_df = spark.createDataFrame([], schema=PAYMENTS_SCHEMA)
+    result_df = prepare_payments_data(payment_details=empty_df)
+
+    assert result_df.count() == 0
+</file>
+
+<file path="ecommerce/tests/silver/test_products.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import (
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
+
+from ecommerce.logic_ecommerce.silver.products import prepare_products_data
+
+CATALOG_SCHEMA = StructType(
+    [
+        StructField("product_id", StringType(), True),
+        StructField("category_id", StringType(), True),
+        StructField("product_name", StringType(), True),
+        StructField("brand", StringType(), True),
+        StructField("description", StringType(), True),
+        StructField("is_active", IntegerType(), True),
+        StructField("valid_from", StringType(), True),
+    ]
+)
+
+PRICING_SCHEMA = StructType(
+    [
+        StructField("unique_id", StringType(), True),
+        StructField("product_id", StringType(), True),
+        StructField("price", DoubleType(), True),
+        StructField("cost_price", DoubleType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+        StructField("is_current", IntegerType(), True),
+    ]
+)
+
+INVENTORY_SCHEMA = StructType(
+    [
+        StructField("inventory_id", StringType(), True),
+        StructField("product_id", StringType(), True),
+        StructField("weight_g", DoubleType(), True),
+        StructField("length_cm", DoubleType(), True),
+        StructField("height_cm", DoubleType(), True),
+        StructField("width_cm", DoubleType(), True),
+        StructField("stock_quantity", IntegerType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+        StructField("is_current", IntegerType(), True),
+    ]
+)
+
+
+def test_prepare_products_schema_and_time_slicing(spark: SparkSession) -> None:
+    # Verify SCD2 time-slicing across overlapping pricing and inventory changes
+    catalog_df = spark.createDataFrame(
+        [("PROD-1", "CAT-1", "Mouse", "Logi", "Wireless", 1, "2025-01-01 00:00:00")],
+        schema=CATALOG_SCHEMA,
+    )
+    pricing_df = spark.createDataFrame(
+        [
+            (
+                "P-1",
+                "PROD-1",
+                100.0,
+                60.0,
+                "2025-01-01 00:00:00",
+                "2025-03-01 00:00:00",
+                0,
+            ),
+            ("P-2", "PROD-1", 120.0, 60.0, "2025-03-01 00:00:00", None, 1),
+        ],
+        schema=PRICING_SCHEMA,
+    )
+    inventory_df = spark.createDataFrame(
+        [
+            (
+                "I-1",
+                "PROD-1",
+                100.0,
+                10.0,
+                5.0,
+                5.0,
+                50,
+                "2025-01-01 00:00:00",
+                "2025-02-01 00:00:00",
+                0,
+            ),
+            (
+                "I-2",
+                "PROD-1",
+                100.0,
+                10.0,
+                5.0,
+                5.0,
+                30,
+                "2025-02-01 00:00:00",
+                None,
+                1,
+            ),
+        ],
+        schema=INVENTORY_SCHEMA,
+    )
+
+    result_df = prepare_products_data(
+        product_catalog=catalog_df,
+        product_pricing_history=pricing_df,
+        product_inventory=inventory_df,
+    )
+
+    expected_columns = [
+        "PRODUCT_SURROGATE_KEY",
+        "PRODUCT_ID",
+        "PRODUCT_NAME",
+        "BRAND",
+        "DESCRIPTION",
+        "BASE_PRICE",
+        "COST_PRICE",
+        "WEIGHT_G",
+        "LENGTH_CM",
+        "HEIGHT_CM",
+        "WIDTH_CM",
+        "STOCK_QUANTITY",
+        "CREATED_AT",
+        "VALID_FROM",
+        "VALID_TO",
+        "IS_ACTIVE",
+        "CATEGORY_ID",
+    ]
+    assert result_df.columns == expected_columns
+
+    rows = sorted(result_df.collect(), key=lambda r: r["VALID_FROM"])
+    assert len(rows) == 3
+
+    # Window 1: Jan 1 to Feb 1 (Price 100, Stock 50)
+    assert rows[0]["VALID_FROM"] == "2025-01-01 00:00:00"
+    assert rows[0]["VALID_TO"] == "2025-02-01 00:00:00"
+    assert rows[0]["BASE_PRICE"] == pytest.approx(100.0)
+    assert rows[0]["STOCK_QUANTITY"] == 50
+
+    # Window 2: Feb 1 to Mar 1 (Price 100, Stock 30)
+    assert rows[1]["VALID_FROM"] == "2025-02-01 00:00:00"
+    assert rows[1]["VALID_TO"] == "2025-03-01 00:00:00"
+    assert rows[1]["BASE_PRICE"] == pytest.approx(100.0)
+    assert rows[1]["STOCK_QUANTITY"] == 30
+
+    # Window 3: Mar 1 to None (Price 120, Stock 30)
+    assert rows[2]["VALID_FROM"] == "2025-03-01 00:00:00"
+    assert rows[2]["VALID_TO"] is None
+    assert rows[2]["BASE_PRICE"] == pytest.approx(120.0)
+    assert rows[2]["STOCK_QUANTITY"] == 30
+
+
+def test_prepare_products_error_sanitization(spark: SparkSession) -> None:
+    # Verify negative prices are converted to positive and null stock defaults to 0
+    catalog_df = spark.createDataFrame(
+        [("PROD-2", "CAT-1", "Keyboard", "Keychron", "Mech", 1, "2025-01-01 00:00:00")],
+        schema=CATALOG_SCHEMA,
+    )
+    pricing_df = spark.createDataFrame(
+        [("P-1", "PROD-2", -250.0, -100.0, "2025-01-01 00:00:00", None, 1)],
+        schema=PRICING_SCHEMA,
+    )
+    inventory_df = spark.createDataFrame([], schema=INVENTORY_SCHEMA)
+
+    result_df = prepare_products_data(
+        product_catalog=catalog_df,
+        product_pricing_history=pricing_df,
+        product_inventory=inventory_df,
+    )
+    row = result_df.collect()[0]
+
+    assert row["BASE_PRICE"] == pytest.approx(250.0)
+    assert row["COST_PRICE"] == pytest.approx(100.0)
+    assert row["STOCK_QUANTITY"] == 0
+
+def test_prepare_products_error_sanitization(spark: SparkSession) -> None:
+    # Verify negative prices/dimensions/stock are converted to positive and empty name replaced
+    catalog_df = spark.createDataFrame(
+        [("PROD-2", "CAT-1", "", "Keychron", "Mech", 1, "2025-01-01 00:00:00")],
+        schema=CATALOG_SCHEMA,
+    )
+    pricing_df = spark.createDataFrame(
+        [("P-1", "PROD-2", -250.0, -100.0, "2025-01-01 00:00:00", None, 1)],
+        schema=PRICING_SCHEMA,
+    )
+    inventory_df = spark.createDataFrame(
+        [
+            (
+                "I-1",
+                "PROD-2",
+                -800.0,
+                -30.0,
+                -4.0,
+                -12.0,
+                -15,
+                "2025-01-01 00:00:00",
+                None,
+                1,
+            )
+        ],
+        schema=INVENTORY_SCHEMA,
+    )
+
+    result_df = prepare_products_data(
+        product_catalog=catalog_df,
+        product_pricing_history=pricing_df,
+        product_inventory=inventory_df,
+    )
+    row = result_df.collect()[0]
+
+    assert row["PRODUCT_NAME"] == "Unknown Product"
+    assert row["BASE_PRICE"] == pytest.approx(250.0)
+    assert row["COST_PRICE"] == pytest.approx(100.0)
+    assert row["WEIGHT_G"] == pytest.approx(800.0)
+    assert row["LENGTH_CM"] == pytest.approx(30.0)
+    assert row["STOCK_QUANTITY"] == 15
+
+
+def test_prepare_products_scd2_gap_healing(spark: SparkSession) -> None:
+    # Verify 2-day gap in pricing valid_to is healed seamlessly without zero-price slices
+    catalog_df = spark.createDataFrame(
+        [("PROD-3", "CAT-1", "Monitor", "Dell", "4K", 1, "2025-01-01 00:00:00")],
+        schema=CATALOG_SCHEMA,
+    )
+    pricing_df = spark.createDataFrame(
+        [
+            (
+                "P-1",
+                "PROD-3",
+                300.0,
+                200.0,
+                "2025-01-01 00:00:00",
+                "2025-01-28 00:00:00",
+                0,
+            ),
+            ("P-2", "PROD-3", 350.0, 200.0, "2025-01-30 00:00:00", None, 1),
+        ],
+        schema=PRICING_SCHEMA,
+    )
+    inventory_df = spark.createDataFrame([], schema=INVENTORY_SCHEMA)
+
+    result_df = prepare_products_data(
+        product_catalog=catalog_df,
+        product_pricing_history=pricing_df,
+        product_inventory=inventory_df,
+    )
+    rows = sorted(result_df.collect(), key=lambda r: r["VALID_FROM"])
+
+    assert len(rows) == 2
+    assert rows[0]["VALID_TO"] == "2025-01-30 00:00:00"
+    assert rows[0]["BASE_PRICE"] == pytest.approx(300.0)
+    assert rows[1]["BASE_PRICE"] == pytest.approx(350.0)
+
+
+def test_prepare_products_empty_dataframes(spark: SparkSession) -> None:
+    # Verify behavior on empty input dataframes
+    result_df = prepare_products_data(
+        product_catalog=spark.createDataFrame([], schema=CATALOG_SCHEMA),
+        product_pricing_history=spark.createDataFrame([], schema=PRICING_SCHEMA),
+        product_inventory=spark.createDataFrame([], schema=INVENTORY_SCHEMA),
+    )
+
+    assert result_df.count() == 0
+</file>
+
+<file path="ecommerce/tests/silver/test_sessions.py">
+import pytest
+from pyspark.sql import SparkSession
+from pyspark.sql.types import (
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
+
+from ecommerce.logic_ecommerce.silver.sessions import prepare_sessions_data
+
+
+def test_prepare_sessions_schema_and_columns(spark: SparkSession) -> None:
+    # Arrange verifying output schema and required inputs
+    sessions_df = spark.createDataFrame(
+        [
+            (
+                "SESS-1",
+                "USR-1",
+                "2025-01-15 10:00:00",
+                "2025-01-15 10:30:00",
+                "WEB",
+                "MOBILE",
+                "Chrome",
+                "Organic",
+            )
+        ],
+        [
+            "session_id",
+            "user_id",
+            "session_start",
+            "session_end",
+            "channel",
+            "device_type",
+            "browser",
+            "traffic_source",
+        ],
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
+    silver_users_df = spark.createDataFrame(
+        [(1, "USR-1", "2025-01-01 00:00:00", None)],
+        schema=users_schema,
+    )
+
+    # Act
+    result_df = prepare_sessions_data(
+        sessions=sessions_df,
+        silver_users=silver_users_df,
+    )
+
+    # Assert checking uppercase columns and expected order
+    expected_columns = [
+        "SESSION_SURROGATE_KEY",
+        "SESSION_ID",
+        "SESSION_START",
+        "SESSION_END",
+        "DEVICE_TYPE",
+        "BROWSER",
+        "TRAFFIC_SOURCE",
+        "USER_SURROGATE_KEY",
+    ]
+    assert result_df.columns == expected_columns
+
+
+def test_prepare_sessions_transformations_and_user_lookup(spark: SparkSession) -> None:
+    # Arrange multiple sessions with valid user surrogate key lookup
+    sessions_df = spark.createDataFrame(
+        [
+            (
+                "SESS-10",
+                "USR-10",
+                "2025-03-10 12:00:00",
+                "2025-03-10 12:15:00",
+                "MOBILE",
+                "iOS",
+                "Safari",
+                "Paid",
+            ),
+            (
+                "SESS-11",
+                "USR-11",
+                "2025-03-11 14:00:00",
+                "2025-03-11 14:45:00",
+                "WEB",
+                "Desktop",
+                "Firefox",
+                "Organic",
+            ),
+        ],
+        [
+            "session_id",
+            "user_id",
+            "session_start",
+            "session_end",
+            "channel",
+            "device_type",
+            "browser",
+            "traffic_source",
+        ],
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
+    silver_users_df = spark.createDataFrame(
+        [
+            (100, "USR-10", "2025-01-01 00:00:00", None),
+            (101, "USR-11", "2025-01-01 00:00:00", None),
+        ],
+        schema=users_schema,
+    )
+
+    # Act
+    result_df = prepare_sessions_data(
+        sessions=sessions_df,
+        silver_users=silver_users_df,
+    )
+    rows = {row["SESSION_ID"]: row for row in result_df.collect()}
+
+    # Assert
+    assert len(rows) == 2
+    assert rows["SESS-10"]["USER_SURROGATE_KEY"] == 100
+    assert rows["SESS-10"]["DEVICE_TYPE"] == "iOS"
+    assert rows["SESS-11"]["USER_SURROGATE_KEY"] == 101
+    assert rows["SESS-11"]["DEVICE_TYPE"] == "Desktop"
+
+
+def test_prepare_sessions_missing_user_mapping(spark: SparkSession) -> None:
+    # Arrange a session where user_id does not exist in silver_users
+    sessions_df = spark.createDataFrame(
+        [
+            (
+                "SESS-99",
+                "UNKNOWN-USR",
+                "2025-04-01 08:00:00",
+                "2025-04-01 08:10:00",
+                "WEB",
+                "MOBILE",
+                "Chrome",
+                "Organic",
+            )
+        ],
+        [
+            "session_id",
+            "user_id",
+            "session_start",
+            "session_end",
+            "channel",
+            "device_type",
+            "browser",
+            "traffic_source",
+        ],
+    )
+    users_schema = StructType(
+        [
+            StructField("user_surrogate_key", IntegerType(), True),
+            StructField("user_id", StringType(), True),
+            StructField("valid_from", StringType(), True),
+            StructField("valid_to", StringType(), True),
+        ]
+    )
+    silver_users_df = spark.createDataFrame([], schema=users_schema)
+
+    # Act
+    result_df = prepare_sessions_data(
+        sessions=sessions_df,
+        silver_users=silver_users_df,
+    )
+    row = result_df.collect()[0]
+
+    # Assert left join keeps the session with null surrogate key
+    assert row["SESSION_ID"] == "SESS-99"
+    assert row["USER_SURROGATE_KEY"] is None
+</file>
+
+<file path="ecommerce/tests/silver/test_users.py">
+from pyspark.sql import SparkSession
+from pyspark.sql.types import IntegerType, StringType, StructField, StructType
+
+from ecommerce.logic_ecommerce.silver.users import join_users_data
+
+LOCATIONS_SCHEMA = StructType(
+    [
+        StructField("location_id", StringType(), True),
+        StructField("city", StringType(), True),
+        StructField("state", StringType(), True),
+        StructField("zip_code", StringType(), True),
+        StructField("country", StringType(), True),
+    ]
+)
+
+CONTACTS_SCHEMA = StructType(
+    [
+        StructField("user_id", StringType(), True),
+        StructField("email", StringType(), True),
+        StructField("phone", StringType(), True),
+    ]
+)
+
+USER_LOCATIONS_SCHEMA = StructType(
+    [
+        StructField("id", IntegerType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("location_id", StringType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+        StructField("is_current", IntegerType(), True),
+    ]
+)
+
+PROFILES_SCHEMA = StructType(
+    [
+        StructField("user_id", StringType(), True),
+        StructField("first_name", StringType(), True),
+        StructField("last_name", StringType(), True),
+        StructField("birth_date", StringType(), True),
+        StructField("gender", StringType(), True),
+    ]
+)
+
+STATUS_SCHEMA = StructType(
+    [
+        StructField("id", StringType(), True),
+        StructField("user_id", StringType(), True),
+        StructField("status", StringType(), True),
+        StructField("status_change_description", StringType(), True),
+        StructField("valid_from", StringType(), True),
+        StructField("valid_to", StringType(), True),
+        StructField("is_current", IntegerType(), True),
+    ]
+)
+
+USERS_SCHEMA = StructType(
+    [
+        StructField("user_id", StringType(), True),
+        StructField("customer_unique_id", StringType(), True),
+        StructField("created_at", StringType(), True),
+    ]
+)
+
+
+def test_join_users_data_schema_and_scd2_timeline(spark: SparkSession) -> None:
+    # Verify SCD2 timeline slicing when a user changes location over time
+    locations_df = spark.createDataFrame(
+        [
+            ("LOC-1", "Gdansk", "Pomorskie", "80-001", "Poland"),
+            ("LOC-2", "Warszawa", "Mazowieckie", "00-001", "Poland"),
+        ],
+        schema=LOCATIONS_SCHEMA,
+    )
+    contacts_df = spark.createDataFrame(
+        [("USR-1", "jan@example.com", "123456789")],
+        schema=CONTACTS_SCHEMA,
+    )
+    profiles_df = spark.createDataFrame(
+        [("USR-1", "Jan", "Kowalski", "1999-05-10", "M")],
+        schema=PROFILES_SCHEMA,
+    )
+    users_df = spark.createDataFrame(
+        [("USR-1", "CUST-UNQ-1", "2025-01-01 00:00:00")],
+        schema=USERS_SCHEMA,
+    )
+    user_locations_df = spark.createDataFrame(
+        [
+            (1, "USR-1", "LOC-1", "2025-01-01 00:00:00", "2025-06-01 00:00:00", 0),
+            (2, "USR-1", "LOC-2", "2025-06-01 00:00:00", None, 1),
+        ],
+        schema=USER_LOCATIONS_SCHEMA,
+    )
+    status_df = spark.createDataFrame(
+        [("ST-1", "USR-1", "ACTIVE", "Initial", "2025-01-01 00:00:00", None, 1)],
+        schema=STATUS_SCHEMA,
+    )
+
+    result_df = join_users_data(
+        locations=locations_df,
+        user_contacts=contacts_df,
+        user_locations=user_locations_df,
+        user_profiles=profiles_df,
+        user_status_history=status_df,
+        users=users_df,
+    )
+
+    expected_columns = [
+        "USER_SURROGATE_KEY",
+        "USER_ID",
+        "CUSTOMER_UNIQUE_ID",
+        "FIRST_NAME",
+        "LAST_NAME",
+        "EMAIL",
+        "PHONE",
+        "BIRTH_DATE",
+        "GENDER",
+        "CITY",
+        "STATE",
+        "ZIP_CODE",
+        "COUNTRY",
+        "STATUS",
+        "CREATED_AT",
+        "VALID_FROM",
+        "VALID_TO",
+        "IS_ACTIVE",
+    ]
+    assert result_df.columns == expected_columns
+
+    rows = sorted(result_df.collect(), key=lambda r: r["VALID_FROM"])
+    assert len(rows) == 2
+
+    # Historical record in Gdansk (IS_ACTIVE = 0)
+    assert rows[0]["CITY"] == "Gdansk"
+    assert rows[0]["VALID_FROM"] == "2025-01-01 00:00:00"
+    assert rows[0]["VALID_TO"] == "2025-06-01 00:00:00"
+    assert rows[0]["IS_ACTIVE"] == 0
+
+    # Current record in Warszawa (IS_ACTIVE = 1)
+    assert rows[1]["CITY"] == "Warszawa"
+    assert rows[1]["VALID_FROM"] == "2025-06-01 00:00:00"
+    assert rows[1]["VALID_TO"] is None
+    assert rows[1]["IS_ACTIVE"] == 1
+
+def test_join_users_data_contact_sanitization(spark: SparkSession) -> None:
+    # Verify email and phone cleaning and invalid pattern nullification
+    locations_df = spark.createDataFrame([], schema=LOCATIONS_SCHEMA)
+    user_locations_df = spark.createDataFrame([], schema=USER_LOCATIONS_SCHEMA)
+    profiles_df = spark.createDataFrame([], schema=PROFILES_SCHEMA)
+    status_df = spark.createDataFrame([], schema=STATUS_SCHEMA)
+
+    users_df = spark.createDataFrame(
+        [
+            ("USR-1", "C-1", "2025-01-01 00:00:00"),
+            ("USR-2", "C-2", "2025-01-01 00:00:00"),
+        ],
+        schema=USERS_SCHEMA,
+    )
+    contacts_df = spark.createDataFrame(
+        [
+            ("USR-1", " jan@@example.com ", " 123-456-789 "),
+            ("USR-2", "broken_email_no_at", "123"),
+        ],
+        schema=CONTACTS_SCHEMA,
+    )
+
+    result_df = join_users_data(
+        locations=locations_df,
+        user_contacts=contacts_df,
+        user_locations=user_locations_df,
+        user_profiles=profiles_df,
+        user_status_history=status_df,
+        users=users_df,
+    )
+    rows = {r["USER_ID"]: r for r in result_df.collect()}
+
+    assert rows["USR-1"]["EMAIL"] == "jan@example.com"
+    assert rows["USR-1"]["PHONE"] == "123-456-789"
+    assert rows["USR-2"]["EMAIL"] is None
+    assert rows["USR-2"]["PHONE"] is None
+
+
+def test_join_users_data_empty_dataframes(spark: SparkSession) -> None:
+    # Verify behavior on empty input dataframes
+    result_df = join_users_data(
+        locations=spark.createDataFrame([], schema=LOCATIONS_SCHEMA),
+        user_contacts=spark.createDataFrame([], schema=CONTACTS_SCHEMA),
+        user_locations=spark.createDataFrame([], schema=USER_LOCATIONS_SCHEMA),
+        user_profiles=spark.createDataFrame([], schema=PROFILES_SCHEMA),
+        user_status_history=spark.createDataFrame([], schema=STATUS_SCHEMA),
+        users=spark.createDataFrame([], schema=USERS_SCHEMA),
+    )
+
+    assert result_df.count() == 0
+</file>
+
+<file path="ecommerce/tests/__init__.py">
+
+</file>
+
+<file path="ecommerce/tests/conftest.py">
+import os
+import sys
+import pytest
+from pyspark.sql import SparkSession
+
+# Ensure Spark worker uses the active Python interpreter
+os.environ["PYSPARK_PYTHON"] = sys.executable
+os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+
+
+@pytest.fixture(scope="session")
+def spark():
+    # Initialize lightweight local Spark session for unit tests
+    spark = (
+        SparkSession.builder.master("local[1]")
+        .appName("pytest-pyspark-suite")
+        .config("spark.sql.shuffle.partitions", "1")
+        .config("spark.default.parallelism", "1")
+        .config("spark.ui.enabled", "false")
+        .config("spark.driver.bindAddress", "127.0.0.1")
+        .config("spark.sql.session.timeZone", "UTC")
+        .config("spark.driver.extraJavaOptions", "-Djava.security.debug=off")
+        .getOrCreate()
+    )
+
+    yield spark
+
+    spark.stop()
+</file>
+
+</files>

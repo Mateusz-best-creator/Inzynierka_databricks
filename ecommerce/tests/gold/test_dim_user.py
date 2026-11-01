@@ -5,6 +5,48 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 from ecommerce.logic_ecommerce.gold.dim_user import prepare_dim_user_data
 
 
+def test_prepare_dim_user_schema(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("USER_SURROGATE_KEY", IntegerType(), True),
+            StructField("USER_ID", StringType(), True),
+            StructField("CUSTOMER_UNIQUE_ID", StringType(), True),
+            StructField("FIRST_NAME", StringType(), True),
+            StructField("LAST_NAME", StringType(), True),
+            StructField("EMAIL", StringType(), True),
+            StructField("PHONE", StringType(), True),
+            StructField("BIRTH_DATE", StringType(), True),
+            StructField("GENDER", StringType(), True),
+            StructField("STATUS", StringType(), True),
+            StructField("CREATED_AT", StringType(), True),
+            StructField("VALID_FROM", StringType(), True),
+            StructField("VALID_TO", StringType(), True),
+        ]
+    )
+    users_df = spark.createDataFrame([], schema=schema)
+
+    result_df = prepare_dim_user_data(silver_users=users_df)
+
+    expected_columns = [
+        "USER_SURROGATE_KEY",
+        "USER_ID",
+        "CUSTOMER_UNIQUE_ID",
+        "FIRST_NAME",
+        "LAST_NAME",
+        "EMAIL",
+        "PHONE",
+        "BIRTH_DATE",
+        "AGE_GROUP",
+        "GENDER",
+        "STATUS",
+        "CREATED_AT",
+        "VALID_FROM",
+        "VALID_TO",
+        "SCD_RECORD_STATUS",
+    ]
+    assert result_df.columns == expected_columns
+
+
 def test_prepare_dim_user_age_groups_and_scd(spark: SparkSession) -> None:
     schema = StructType(
         [

@@ -6,6 +6,28 @@ from ecommerce.logic_ecommerce.gold.dim_sales_context import (
 )
 
 
+def test_prepare_dim_sales_context_schema(spark: SparkSession) -> None:
+    schema = StructType(
+        [
+            StructField("SHIPPING_METHOD", StringType(), True),
+            StructField("DISCOUNT_AMOUNT", DoubleType(), True),
+            StructField("ACTUAL_DELIVERY_DATE", StringType(), True),
+            StructField("ESTIMATED_DELIVERY_DATE", StringType(), True),
+        ]
+    )
+    orders_df = spark.createDataFrame([], schema=schema)
+
+    result_df = prepare_dim_sales_context_data(silver_orders=orders_df)
+
+    expected_columns = [
+        "SALES_CONTEXT_KEY",
+        "SHIPPING_METHOD",
+        "DISCOUNT_STATUS",
+        "DELIVERY_SLA_STATUS",
+    ]
+    assert result_df.columns == expected_columns
+
+
 def test_prepare_dim_sales_context_with_optional_columns(spark: SparkSession) -> None:
     schema = StructType(
         [

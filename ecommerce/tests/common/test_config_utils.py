@@ -8,7 +8,7 @@ from ecommerce.common_functions.config_utils import (
 
 
 def test_get_config_path() -> None:
-    # Verify environment-specific config path construction
+    # Verify environment-specific configuration file path construction
     root = "/mock/root"
     layer = "silver"
     env = "dev"
@@ -21,7 +21,7 @@ def test_get_config_path() -> None:
 
 
 def test_get_default_config_path() -> None:
-    # Verify default config path construction
+    # Verify default properties file path construction
     root = "/mock/root"
     filename = "default_properties.json"
 
