@@ -1,5 +1,13 @@
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col, lit, row_number, when
+from pyspark.sql.functions import (
+    col,
+    lit,
+    lower,
+    regexp_replace,
+    row_number,
+    trim,
+    when,
+)
 from pyspark.sql.window import Window
 
 from ecommerce.common_functions.config_utils import get_config, set_logger
@@ -7,33 +15,43 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 
 def prepare_dim_event_type_data(silver_events: DataFrame) -> DataFrame:
-    # Filter out empty event types and keep distinct values
+    # Filter out null or blank event types and deduplicate raw names
     unique_events = (
-        silver_events.filter(col("EVENT_TYPE").isNotNull())
-        .select(col("EVENT_TYPE").alias("event_type_name"))
+        silver_events.filter(
+            col("EVENT_TYPE").isNotNull() & (trim(col("EVENT_TYPE")) != "")
+        )
+        .select(trim(col("EVENT_TYPE")).alias("event_type_name"))
         .dropDuplicates(["event_type_name"])
     )
 
-    # Map raw event types to funnel steps and funnel stages
+    # Normalize event name to match both snake_case and PascalCase formats
+    norm_event = lower(regexp_replace(col("event_type_name"), r"[_\s-]+", ""))
+
     mapped_events = unique_events.withColumn(
         "funnel_step_order",
-        when(col("event_type_name").isin("View", "PageView", "ProductView"), lit(1))
-        .when(col("event_type_name").isin("AddToCart", "Cart", "Wishlist"), lit(2))
-        .when(col("event_type_name").isin("Checkout", "Payment"), lit(3))
-        .when(col("event_type_name").isin("Purchase", "Complete"), lit(4))
+        when(
+            norm_event.isin("view", "pageview", "productview", "viewproduct", "search"),
+            lit(1),
+        )
+        .when(
+            norm_event.isin("addtocart", "cart", "wishlist", "removefromcart"),
+            lit(2),
+        )
+        .when(norm_event.isin("checkout", "payment"), lit(3))
+        .when(norm_event.isin("purchase", "complete"), lit(4))
         .otherwise(lit(5)),
     ).withColumn(
         "funnel_stage_name",
         when(
-            col("event_type_name").isin("View", "PageView", "ProductView"),
+            norm_event.isin("view", "pageview", "productview", "viewproduct", "search"),
             lit("1. Awareness (View)"),
         )
         .when(
-            col("event_type_name").isin("AddToCart", "Cart", "Wishlist"),
+            norm_event.isin("addtocart", "cart", "wishlist", "removefromcart"),
             lit("2. Consideration (Cart)"),
         )
         .when(
-            col("event_type_name").isin("Checkout", "Payment", "Purchase", "Complete"),
+            norm_event.isin("checkout", "payment", "purchase", "complete"),
             lit("3. Conversion (Purchase)"),
         )
         .otherwise(lit("4. Other / Unclassified")),

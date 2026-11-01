@@ -4,23 +4,29 @@ import shutil
 import sys
 from pathlib import Path
 
-# --- 1. KONFIGURACJA ŚRODOWISKA WINDOWS (JAVA 17 + HADOOP WINUTILS) ---
-jdk17_path = r"C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot"
-os.environ["JAVA_HOME"] = jdk17_path
-os.environ["PATH"] = (
-    os.path.join(jdk17_path, "bin") + os.pathsep + os.environ.get("PATH", "")
-)
+# --- 1. KONFIGURACJA ŚRODOWISKA (WINDOWS VS DOCKER/LINUX) ---
+if os.name == "nt":
+    # Konfiguracja dla lokalnego Windowsa
+    jdk17_path = r"C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot"
+    if os.path.exists(jdk17_path):
+        os.environ["JAVA_HOME"] = jdk17_path
+        os.environ["PATH"] = (
+            os.path.join(jdk17_path, "bin") + os.pathsep + os.environ.get("PATH", "")
+        )
 
-hadoop_home = os.path.abspath("./.hadoop")
-if os.path.exists(hadoop_home):
-    os.environ["HADOOP_HOME"] = hadoop_home
-    os.environ["PATH"] = (
-        os.path.join(hadoop_home, "bin") + os.pathsep + os.environ["PATH"]
-    )
+    hadoop_home = os.path.abspath("./.hadoop")
+    if os.path.exists(hadoop_home):
+        os.environ["HADOOP_HOME"] = hadoop_home
+        os.environ["PATH"] = (
+            os.path.join(hadoop_home, "bin") + os.pathsep + os.environ["PATH"]
+        )
+else:
+    # Konfiguracja dla środowiska kontenera Linux (Docker)
+    os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-17-openjdk-amd64"
+    os.environ["PATH"] = f"{os.environ['JAVA_HOME']}/bin:" + os.environ.get("PATH", "")
 
 os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-
 from delta import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
@@ -65,7 +71,15 @@ from ecommerce.logic_ecommerce.gold.fact_events import entry_point_fact_events
 def setup_local_spark(env: str = "dev") -> SparkSession:
     warehouse_dir = os.path.abspath("./local_warehouse")
     if os.path.exists(warehouse_dir):
-        shutil.rmtree(warehouse_dir)
+        for item in os.listdir(warehouse_dir):
+            item_path = os.path.join(warehouse_dir, item)
+            try:
+                if os.path.isdir(item_path):
+                    shutil.rmtree(item_path)
+                else:
+                    os.remove(item_path)
+            except Exception as e:
+                print(f"Skipping locked item {item_path}: {e}")
 
     catalog_prefix = f"databricks_{env}_domain."
 
@@ -98,6 +112,7 @@ def setup_local_spark(env: str = "dev") -> SparkSession:
         .config("spark.sql.warehouse.dir", warehouse_dir)
         .config("spark.databricks.delta.retentionDurationCheck.enabled", "false")
         .config("spark.driver.memory", "4g")
+        .config("spark.sql.parquet.int96AsTimestamp", "true")
     )
 
     return configure_spark_with_delta_pip(builder).getOrCreate()

@@ -1,5 +1,14 @@
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col, lit, row_number, unix_timestamp, when
+from pyspark.sql.functions import (
+    col,
+    lit,
+    lower,
+    regexp_replace,
+    row_number,
+    trim,
+    unix_timestamp,
+    when,
+)
 from pyspark.sql.window import Window
 
 from ecommerce.common_functions.config_utils import get_config, set_logger
@@ -9,9 +18,10 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 def prepare_dim_session_data(
     silver_sessions: DataFrame, silver_events: DataFrame
 ) -> DataFrame:
-    # Identify sessions that resulted in a conversion
+    # Identify sessions with conversion events across case formats
+    norm_event = lower(regexp_replace(trim(col("EVENT_TYPE")), r"[_\s-]+", ""))
     converted_sessions = (
-        silver_events.filter(col("EVENT_TYPE").isin("Purchase", "Checkout"))
+        silver_events.filter(norm_event.isin("purchase", "checkout", "complete"))
         .select("SESSION_ID")
         .dropDuplicates()
         .withColumn("is_converted", lit(1))
@@ -29,8 +39,8 @@ def prepare_dim_session_data(
 
     duration_bucket_logic = (
         when(col("SESSION_END").isNull() | (duration_sec < 10), lit("Bounce (< 10s)"))
-        .when(duration_sec.between(10, 59), lit("Brief (10s-60s)"))
-        .when(duration_sec.between(60, 300), lit("Engaged (1m-5m)"))
+        .when(duration_sec < 60, lit("Brief (10s-60s)"))
+        .when(duration_sec <= 300, lit("Engaged (1m-5m)"))
         .otherwise(lit("Extended (> 5m)"))
     )
 
@@ -38,7 +48,7 @@ def prepare_dim_session_data(
         col("is_converted") == 1, lit("Converted (Purchase)")
     ).otherwise(lit("Browsing Only"))
 
-    surrogate_window = Window.orderBy("SESSION_START")
+    surrogate_window = Window.orderBy("SESSION_START", "SESSION_ID")
 
     return sessions_joined.select(
         row_number().over(surrogate_window).alias("SESSION_SURROGATE_KEY"),

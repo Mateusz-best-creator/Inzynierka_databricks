@@ -9,59 +9,58 @@ import pandas as pd
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIRECTORY = os.path.join(SCRIPT_DIR, "generated_combined_data")
 
-# -----------------------------------------------------------------------------
-# GLOBAL CONFIGURATION
-# -----------------------------------------------------------------------------
+# Global generation settings
+RANDOM_SEED = 42
+ENABLE_ERROR_INJECTION = True
+
 NUMBER_OF_USERS = 5000
 NUMBER_OF_LOCATIONS = 1000
 NUMBER_OF_PRODUCTS = 1000
-NUMBER_OF_CATEGORIES = 20
 NUMBER_OF_ORDERS = 15000
-NUMBER_OF_GENERAL_SESSIONS = 15000  # Additional non-purchase sessions
+NUMBER_OF_GENERAL_SESSIONS = 15000
 
-# Error Rates
-NULL_RATE = 0  # 0.2
-WRONG_PRICE_RATE = 0  # 0.1
-WRONG_DATE_RATE = 0  # 0.3
+# Error injection rates applied when ENABLE_ERROR_INJECTION is True
+NULL_RATE = 0.02
+WRONG_PRICE_RATE = 0.03
+WRONG_DATE_RATE = 0.02
 
-INVALID_EMAILS = 0  # 0.1
-INVALID_PHONE_NUMBERS = 0  # 0.1
+INVALID_EMAILS = 0.03
+INVALID_PHONE_NUMBERS = 0.03
 
-PRODUCT_MISSING_CAT_RATE = 0  # 0.05
-PRODUCT_MISSING_NAME_RATE = 0  # 0.05
-INVENTORY_NEGATIVE_STOCK_RATE = 0  # 0.05
-INVENTORY_NEGATIVE_DIMENSION_RATE = 0  # 0.05
-PRICING_NEGATIVE_PRICE_RATE = 0  # 0.05
-PRICING_SCD2_GAP_RATE = 0  # 0.02
-CATEGORY_ORPHAN_RATE = 0  # 0.05
+PRODUCT_MISSING_CAT_RATE = 0.02
+PRODUCT_MISSING_NAME_RATE = 0.02
+INVENTORY_NEGATIVE_STOCK_RATE = 0.03
+INVENTORY_NEGATIVE_DIMENSION_RATE = 0.02
+PRICING_NEGATIVE_PRICE_RATE = 0.03
+PRICING_SCD2_GAP_RATE = 0.02
+CATEGORY_ORPHAN_RATE = 0.05
 
-PAYMENT_NEGATIVE_VALUE_RATE = 0  # 0.05
-PAYMENT_INVALID_TYPE_RATE = 0  # 0.03
-PAYMENT_INVALID_INSTALLMENTS_RATE = 0  # 0.02
-PAYMENT_DUPLICATE_SEQ_RATE = 0  # 0.02
-PAYMENT_STATUS_ANOMALY_RATE = 0  # 0.03
+PAYMENT_NEGATIVE_VALUE_RATE = 0.02
+PAYMENT_INVALID_TYPE_RATE = 0.02
+PAYMENT_INVALID_INSTALLMENTS_RATE = 0.02
+PAYMENT_DUPLICATE_SEQ_RATE = 0.02
+PAYMENT_STATUS_ANOMALY_RATE = 0.02
 
-DISCONTINUATION_RATE = 0.3
+DISCONTINUATION_RATE = 0.25
 
+random.seed(RANDOM_SEED)
+Faker.seed(RANDOM_SEED)
 fake = Faker("en_US")
 
-# Master Timeline Anchors to prevent paradoxes
 NOW = datetime.now()
-FOUNDATION_START = NOW - timedelta(days=365 * 4)  # 4 years ago
-FOUNDATION_END = NOW - timedelta(days=365 * 3)  # 3 years ago
+FOUNDATION_START = NOW - timedelta(days=365 * 4)
+FOUNDATION_END = NOW - timedelta(days=365 * 3)
 
 
-# -----------------------------------------------------------------------------
-# SHARED UTILITIES
-# -----------------------------------------------------------------------------
 def random_date(start, end):
+    # Generate a random timestamp between start and end dates
     delta = end - start
-    random_days = random.randrange(delta.days)
-    random_seconds = random.randrange(24 * 60 * 60)
-    return start + timedelta(days=random_days, seconds=random_seconds)
+    total_seconds = max(1, int(delta.total_seconds()))
+    return start + timedelta(seconds=random.randrange(total_seconds))
 
 
 def generate_scd2_timeline(start_date, number_of_versions):
+    # Build a sorted list of timestamps for SCD2 version intervals
     if number_of_versions <= 0:
         return []
 
@@ -76,9 +75,7 @@ def generate_scd2_timeline(start_date, number_of_versions):
     return dates
 
 
-# =============================================================================
-# MATEUSZ MODULE: USERS & LOCATIONS
-# =============================================================================
+# Users and locations domain
 STATUS_DESCRIPTIONS = {
     ("ACTIVE", "INACTIVE"): [
         "User voluntarily deactivated the account.",
@@ -105,23 +102,16 @@ STATUS_DESCRIPTIONS = {
 
 
 def choose_next_status(current_status):
+    # Select the next distinct user account status transition
     if current_status in ("BANNED", "DELETED"):
         return None
 
     if current_status == "ACTIVE":
-        choices = [
-            "ACTIVE",
-            "ACTIVE",
-            "ACTIVE",
-            "INACTIVE",
-            "SUSPENDED",
-            "BANNED",
-            "DELETED",
-        ]
+        choices = ["INACTIVE", "INACTIVE", "SUSPENDED", "BANNED", "DELETED"]
     elif current_status == "INACTIVE":
-        choices = ["INACTIVE", "ACTIVE", "DELETED"]
+        choices = ["ACTIVE", "ACTIVE", "DELETED"]
     elif current_status == "SUSPENDED":
-        choices = ["ACTIVE", "SUSPENDED", "BANNED", "DELETED"]
+        choices = ["ACTIVE", "BANNED", "DELETED"]
     else:
         return None
     return random.choice(choices)
@@ -131,42 +121,37 @@ def get_status_description(previous_status, new_status):
     descriptions = STATUS_DESCRIPTIONS.get((previous_status, new_status))
     if descriptions:
         return random.choice(descriptions)
-    if previous_status == new_status:
-        return f"Account remained {new_status.lower()}."
     return f"Account status changed from {previous_status} to {new_status}."
 
 
 def generate_status_history(created_at, number_of_versions):
+    # Create SCD2 status history starting from ACTIVE at account creation
     if number_of_versions <= 0:
         return []
 
     dates = generate_scd2_timeline(created_at, number_of_versions)
-    history = []
-    current_status = "ACTIVE"
-
-    # Rule: Every user account starts with status ACTIVE upon creation
-    history.append(
+    history = [
         {
             "status": "ACTIVE",
             "status_change_description": "Creation of the account.",
             "valid_from": dates[0],
         }
-    )
+    ]
+    current_status = "ACTIVE"
 
     for i in range(1, len(dates)):
         previous_status = current_status
         next_status = choose_next_status(current_status)
-
         if next_status is None:
             break
 
         current_status = next_status
-        description = get_status_description(previous_status, current_status)
-
         history.append(
             {
                 "status": current_status,
-                "status_change_description": description,
+                "status_change_description": get_status_description(
+                    previous_status, current_status
+                ),
                 "valid_from": dates[i],
             }
         )
@@ -201,6 +186,7 @@ def generate_locations(number_of_locations):
 
 
 def generate_data():
+    # Generate user master records, profiles, contacts, location history, and status history
     users_table, user_profile_table, user_contact_table = [], [], []
     user_status_history_table, user_location_table = [], []
     location_table = generate_locations(NUMBER_OF_LOCATIONS)
@@ -242,24 +228,21 @@ def generate_data():
             }
         )
 
-        email = f"{first_name.lower()}.{last_name.lower()}{random.randint(1, 100)}@gmail.com"
+        email = f"{first_name.lower()}.{last_name.lower()}{random.randint(1, 999)}@gmail.com"
         phone = fake.phone_number()
-
         user_contact_table.append({"user_id": user_id, "email": email, "phone": phone})
 
-        # 1. Generate status history first (Starts with ACTIVE)
-        status_history = generate_status_history(user_created_at, random.randint(1, 4))
+        status_history = generate_status_history(
+            user_created_at, random.choices([1, 2, 3, 4], weights=[55, 25, 12, 8])[0]
+        )
 
-        # Determine if there is a PERMANENT terminal state (DELETED or BANNED).
-        # Note: SUSPENDED is excluded so temporary suspensions don't permanently cut off locations.
         terminal_date = None
         for status_record in status_history:
             if status_record["status"] in ("DELETED", "BANNED"):
                 terminal_date = status_record["valid_from"]
                 break
 
-        # 2. Generate location history, clipped ONLY if permanently deleted or banned
-        num_loc_versions = random.randint(1, 4)
+        num_loc_versions = random.choices([1, 2, 3], weights=[60, 25, 15])[0]
         loc_dates = generate_scd2_timeline(user_created_at, num_loc_versions)
 
         if terminal_date:
@@ -271,21 +254,14 @@ def generate_data():
 
         for j in range(len(loc_dates)):
             is_last = j == len(loc_dates) - 1
-
-            # If this is the last location and account reached a permanent terminal state,
-            # cap valid_to at terminal_date and keep is_current = 1 as the final stage.
-            if is_last and terminal_date:
-                valid_to = terminal_date
-                is_current = 1
-            else:
-                is_current = 1 if is_last else 0
-                valid_to = None if is_current else loc_dates[j + 1]
+            is_current = 1 if is_last else 0
+            valid_to = None if is_last else loc_dates[j + 1]
 
             user_location_table.append(
                 {
                     "id": len(user_location_table) + 1,
                     "user_id": user_id,
-                    "location_id": loc_ids[j],
+                    "location_id": str(loc_ids[j]),
                     "valid_from": loc_dates[j],
                     "valid_to": valid_to,
                     "is_current": is_current,
@@ -317,15 +293,14 @@ def generate_data():
     )
 
 
-# =============================================================================
-# MARCIN MODULE: CATEGORIES, PRODUCTS (DECOUPLED TIMELINES)
-# =============================================================================
+# Categories and products domain
 CATEGORY_STRUCTURE = {
     "Electronics": ["Laptops", "Smartphones", "Audio", "Cameras"],
     "Home & Garden": ["Furniture", "Kitchen", "Decor", "Lighting"],
     "Sports": ["Fitness", "Cycling", "Running", "Swimming"],
     "Clothing": ["Men", "Women", "Kids", "Accessories"],
 }
+
 CATEGORY_NOUNS = {
     "Laptops": ["Laptop", "Notebook", "Ultrabook"],
     "Smartphones": ["Smartphone", "Phone", "Phablet"],
@@ -378,7 +353,28 @@ def generate_categories_table():
     return categories, cat_mapping
 
 
+def generate_physical_specs(subcat_name):
+    # Generate realistic weight and dimensions covering all Gold weight and volume tiers
+    if subcat_name in ("Furniture", "Fitness", "Cycling"):
+        weight = random.randint(5500, 28000)
+        length = random.randint(40, 120)
+        width = random.randint(30, 80)
+        height = random.randint(25, 80)
+    elif subcat_name in ("Laptops", "Kitchen", "Cameras", "Lighting"):
+        weight = random.randint(600, 4800)
+        length = random.randint(15, 45)
+        width = random.randint(12, 35)
+        height = random.randint(8, 25)
+    else:
+        weight = random.randint(80, 900)
+        length = random.randint(5, 25)
+        width = random.randint(5, 20)
+        height = random.randint(2, 12)
+    return weight, length, height, width
+
+
 def generate_products_domain_tables(number_of_products, cat_mapping):
+    # Generate catalog, inventory, and pricing SCD2 tables with independent timelines
     catalog, inventory, pricing = [], [], []
     subcat_ids = list(cat_mapping.keys())
 
@@ -391,13 +387,10 @@ def generate_products_domain_tables(number_of_products, cat_mapping):
         product_base_name = f"{fake.word().capitalize()} {random.choice(CATEGORY_NOUNS[subcat_name])} Pro"
         brand = fake.company()
 
-        # ==========================================
-        # 1. PRODUCT CATALOG SCD2 TIMELINE
-        # ==========================================
+        # 1. Product catalog timeline
         cat_dates = generate_scd2_timeline(created_at, random.randint(1, 3))
         num_cat_versions = len(cat_dates)
         discontinued = random.random() < DISCONTINUATION_RATE and num_cat_versions > 1
-
         discontinuation_date = None
 
         for j in range(num_cat_versions):
@@ -432,36 +425,32 @@ def generate_products_domain_tables(number_of_products, cat_mapping):
                 }
             )
 
-            if not is_active:
-                break
-
-        # ==========================================
-        # 2. INVENTORY SCD2 TIMELINE
-        # ==========================================
+        # 2. Inventory timeline
         inv_dates = generate_scd2_timeline(created_at, random.randint(1, 4))
-
-        # If discontinued, filter out any inventory change dates that occur AFTER discontinuation
         if discontinuation_date:
             inv_dates = [d for d in inv_dates if d <= discontinuation_date]
+            if not inv_dates:
+                inv_dates = [created_at]
 
-        weight, length, height, width = (
-            random.randint(100, 5000),
-            random.randint(10, 100),
-            random.randint(10, 100),
-            random.randint(10, 100),
-        )
-        stock_qty = random.randint(5, 120)
+        weight, length, height, width = generate_physical_specs(subcat_name)
 
         for j in range(len(inv_dates)):
             is_last = j == len(inv_dates) - 1
+            is_current = 1 if is_last else 0
+            valid_to = None if is_last else inv_dates[j + 1]
 
-            if is_last and discontinuation_date:
-                # Last entry gets valid_to = discontinuation_date, but remains is_current = 1
-                valid_to = discontinuation_date
-                is_current = 1
+            if is_last and discontinued:
+                stock_qty = 0
             else:
-                is_current = 1 if is_last else 0
-                valid_to = None if is_current else inv_dates[j + 1]
+                stock_qty = random.choices(
+                    [
+                        0,
+                        random.randint(1, 10),
+                        random.randint(11, 100),
+                        random.randint(101, 250),
+                    ],
+                    weights=[8, 22, 50, 20],
+                )[0]
 
             inventory.append(
                 {
@@ -478,38 +467,50 @@ def generate_products_domain_tables(number_of_products, cat_mapping):
                 }
             )
 
-        # ==========================================
-        # 3. PRICING SCD2 TIMELINE
-        # ==========================================
+        # 3. Pricing timeline
         pricing_dates = generate_scd2_timeline(created_at, random.randint(1, 4))
-
         if discontinuation_date:
             pricing_dates = [d for d in pricing_dates if d <= discontinuation_date]
+            if not pricing_dates:
+                pricing_dates = [created_at]
 
-        current_price = round(random.uniform(10.0, 800.0), 2)
+        price_tier_choice = random.choices(
+            ["budget", "regular", "premium", "luxury"], weights=[25, 40, 25, 10]
+        )[0]
+        if price_tier_choice == "budget":
+            current_price = round(random.uniform(12.0, 48.0), 2)
+        elif price_tier_choice == "regular":
+            current_price = round(random.uniform(50.0, 195.0), 2)
+        elif price_tier_choice == "premium":
+            current_price = round(random.uniform(205.0, 490.0), 2)
+        else:
+            current_price = round(random.uniform(510.0, 1200.0), 2)
 
         for j in range(len(pricing_dates)):
             is_last = j == len(pricing_dates) - 1
-
-            if is_last and discontinuation_date:
-                # Last entry gets valid_to = discontinuation_date, but remains is_current = 1
-                valid_to = discontinuation_date
-                is_current = 1
-            else:
-                is_current = 1 if is_last else 0
-                valid_to = None if is_current else pricing_dates[j + 1]
+            is_current = 1 if is_last else 0
+            valid_to = None if is_last else pricing_dates[j + 1]
 
             if j > 0:
                 current_price = round(
-                    max(5.0, current_price * random.uniform(0.85, 1.25)), 2
+                    max(5.0, current_price * random.uniform(0.88, 1.18)), 2
                 )
+
+            margin_ratio = random.choices(
+                [
+                    random.uniform(0.88, 0.95),
+                    random.uniform(0.68, 0.82),
+                    random.uniform(0.45, 0.62),
+                ],
+                weights=[20, 50, 30],
+            )[0]
 
             pricing.append(
                 {
                     "unique_id": f"PRC-{len(pricing) + 1}",
                     "product_id": prod_id,
                     "price": current_price,
-                    "cost_price": round(current_price * random.uniform(0.50, 0.80), 2),
+                    "cost_price": round(current_price * margin_ratio, 2),
                     "valid_from": pricing_dates[j],
                     "valid_to": valid_to,
                     "is_current": is_current,
@@ -519,28 +520,7 @@ def generate_products_domain_tables(number_of_products, cat_mapping):
     return catalog, inventory, pricing
 
 
-def is_product_active_at_date_fast(product_id, order_date, catalog_map):
-    if product_id not in catalog_map:
-        return True
-    for row in catalog_map[product_id]:
-        if row["valid_from"] <= order_date:
-            if row["valid_to"] is None or order_date < row["valid_to"]:
-                return row["is_active"] == 1
-    return True
-
-
-# =============================================================================
-# MACIEK MODULE: ORDERS
-# =============================================================================
-def get_historical_price(product_id, order_date, pricing_table):
-    for row in pricing_table:
-        if row["product_id"] == product_id:
-            if row["valid_from"] <= order_date:
-                if row["valid_to"] is None or row["valid_to"] > order_date:
-                    return row["price"]
-    return 50.0
-
-
+# Orders domain and fast lookup builders
 STATE_BASE_FREIGHT = {
     "California": 10.0,
     "New York": 9.0,
@@ -561,8 +541,35 @@ def build_product_catalog_lookup(product_catalog):
     return catalog_map
 
 
+def build_product_pricing_lookup(product_pricing):
+    pricing_map = {}
+    for row in product_pricing:
+        pricing_map.setdefault(row["product_id"], []).append(row)
+    return pricing_map
+
+
+def is_product_active_at_date_fast(product_id, order_date, catalog_map):
+    if product_id not in catalog_map:
+        return True
+    for row in catalog_map[product_id]:
+        if row["valid_from"] <= order_date:
+            if row["valid_to"] is None or order_date < row["valid_to"]:
+                return row["is_active"] == 1
+    return True
+
+
+def get_historical_price_fast(product_id, order_date, pricing_map):
+    periods = pricing_map.get(product_id, [])
+    for row in periods:
+        if row["valid_from"] <= order_date and (
+            row["valid_to"] is None or order_date < row["valid_to"]
+        ):
+            return row["price"]
+    return periods[-1]["price"] if periods else 50.0
+
+
 def build_user_state_lookup(user_location_table, location_table):
-    loc_state_map = {loc["location_id"]: loc["state"] for loc in location_table}
+    loc_state_map = {str(loc["location_id"]): loc["state"] for loc in location_table}
     user_locs = {}
     for ul in user_location_table:
         user_locs.setdefault(ul["user_id"], []).append(
@@ -600,32 +607,39 @@ def is_user_eligible_to_order_at_date(user_id, order_date, user_status_map):
         if row["valid_from"] <= order_date and (
             row["valid_to"] is None or order_date < row["valid_to"]
         ):
-            # Users cannot place orders if their account is INACTIVE, SUSPENDED, BANNED, or DELETED
-            if row["status"] in ("INACTIVE", "SUSPENDED", "BANNED", "DELETED"):
-                return False
-            return True
-
-    # Fallback to the latest status record if timestamp sits past open intervals
-    last_status = user_status_map[user_id][-1]["status"]
-    return last_status not in ("INACTIVE", "SUSPENDED", "BANNED", "DELETED")
+            return row["status"] == "ACTIVE"
+    return user_status_map[user_id][-1]["status"] == "ACTIVE"
 
 
 def calculate_freight_value(state, shipping_method, total_weight_g):
     base_cost = STATE_BASE_FREIGHT.get(state, STATE_BASE_FREIGHT["DEFAULT"])
-    weight_cost = (total_weight_g / 1000) * FREIGHT_PER_KG
+    weight_cost = (total_weight_g / 1000.0) * FREIGHT_PER_KG
     multiplier = SHIPPING_MULTIPLIERS.get(shipping_method, 1.0)
     return round((base_cost + weight_cost) * multiplier, 2)
 
 
 def generate_order_status_history(created_at, paid_at, shipping_method):
-    processing_at = paid_at + timedelta(hours=random.randint(1, 24))
-    shipped_at = processing_at + timedelta(hours=random.randint(12, 72))
-    delivery_days = (
-        random.randint(1, 2) if shipping_method == "EXPRESS" else random.randint(3, 7)
-    )
-    delivered_at = shipped_at + timedelta(
-        days=delivery_days, hours=random.randint(0, 12)
-    )
+    # Generate sequential order status timestamps based on shipping tier
+    if shipping_method == "SAME_DAY":
+        processing_at = paid_at + timedelta(minutes=random.randint(15, 90))
+        shipped_at = processing_at + timedelta(hours=random.randint(1, 4))
+        delivered_at = shipped_at + timedelta(hours=random.randint(2, 8))
+    elif shipping_method == "EXPRESS":
+        processing_at = paid_at + timedelta(hours=random.randint(1, 8))
+        shipped_at = processing_at + timedelta(hours=random.randint(6, 24))
+        delivered_at = shipped_at + timedelta(
+            days=random.randint(1, 2), hours=random.randint(1, 10)
+        )
+    elif shipping_method == "PICKUP":
+        processing_at = paid_at + timedelta(hours=random.randint(1, 12))
+        shipped_at = processing_at + timedelta(hours=random.randint(4, 24))
+        delivered_at = shipped_at + timedelta(hours=random.randint(6, 48))
+    else:
+        processing_at = paid_at + timedelta(hours=random.randint(4, 24))
+        shipped_at = processing_at + timedelta(hours=random.randint(12, 72))
+        delivered_at = shipped_at + timedelta(
+            days=random.randint(3, 7), hours=random.randint(0, 12)
+        )
 
     timeline = [
         ("CREATED", created_at),
@@ -668,29 +682,29 @@ def generate_orders_data(
 
     user_locs_map = build_user_state_lookup(user_location_table, location_table)
     user_status_map = build_user_status_lookup(user_status_history_table)
+    product_catalog_map = build_product_catalog_lookup(product_catalog)
+    product_pricing_map = build_product_pricing_lookup(product_pricing)
     weight_by_product = {
         row["product_id"]: row["weight_g"] for row in product_inventory
     }
 
-    product_catalog_map = build_product_catalog_lookup(product_catalog)
-
     global_item_counter, global_status_history_counter = 1, 1
     user_ids = [u["user_id"] for u in users_table]
     all_product_ids = list(product_catalog_map.keys())
+    shipping_methods = ["STANDARD", "EXPRESS", "SAME_DAY", "PICKUP"]
 
     for i in range(NUMBER_OF_ORDERS):
         order_id = f"ORDER-{str(i + 1).zfill(10)}"
 
-        # Pick an active/eligible user at order creation time
         for _ in range(50):
             user_id = random.choice(user_ids)
             created_at = random_date(FOUNDATION_END, NOW - timedelta(days=1))
             if is_user_eligible_to_order_at_date(user_id, created_at, user_status_map):
                 break
 
-        shipping_method = random.choice(["STANDARD", "EXPRESS"])
-        payment_started_at = created_at + timedelta(minutes=random.randint(1, 15))
-        paid_at = payment_started_at + timedelta(minutes=random.randint(1, 5))
+        shipping_method = random.choices(shipping_methods, weights=[55, 25, 10, 10])[0]
+        payment_started_at = created_at + timedelta(minutes=random.randint(1, 20))
+        paid_at = payment_started_at + timedelta(minutes=random.randint(1, 15))
 
         status_history = generate_order_status_history(
             created_at, paid_at, shipping_method
@@ -711,7 +725,6 @@ def generate_orders_data(
             )
             global_status_history_counter += 1
 
-        # Filter products active at exact order timestamp
         valid_product_ids = [
             p_id
             for p_id in all_product_ids
@@ -720,7 +733,7 @@ def generate_orders_data(
         if not valid_product_ids:
             valid_product_ids = all_product_ids
 
-        num_items = random.choices([1, 2, 3, 4], weights=[50, 30, 15, 5])[0]
+        num_items = random.choices([1, 2, 3, 4, 5], weights=[45, 30, 15, 7, 3])[0]
         selected_products = random.sample(
             valid_product_ids, min(num_items, len(valid_product_ids))
         )
@@ -729,16 +742,22 @@ def generate_orders_data(
         total_weight_g = 0
         order_items_data_temp = []
 
+        Order_discount_rate = random.choices(
+            [0.0, 0.05, 0.10, 0.15, 0.20, 0.25], weights=[50, 15, 15, 10, 5, 5]
+        )[0]
+
         for seq, product_id in enumerate(selected_products, start=1):
             order_item_id = f"ORDER-ITEM-{str(global_item_counter).zfill(12)}"
             global_item_counter += 1
 
-            unit_price = get_historical_price(product_id, created_at, product_pricing)
-            quantity = random.randint(1, 3)
-            discount = round(unit_price * random.choice([0.0, 0.0, 0.05, 0.10]), 2)
+            unit_price = get_historical_price_fast(
+                product_id, created_at, product_pricing_map
+            )
+            quantity = random.choices([1, 2, 3, 4], weights=[60, 25, 10, 5])[0]
+            discount = round(unit_price * Order_discount_rate, 2)
 
             items_value += round((unit_price - discount) * quantity, 2)
-            total_weight_g += weight_by_product[product_id] * quantity
+            total_weight_g += weight_by_product.get(product_id, 500) * quantity
 
             order_items_table.append(
                 {
@@ -756,7 +775,6 @@ def generate_orders_data(
                     "discount": discount,
                 }
             )
-
             order_items_data_temp.append(
                 {"product_id": product_id, "quantity": quantity}
             )
@@ -767,7 +785,9 @@ def generate_orders_data(
         order_details_table.append(
             {
                 "order_id": order_id,
-                "order_channel": random.choice(["WEB", "MOBILE_APP", "MARKETPLACE"]),
+                "order_channel": random.choices(
+                    ["WEB", "MOBILE_APP", "MARKETPLACE"], weights=[50, 35, 15]
+                )[0],
                 "shipping_method": shipping_method,
                 "freight_value": freight_value,
             }
@@ -787,6 +807,7 @@ def generate_orders_data(
                 "order_id": order_id,
                 "user_id": user_id,
                 "created_at": created_at,
+                "has_discount": Order_discount_rate > 0,
                 "items": order_items_data_temp,
             }
         )
@@ -802,12 +823,33 @@ def generate_orders_data(
     )
 
 
-# =============================================================================
-# SESSIONS & CLICKSTREAM MODULE (DIRECT FOREIGN KEY LINK)
-# =============================================================================
+# Sessions and clickstream domain
+def append_event(
+    clickstream_table,
+    event_counter,
+    session_id,
+    user_id,
+    product_id,
+    event_time,
+    event_type,
+):
+    clickstream_table.append(
+        {
+            "session_id": session_id,
+            "user_id": user_id,
+            "event_id": f"EVT-{str(event_counter).zfill(12)}",
+            "product_id": product_id,
+            "event_time": event_time,
+            "event_type": event_type,
+        }
+    )
+    return event_counter + 1
+
+
 def generate_sessions_and_clickstreams(
     users_table, product_catalog, order_purchase_meta
 ):
+    # Generate purchase and browsing sessions covering all duration buckets and funnel stages
     raw_sessions = []
 
     device_types = ["Desktop", "Mobile", "Tablet"]
@@ -815,61 +857,74 @@ def generate_sessions_and_clickstreams(
     traffic_sources = ["Google", "Direct", "Facebook", "Newsletter", "Twitter"]
 
     user_ids = [u["user_id"] for u in users_table]
-    product_ids = [p["product_id"] for p in product_catalog]
+    unique_product_ids = list({p["product_id"] for p in product_catalog})
 
-    # 1. Prepare Purchase Sessions (linked directly to orders)
+    # 1. Purchase sessions
     for order in order_purchase_meta:
-        order_id = order["order_id"]
-        user_id = order["user_id"]
         created_at = order["created_at"]
-        items = order["items"]
-
-        session_duration = random.randint(5, 30)
-        session_start = created_at - timedelta(minutes=session_duration)
-        session_end = created_at
+        duration_sec = random.choices(
+            [
+                random.randint(45, 59),
+                random.randint(65, 295),
+                random.randint(305, 1500),
+            ],
+            weights=[10, 45, 45],
+        )[0]
+        session_start = created_at - timedelta(seconds=duration_sec)
 
         raw_sessions.append(
             {
                 "type": "purchase",
-                "order_id": order_id,
-                "user_id": user_id,
+                "archetype": "purchase",
+                "order_id": order["order_id"],
+                "user_id": order["user_id"],
                 "session_start": session_start,
-                "session_end": session_end,
-                "device_type": random.choice(device_types),
+                "session_end": created_at,
+                "device_type": random.choices(device_types, weights=[45, 45, 10])[0],
                 "browser": random.choice(browsers),
                 "traffic_source": random.choice(traffic_sources),
-                "items": items,
+                "has_discount": order.get("has_discount", False),
+                "items": order["items"],
             }
         )
 
-    # 2. Prepare General Non-Purchase Sessions
+    # 2. General non-purchase sessions across 4 realistic duration archetypes
     for _ in range(NUMBER_OF_GENERAL_SESSIONS):
         user_id = random.choice(user_ids)
         session_start = random_date(FOUNDATION_END, NOW - timedelta(hours=1))
-        session_duration = random.randint(1, 25)
-        session_end = session_start + timedelta(minutes=session_duration)
+        archetype = random.choices(
+            ["bounce", "brief", "cart_abandonment", "extended_research"],
+            weights=[20, 30, 30, 20],
+        )[0]
+
+        if archetype == "bounce":
+            duration_sec = random.randint(2, 9)
+        elif archetype == "brief":
+            duration_sec = random.randint(12, 58)
+        elif archetype == "cart_abandonment":
+            duration_sec = random.randint(65, 295)
+        else:
+            duration_sec = random.randint(310, 1200)
 
         raw_sessions.append(
             {
                 "type": "general",
+                "archetype": archetype,
                 "order_id": None,
                 "user_id": user_id,
                 "session_start": session_start,
-                "session_end": session_end,
-                "device_type": random.choice(device_types),
+                "session_end": session_start + timedelta(seconds=duration_sec),
+                "device_type": random.choices(device_types, weights=[40, 50, 10])[0],
                 "browser": random.choice(browsers),
                 "traffic_source": random.choice(traffic_sources),
+                "has_discount": False,
                 "items": [],
             }
         )
 
-    # 3. Sort all sessions chronologically for seamless blending
     raw_sessions.sort(key=lambda x: x["session_start"])
 
-    orders_table = []
-    sessions_table = []
-    clickstream_table = []
-
+    orders_table, sessions_table, clickstream_table = [], [], []
     session_counter = 1
     event_counter = 1
 
@@ -890,7 +945,6 @@ def generate_sessions_and_clickstreams(
         )
 
         if raw["type"] == "purchase":
-            # Add session_id directly to orders table
             orders_table.append(
                 {
                     "order_id": raw["order_id"],
@@ -900,115 +954,176 @@ def generate_sessions_and_clickstreams(
                 }
             )
 
-            current_time = raw["session_start"]
-            clickstream_table.append(
-                {
-                    "session_id": session_id,
-                    "user_id": raw["user_id"],
-                    "event_id": f"EVT-{str(event_counter).zfill(12)}",
-                    "product_id": "",
-                    "event_time": current_time,
-                    "event_type": "page_view",
-                }
-            )
-            event_counter += 1
-            current_time += timedelta(seconds=random.randint(5, 20))
+            planned_events = [("page_view", "")]
+            if random.random() < 0.6:
+                planned_events.append(("search", ""))
 
             for item in raw["items"]:
                 p_id = item["product_id"]
-                qty = item["quantity"]
+                planned_events.append(("view_product", p_id))
+                if random.random() < 0.25:
+                    planned_events.append(("view_reviews", p_id))
+                if random.random() < 0.20:
+                    planned_events.append(("wishlist", p_id))
+                for _ in range(item["quantity"]):
+                    planned_events.append(("add_to_cart", p_id))
 
-                clickstream_table.append(
-                    {
-                        "session_id": session_id,
-                        "user_id": raw["user_id"],
-                        "event_id": f"EVT-{str(event_counter).zfill(12)}",
-                        "product_id": p_id,
-                        "event_time": current_time,
-                        "event_type": "view_product",
-                    }
-                )
-                event_counter += 1
-                current_time += timedelta(seconds=random.randint(5, 15))
+            if raw["has_discount"] or random.random() < 0.2:
+                planned_events.append(("apply_coupon", ""))
 
-                for _ in range(qty):
-                    clickstream_table.append(
-                        {
-                            "session_id": session_id,
-                            "user_id": raw["user_id"],
-                            "event_id": f"EVT-{str(event_counter).zfill(12)}",
-                            "product_id": p_id,
-                            "event_time": current_time,
-                            "event_type": "add_to_cart",
-                        }
-                    )
-                    event_counter += 1
-                    current_time += timedelta(seconds=random.randint(2, 8))
+            planned_events.append(("checkout", ""))
+            planned_events.append(("payment", ""))
+            planned_events.append(("purchase", ""))
 
-            clickstream_table.append(
-                {
-                    "session_id": session_id,
-                    "user_id": raw["user_id"],
-                    "event_id": f"EVT-{str(event_counter).zfill(12)}",
-                    "product_id": "",
-                    "event_time": raw["session_end"],
-                    "event_type": "checkout",
-                }
+            total_span = max(
+                len(planned_events),
+                int((raw["session_end"] - raw["session_start"]).total_seconds()),
             )
-            event_counter += 1
+            step_sec = max(1, total_span // len(planned_events))
+            curr_time = raw["session_start"]
+
+            for idx, (ev_type, p_id) in enumerate(planned_events):
+                if idx == len(planned_events) - 1:
+                    ev_time = raw["session_end"]
+                else:
+                    ev_time = min(
+                        curr_time,
+                        raw["session_end"]
+                        - timedelta(seconds=len(planned_events) - idx),
+                    )
+                event_counter = append_event(
+                    clickstream_table,
+                    event_counter,
+                    session_id,
+                    raw["user_id"],
+                    p_id,
+                    ev_time,
+                    ev_type,
+                )
+                curr_time = ev_time + timedelta(
+                    seconds=random.randint(1, max(1, step_sec))
+                )
 
         else:
-            num_events = random.randint(2, 6)
-            curr_time = raw["session_start"]
-            for _ in range(num_events):
-                if curr_time >= raw["session_end"]:
-                    break
-                ev_type = random.choice(
-                    ["page_view", "search", "view_product", "remove_from_cart"]
+            archetype = raw["archetype"]
+            if archetype == "bounce":
+                event_counter = append_event(
+                    clickstream_table,
+                    event_counter,
+                    session_id,
+                    raw["user_id"],
+                    "",
+                    raw["session_start"],
+                    "page_view",
                 )
-                p_id = (
-                    random.choice(product_ids)
-                    if ev_type in ["view_product", "remove_from_cart"]
-                    else ""
+            elif archetype == "brief":
+                p_id = random.choice(unique_product_ids)
+                seq = [("page_view", ""), ("search", ""), ("view_product", p_id)]
+                curr_time = raw["session_start"]
+                for ev_type, prod in seq:
+                    if curr_time > raw["session_end"]:
+                        break
+                    event_counter = append_event(
+                        clickstream_table,
+                        event_counter,
+                        session_id,
+                        raw["user_id"],
+                        prod,
+                        curr_time,
+                        ev_type,
+                    )
+                    curr_time += timedelta(seconds=random.randint(4, 15))
+            elif archetype == "cart_abandonment":
+                p_id = random.choice(unique_product_ids)
+                seq = [
+                    ("page_view", ""),
+                    ("view_product", p_id),
+                    ("add_to_cart", p_id),
+                    (random.choice(["remove_from_cart", "wishlist"]), p_id),
+                ]
+                curr_time = raw["session_start"]
+                for ev_type, prod in seq:
+                    if curr_time > raw["session_end"]:
+                        break
+                    event_counter = append_event(
+                        clickstream_table,
+                        event_counter,
+                        session_id,
+                        raw["user_id"],
+                        prod,
+                        curr_time,
+                        ev_type,
+                    )
+                    curr_time += timedelta(seconds=random.randint(12, 45))
+            else:
+                curr_time = raw["session_start"]
+                event_counter = append_event(
+                    clickstream_table,
+                    event_counter,
+                    session_id,
+                    raw["user_id"],
+                    "",
+                    curr_time,
+                    "page_view",
                 )
-
-                clickstream_table.append(
-                    {
-                        "session_id": session_id,
-                        "user_id": raw["user_id"],
-                        "event_id": f"EVT-{str(event_counter).zfill(12)}",
-                        "product_id": p_id,
-                        "event_time": curr_time,
-                        "event_type": ev_type,
-                    }
-                )
-                event_counter += 1
-                curr_time += timedelta(seconds=random.randint(10, 180))
+                curr_time += timedelta(seconds=random.randint(10, 30))
+                for _ in range(random.randint(4, 8)):
+                    if curr_time >= raw["session_end"]:
+                        break
+                    ev_type = random.choices(
+                        [
+                            "search",
+                            "view_product",
+                            "view_reviews",
+                            "wishlist",
+                            "add_to_cart",
+                            "remove_from_cart",
+                        ],
+                        weights=[20, 35, 15, 10, 10, 10],
+                    )[0]
+                    p_id = (
+                        random.choice(unique_product_ids) if ev_type != "search" else ""
+                    )
+                    event_counter = append_event(
+                        clickstream_table,
+                        event_counter,
+                        session_id,
+                        raw["user_id"],
+                        p_id,
+                        curr_time,
+                        ev_type,
+                    )
+                    curr_time += timedelta(seconds=random.randint(25, 90))
 
     return orders_table, sessions_table, clickstream_table
 
 
-# =============================================================================
-# MARCIN MODULE: PAYMENTS
-# =============================================================================
+# Payments domain
 def generate_payments_domain_tables(order_payment_info):
+    # Generate single or split order payments and gateway status logs
     details, history = [], []
     payment_types = ["CREDIT_CARD", "BLIK", "VOUCHER", "BANK_TRANSFER"]
 
     for order in order_payment_info:
         order_id = order["order_id"]
         total_value = order["total_value"]
-
         payment_date = order["payment_started_at"]
         end_time = order["paid_at"]
 
-        num_payments = 1 if random.random() < 0.8 else 2
-        values = []
+        num_payments = random.choices([1, 2, 3], weights=[78, 18, 4])[0]
         if num_payments == 1:
             values = [total_value]
-        else:
-            first_val = round(total_value * random.uniform(0.1, 0.5), 2)
+        elif num_payments == 2:
+            first_val = round(total_value * random.uniform(0.15, 0.50), 2)
             values = [first_val, round(total_value - first_val, 2)]
+        else:
+            first_val = round(total_value * 0.20, 2)
+            second_val = round(total_value * 0.30, 2)
+            values = [
+                first_val,
+                second_val,
+                round(total_value - first_val - second_val, 2),
+            ]
 
         order_payment_types = random.sample(payment_types, num_payments)
 
@@ -1017,7 +1132,9 @@ def generate_payments_domain_tables(order_payment_info):
             p_type = order_payment_types[seq - 1]
             val = values[seq - 1]
             installments = (
-                random.choice([1, 3, 6, 12]) if p_type == "CREDIT_CARD" else 1
+                random.choices([1, 2, 3, 6, 12], weights=[40, 15, 15, 15, 15])[0]
+                if p_type == "CREDIT_CARD"
+                else 1
             )
 
             details.append(
@@ -1031,7 +1148,23 @@ def generate_payments_domain_tables(order_payment_info):
                 }
             )
 
-            status_final = "COMPLETED"
+            # Simulate occasional gateway retry before completion
+            if random.random() < 0.08:
+                mid_time = payment_date + (end_time - payment_date) / 2
+                history.append(
+                    {
+                        "log_id": f"LOG-{len(history) + 1}",
+                        "payment_id": pay_id,
+                        "status": "FAILED",
+                        "gateway_response": "300_DECLINED",
+                        "valid_from": payment_date,
+                        "valid_to": mid_time,
+                        "is_current": 0,
+                    }
+                )
+                pending_start = mid_time
+            else:
+                pending_start = payment_date
 
             history.append(
                 {
@@ -1039,7 +1172,7 @@ def generate_payments_domain_tables(order_payment_info):
                     "payment_id": pay_id,
                     "status": "PENDING",
                     "gateway_response": "100_INIT",
-                    "valid_from": payment_date,
+                    "valid_from": pending_start,
                     "valid_to": end_time,
                     "is_current": 0,
                 }
@@ -1048,7 +1181,7 @@ def generate_payments_domain_tables(order_payment_info):
                 {
                     "log_id": f"LOG-{len(history) + 1}",
                     "payment_id": pay_id,
-                    "status": status_final,
+                    "status": "COMPLETED",
                     "gateway_response": "200_OK",
                     "valid_from": end_time,
                     "valid_to": None,
@@ -1059,9 +1192,7 @@ def generate_payments_domain_tables(order_payment_info):
     return details, history
 
 
-# =============================================================================
-# UNIFIED ERROR INJECTION
-# =============================================================================
+# Error injection
 def inject_incorrect_data(
     orders_table,
     order_items_table,
@@ -1075,6 +1206,7 @@ def inject_incorrect_data(
     payment_status_history_table,
     user_contact_table,
 ):
+    # Mutate a small fraction of records to test Silver and Gold data sanitization
     for row in user_contact_table:
         if random.random() < INVALID_EMAILS:
             mutations = [
@@ -1182,9 +1314,7 @@ def inject_incorrect_data(
                 )
 
 
-# -----------------------------------------------------------------------------
-# EXPORT UTILITIES & MAIN RUNNER
-# -----------------------------------------------------------------------------
+# File export utilities
 def format_csv_value(value):
     if isinstance(value, datetime):
         return value.strftime("%Y-%m-%d %H:%M:%S")
@@ -1231,20 +1361,18 @@ def write_parquet_file(destination, data):
     if not data:
         return
     df = pd.DataFrame(data)
-    df.to_parquet(destination, index=False, engine="fastparquet")
+    df.to_parquet(destination, index=False, engine="pyarrow", coerce_timestamps="us")
 
 
 def main():
     os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
 
-    # 1. Generate Foundation (Users, Categories, Products)
     users, profiles, contacts, locs_hist, locs, status_hist = generate_data()
     categories, cat_mapping = generate_categories_table()
     prod_cat, prod_inv, prod_price = generate_products_domain_tables(
         NUMBER_OF_PRODUCTS, cat_mapping
     )
 
-    # 2. Generate Orders & Order Metadata (passing status_hist for user eligibility validation)
     (
         _,
         ord_details,
@@ -1257,22 +1385,27 @@ def main():
         users, prod_cat, prod_price, prod_inv, locs_hist, locs, status_hist
     )
 
-    # 3. Generate Sessions, Clickstream & Orders Table with session_id linked directly
     ord_table, sessions, clickstream = generate_sessions_and_clickstreams(
         users, prod_cat, order_purchase_meta
     )
 
-    # 4. Generate Payments
     pay_details, pay_history = generate_payments_domain_tables(order_payment_info)
 
-    # 5. Inject Errors
-    # inject_incorrect_data(
-    #    ord_table, ord_items, ord_item_price, ord_history,
-    #    categories, prod_cat, prod_inv, prod_price,
-    #    pay_details, pay_history, contacts
-    # )
+    if ENABLE_ERROR_INJECTION:
+        inject_incorrect_data(
+            ord_table,
+            ord_items,
+            ord_item_price,
+            ord_history,
+            categories,
+            prod_cat,
+            prod_inv,
+            prod_price,
+            pay_details,
+            pay_history,
+            contacts,
+        )
 
-    # 6. Multi-Format Export Mapping
     json_tables = {
         "categories_table.json": categories,
         "product_catalog_table.json": prod_cat,
@@ -1301,7 +1434,9 @@ def main():
         "user_status_history_table.csv": status_hist,
     }
 
-    print("--- GENERATING MULTI-FORMAT DATA FILES ---")
+    print(
+        f"Generating data files (Error injection: {'ENABLED' if ENABLE_ERROR_INJECTION else 'DISABLED'})..."
+    )
 
     for filename, rows in json_tables.items():
         write_json_file(os.path.join(OUTPUT_DIRECTORY, filename), rows)

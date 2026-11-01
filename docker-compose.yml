@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  etl-pipeline:
+    build: .
+    container_name: medallion_etl_local
+    volumes:
+      # Mapowanie folderu magazynu danych, aby wyniki zapisały się na Twoim dysku fizycznym
+      - ./local_warehouse:/app/local_warehouse
+      - ./powerbi_data:/app/powerbi_data

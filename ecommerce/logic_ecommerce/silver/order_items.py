@@ -1,5 +1,9 @@
-from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import col, monotonically_increasing_id
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import (
+    abs as spark_abs,
+    col,
+    monotonically_increasing_id,
+)
 
 from ecommerce.common_functions.config_utils import get_config, set_logger
 from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum_table
@@ -9,7 +13,13 @@ def prepare_order_items_data(
     order_items: DataFrame, order_item_pricing: DataFrame
 ) -> DataFrame:
     """Prepare and transform order items data by joining with pricing information."""
-    order_items_joined = order_items.alias("oi").join(
+    valid_items = order_items.filter(
+        col("ORDER_ITEM_ID").isNotNull()
+        & col("ORDER_ID").isNotNull()
+        & col("PRODUCT_ID").isNotNull()
+    )
+
+    order_items_joined = valid_items.alias("oi").join(
         other=order_item_pricing.alias("oip"),
         on=col("oi.ORDER_ITEM_ID") == col("oip.ORDER_ITEM_ID"),
         how="left",
@@ -18,10 +28,12 @@ def prepare_order_items_data(
     order_items_selected = order_items_joined.select(
         monotonically_increasing_id().alias("ORDER_ITEM_SURROGATE_KEY"),
         col("oi.ORDER_ITEM_ID").alias("ORDER_ITEM_ID"),
-        col("oi.ORDER_ITEM_SEQUENTIAL").cast("integer").alias("ITEM_SEQUENCE"),
-        col("oi.QUANTITY").alias("QUANTITY"),
-        col("oip.UNIT_PRICE").alias("UNIT_PRICE"),
-        col("oip.DISCOUNT").alias("DISCOUNT"),
+        spark_abs(col("oi.ORDER_ITEM_SEQUENTIAL").cast("integer")).alias(
+            "ITEM_SEQUENCE"
+        ),
+        spark_abs(col("oi.QUANTITY")).alias("QUANTITY"),
+        spark_abs(col("oip.UNIT_PRICE")).alias("UNIT_PRICE"),
+        spark_abs(col("oip.DISCOUNT")).alias("DISCOUNT"),
         col("oi.ORDER_ID").alias("ORDER_ID"),
         col("oi.PRODUCT_ID").alias("PRODUCT_ID"),
     )

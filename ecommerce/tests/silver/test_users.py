@@ -62,8 +62,44 @@ USERS_SCHEMA = StructType(
     ]
 )
 
+EXPECTED_COLUMNS = [
+    "USER_SURROGATE_KEY",
+    "USER_ID",
+    "CUSTOMER_UNIQUE_ID",
+    "FIRST_NAME",
+    "LAST_NAME",
+    "EMAIL",
+    "PHONE",
+    "BIRTH_DATE",
+    "GENDER",
+    "CITY",
+    "STATE",
+    "ZIP_CODE",
+    "COUNTRY",
+    "STATUS",
+    "CREATED_AT",
+    "VALID_FROM",
+    "VALID_TO",
+    "IS_ACTIVE",
+]
 
-def test_join_users_data_schema_and_scd2_timeline(spark: SparkSession) -> None:
+
+def test_join_users_schema_and_empty_input(spark: SparkSession) -> None:
+    # Verify output schema and empty dataframe handling
+    result_df = join_users_data(
+        locations=spark.createDataFrame([], schema=LOCATIONS_SCHEMA),
+        user_contacts=spark.createDataFrame([], schema=CONTACTS_SCHEMA),
+        user_locations=spark.createDataFrame([], schema=USER_LOCATIONS_SCHEMA),
+        user_profiles=spark.createDataFrame([], schema=PROFILES_SCHEMA),
+        user_status_history=spark.createDataFrame([], schema=STATUS_SCHEMA),
+        users=spark.createDataFrame([], schema=USERS_SCHEMA),
+    )
+
+    assert result_df.columns == EXPECTED_COLUMNS
+    assert result_df.count() == 0
+
+
+def test_join_users_scd2_timeline_slicing(spark: SparkSession) -> None:
     # Verify SCD2 timeline slicing when a user changes location over time
     locations_df = spark.createDataFrame(
         [
@@ -104,54 +140,48 @@ def test_join_users_data_schema_and_scd2_timeline(spark: SparkSession) -> None:
         user_status_history=status_df,
         users=users_df,
     )
-
-    expected_columns = [
-        "USER_SURROGATE_KEY",
-        "USER_ID",
-        "CUSTOMER_UNIQUE_ID",
-        "FIRST_NAME",
-        "LAST_NAME",
-        "EMAIL",
-        "PHONE",
-        "BIRTH_DATE",
-        "GENDER",
-        "CITY",
-        "STATE",
-        "ZIP_CODE",
-        "COUNTRY",
-        "STATUS",
-        "CREATED_AT",
-        "VALID_FROM",
-        "VALID_TO",
-        "IS_ACTIVE",
-    ]
-    assert result_df.columns == expected_columns
-
     rows = sorted(result_df.collect(), key=lambda r: r["VALID_FROM"])
-    assert len(rows) == 2
 
-    # Historical record in Gdansk (IS_ACTIVE = 0)
+    assert len(rows) == 2
     assert rows[0]["CITY"] == "Gdansk"
     assert rows[0]["VALID_FROM"] == "2025-01-01 00:00:00"
     assert rows[0]["VALID_TO"] == "2025-06-01 00:00:00"
     assert rows[0]["IS_ACTIVE"] == 0
 
-    # Current record in Warszawa (IS_ACTIVE = 1)
     assert rows[1]["CITY"] == "Warszawa"
     assert rows[1]["VALID_FROM"] == "2025-06-01 00:00:00"
     assert rows[1]["VALID_TO"] is None
     assert rows[1]["IS_ACTIVE"] == 1
 
 
-def test_join_users_data_empty_dataframes(spark: SparkSession) -> None:
-    # Verify behavior on empty input dataframes
+def test_join_users_contact_sanitization(spark: SparkSession) -> None:
+    # Verify email and phone cleaning and invalid pattern nullification
+    users_df = spark.createDataFrame(
+        [
+            ("USR-1", "C-1", "2025-01-01 00:00:00"),
+            ("USR-2", "C-2", "2025-01-01 00:00:00"),
+        ],
+        schema=USERS_SCHEMA,
+    )
+    contacts_df = spark.createDataFrame(
+        [
+            ("USR-1", " jan@@example.com ", " 123-456-789 "),
+            ("USR-2", "broken_email_no_at", "123"),
+        ],
+        schema=CONTACTS_SCHEMA,
+    )
+
     result_df = join_users_data(
         locations=spark.createDataFrame([], schema=LOCATIONS_SCHEMA),
-        user_contacts=spark.createDataFrame([], schema=CONTACTS_SCHEMA),
+        user_contacts=contacts_df,
         user_locations=spark.createDataFrame([], schema=USER_LOCATIONS_SCHEMA),
         user_profiles=spark.createDataFrame([], schema=PROFILES_SCHEMA),
         user_status_history=spark.createDataFrame([], schema=STATUS_SCHEMA),
-        users=spark.createDataFrame([], schema=USERS_SCHEMA),
+        users=users_df,
     )
+    rows = {r["USER_ID"]: r for r in result_df.collect()}
 
-    assert result_df.count() == 0
+    assert rows["USR-1"]["EMAIL"] == "jan@example.com"
+    assert rows["USR-1"]["PHONE"] == "123-456-789"
+    assert rows["USR-2"]["EMAIL"] is None
+    assert rows["USR-2"]["PHONE"] is None

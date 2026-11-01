@@ -1,5 +1,14 @@
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col, lead, lit, row_number, when
+from pyspark.sql.functions import (
+    col,
+    lead,
+    length,
+    lit,
+    regexp_replace,
+    row_number,
+    trim,
+    when,
+)
 from pyspark.sql.window import Window
 
 from ecommerce.common_functions.config_utils import get_config, set_logger
@@ -46,6 +55,18 @@ def join_users_data(
         col("user_id"),
         col("timeline_point").alias("valid_from"),
         lead("timeline_point").over(timeline_window).alias("valid_to"),
+    )
+
+    # Sanitize email and phone expressions
+    email_cleaned = trim(regexp_replace(col("co.email"), "@+", "@"))
+    valid_email_expr = when(
+        email_cleaned.rlike(r"^[^@\s]+@[^@\s]+\.[^@\s]+$"), email_cleaned
+    ).otherwise(lit(None))
+
+    phone_trimmed = trim(col("co.phone"))
+    phone_digits = regexp_replace(phone_trimmed, r"[^0-9]", "")
+    valid_phone_expr = when(length(phone_digits) >= 7, phone_trimmed).otherwise(
+        lit(None)
     )
 
     # Step 3: Join user tables and match location and status active in each time window
@@ -96,8 +117,8 @@ def join_users_data(
             col("u.customer_unique_id").alias("CUSTOMER_UNIQUE_ID"),
             col("pr.first_name").alias("FIRST_NAME"),
             col("pr.last_name").alias("LAST_NAME"),
-            col("co.email").alias("EMAIL"),
-            col("co.phone").alias("PHONE"),
+            valid_email_expr.alias("EMAIL"),
+            valid_phone_expr.alias("PHONE"),
             col("pr.birth_date").alias("BIRTH_DATE"),
             col("pr.gender").alias("GENDER"),
             col("l.city").alias("CITY"),

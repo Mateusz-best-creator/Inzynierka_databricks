@@ -1,15 +1,17 @@
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import (
+    coalesce,
     col,
+    greatest,
     hour,
     lead,
+    lit,
     minute,
     row_number,
     second,
     to_date,
+    trim,
     unix_timestamp,
-    coalesce,
-    current_timestamp,
 )
 from pyspark.sql.window import Window
 
@@ -29,20 +31,18 @@ def prepare_fact_events_data(
     dim_product: DataFrame,
     dim_event_type: DataFrame,
 ) -> DataFrame:
-    # 1. Calculate event sequence and time spent on step using window functions
-    window_session = Window.partitionBy("SESSION_ID").orderBy("EVENT_TIME")
+    # 1. Calculate event sequence and non-negative time spent on step using window functions
+    window_session = Window.partitionBy("SESSION_ID").orderBy("EVENT_TIME", "EVENT_ID")
+
+    raw_step_diff = (
+        unix_timestamp("next_event_time") - unix_timestamp("EVENT_TIME")
+    ).cast("integer")
 
     events_seq = (
-        silver_events.withColumn(
-            "EVENT_SEQUENCE_IN_SESSION", row_number().over(window_session)
-        )
+        silver_events.filter(col("EVENT_ID").isNotNull())
+        .withColumn("EVENT_SEQUENCE_IN_SESSION", row_number().over(window_session))
         .withColumn("next_event_time", lead("EVENT_TIME").over(window_session))
-        .withColumn(
-            "TIME_ON_STEP_SECONDS",
-            (unix_timestamp("next_event_time") - unix_timestamp("EVENT_TIME")).cast(
-                "integer"
-            ),
-        )
+        .withColumn("TIME_ON_STEP_SECONDS", greatest(raw_step_diff, lit(0)))
         .withColumn("event_date", to_date("EVENT_TIME"))
         .withColumn("event_hour", hour("EVENT_TIME"))
         .withColumn("event_minute", minute("EVENT_TIME"))
@@ -50,6 +50,19 @@ def prepare_fact_events_data(
     )
 
     # 2. Enrich events with user surrogate key and geography mapping from sessions and users
+    has_user_zip = "ZIP_CODE" in silver_users.columns
+    has_geo_zip = "ZIP_CODE" in dim_geography.columns
+
+    user_select_cols = [
+        "e.*",
+        col("su.USER_SURROGATE_KEY").alias("raw_user_key"),
+        col("su.CITY"),
+        col("su.STATE"),
+        col("su.COUNTRY"),
+    ]
+    if has_user_zip:
+        user_select_cols.append(col("su.ZIP_CODE"))
+
     events_enriched = (
         events_seq.alias("e")
         .join(
@@ -62,15 +75,30 @@ def prepare_fact_events_data(
             col("ss.USER_SURROGATE_KEY") == col("su.USER_SURROGATE_KEY"),
             "left",
         )
-        .select(
-            "e.*",
-            col("su.USER_SURROGATE_KEY").alias("raw_user_key"),
-            col("su.CITY"),
-            col("su.STATE"),
-            col("su.COUNTRY"),
-            col("su.ZIP_CODE"),
-        )
+        .select(*user_select_cols)
     )
+
+    # Prepare geography join condition without multiplying rows across zip codes
+    if has_user_zip and has_geo_zip:
+        geo_dedup = dim_geography.dropDuplicates(
+            ["CITY", "STATE", "COUNTRY", "ZIP_CODE"]
+        )
+        geo_join_cond = (
+            (trim(col("f.CITY")) == trim(col("dg.CITY")))
+            & (trim(col("f.STATE")) == trim(col("dg.STATE")))
+            & (trim(col("f.COUNTRY")) == trim(col("dg.COUNTRY")))
+            & (
+                coalesce(trim(col("f.ZIP_CODE")), lit(""))
+                == coalesce(trim(col("dg.ZIP_CODE")), lit(""))
+            )
+        )
+    else:
+        geo_dedup = dim_geography.dropDuplicates(["CITY", "STATE", "COUNTRY"])
+        geo_join_cond = (
+            (trim(col("f.CITY")) == trim(col("dg.CITY")))
+            & (trim(col("f.STATE")) == trim(col("dg.STATE")))
+            & (trim(col("f.COUNTRY")) == trim(col("dg.COUNTRY")))
+        )
 
     # 3. Join with all dimension tables to fetch surrogate keys
     fact_df = (
@@ -92,15 +120,13 @@ def prepare_fact_events_data(
             "left",
         )
         .join(
-            dim_geography.alias("dg"),
-            (col("f.CITY") == col("dg.CITY"))
-            & (col("f.STATE") == col("dg.STATE"))
-            & (col("f.COUNTRY") == col("dg.COUNTRY")),
+            geo_dedup.alias("dg"),
+            geo_join_cond,
             "left",
         )
         .join(
             dim_event_type.alias("det"),
-            col("f.EVENT_TYPE") == col("det.EVENT_TYPE_NAME"),
+            trim(col("f.EVENT_TYPE")) == trim(col("det.EVENT_TYPE_NAME")),
             "left",
         )
         .join(
@@ -108,7 +134,7 @@ def prepare_fact_events_data(
             (col("f.PRODUCT_ID") == col("dp.PRODUCT_ID"))
             & (col("f.EVENT_TIME") >= col("dp.VALID_FROM"))
             & (
-                col("f.EVENT_TIME") <= coalesce(col("dp.VALID_TO"), current_timestamp())
+                (col("f.EVENT_TIME") < col("dp.VALID_TO")) | col("dp.VALID_TO").isNull()
             ),
             "left",
         )
