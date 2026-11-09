@@ -28,5 +28,5 @@ variable "cluster_max_num_workers" {
 
 variable "admin_email" {
   type = string
-  default = "s197743@student.pg.edu.pl"
+  default = "s198293@student.pg.edu.pl"
 }
