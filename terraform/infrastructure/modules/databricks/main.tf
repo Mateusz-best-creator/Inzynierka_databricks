@@ -30,7 +30,7 @@ resource "databricks_cluster" "cluster" {
   depends_on = [time_sleep.wait_5_minutes]
 
   cluster_name            = var.cluster_name
-  node_type_id            = "Standard_D4ds_v4"
+  node_type_id            = "Standard_L4s_v4"
   spark_version           = "16.4.x-scala2.13"
   autotermination_minutes = var.cluster_autotermination_minutes
 

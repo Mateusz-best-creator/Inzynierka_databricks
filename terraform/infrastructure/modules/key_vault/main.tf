@@ -2,7 +2,7 @@ data "azurerm_client_config" "current" {}
 
 
 resource "azurerm_key_vault" "secrets_storage" {
-  name                        = "kv-secretsbkm3g5"
+  name                        = "kv-secretsj573jm"
   location                    = var.region
   resource_group_name         = var.rg_name
   rbac_authorization_enabled  = false
