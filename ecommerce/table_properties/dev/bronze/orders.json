@@ -10,11 +10,10 @@
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommercevj4gm7",
         "container_name": "rawdatastorage",
-        "file_format": "excel",
+        "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "order_details.xlsx",
-        "sheet_name": "Sheet1",
-        "blob_name": "orders_data/order_details.xlsx",
+        "file_name": "order_details.parquet",
+        "blob_name": "orders_data/order_details.parquet",
         "partition_key": [],
 
         "schema": [
@@ -44,11 +43,10 @@
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommercevj4gm7",
         "container_name": "rawdatastorage",
-        "file_format": "excel",
+        "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "order_item_pricing.xlsx",
-        "sheet_name": "Sheet1",
-        "blob_name": "orders_data/order_item_pricing.xlsx",
+        "file_name": "order_item_pricing.parquet",
+        "blob_name": "orders_data/order_item_pricing.parquet",
         "partition_key": [],
 
         "schema": [
@@ -73,11 +71,10 @@
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommercevj4gm7",
         "container_name": "rawdatastorage",
-        "file_format": "excel",
+        "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "order_items.xlsx",
-        "sheet_name": "Sheet1",
-        "blob_name": "orders_data/order_items.xlsx",
+        "file_name": "order_items.parquet",
+        "blob_name": "orders_data/order_items.parquet",
         "partition_key": [],
 
         "schema": [
@@ -112,11 +109,10 @@
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommercevj4gm7",
         "container_name": "rawdatastorage",
-        "file_format": "excel",
+        "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "order_status_history.xlsx",
-        "sheet_name": "Sheet1",
-        "blob_name": "orders_data/order_status_history.xlsx",
+        "file_name": "order_status_history.parquet",
+        "blob_name": "orders_data/order_status_history.parquet",
         "partition_key": [],
 
         "schema": [
@@ -161,11 +157,10 @@
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommercevj4gm7",
         "container_name": "rawdatastorage",
-        "file_format": "excel",
+        "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "orders.xlsx",
-        "sheet_name": "Sheet1",
-        "blob_name": "orders_data/orders.xlsx",
+        "file_name": "orders.parquet",
+        "blob_name": "orders_data/orders.parquet",
         "partition_key": [],
 
         "schema": [

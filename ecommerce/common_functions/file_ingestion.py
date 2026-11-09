@@ -80,7 +80,7 @@ def read_file(
     spark: SparkSession,
     dbutils: Any,
     file_cloud_loc: str,
-    schema: dict,
+    schema: list[dict[str, Any]] | dict,
     file_format: str,
     excel_properties: dict | None = None,
 ) -> DataFrame:

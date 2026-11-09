@@ -1,0 +1,37 @@
+{
+    "table_list": [
+        "categories"
+    ],
+    "categories": {
+        "storage_type": "azure_storage_account",
+        "storage_account_name": "ecommercevj4gm7",
+        "container_name": "rawdatastorage",
+        "file_format": "json",
+        "container_folder_path": "",
+        "file_name": "categories_table.json",
+        "blob_name": "categories_table.json",
+        "partition_key": [],
+        "schema": [
+            {
+                "source_col_name": "category_id",
+                "target_col_name": "CATEGORY_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "parent_category_id",
+                "target_col_name": "PARENT_CATEGORY_ID",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "category_name",
+                "target_col_name": "CATEGORY_NAME",
+                "target_datatype": "string"
+            },
+            {
+                "source_col_name": "created_at",
+                "target_col_name": "CREATED_AT",
+                "target_datatype": "timestamp"
+            }
+        ]
+    }
+}
