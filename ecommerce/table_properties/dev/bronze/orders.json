@@ -8,7 +8,7 @@
     ],
     "order_details": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",
@@ -41,7 +41,7 @@
     },
     "order_item_pricing": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",
@@ -69,7 +69,7 @@
     },
     "order_items": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",
@@ -107,7 +107,7 @@
     },
     "order_status_history": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",
@@ -155,7 +155,7 @@
     },
     "orders": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",

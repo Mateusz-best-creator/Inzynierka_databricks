@@ -9,7 +9,7 @@
     ],
     "locations": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "csv",
         "container_folder_path": "users_data",
@@ -46,7 +46,7 @@
     },
     "user_contacts": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "csv",
         "container_folder_path": "users_data",
@@ -73,7 +73,7 @@
     },
     "user_locations": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "csv",
         "container_folder_path": "users_data",
@@ -115,7 +115,7 @@
     },
     "user_profiles": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "csv",
         "container_folder_path": "users_data",
@@ -152,7 +152,7 @@
     },
     "user_status_history": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "csv",
         "container_folder_path": "users_data",
@@ -199,7 +199,7 @@
     },
     "users": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "csv",
         "container_folder_path": "users_data",

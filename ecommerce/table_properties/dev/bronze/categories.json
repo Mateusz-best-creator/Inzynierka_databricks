@@ -4,7 +4,7 @@
     ],
     "categories": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "json",
         "container_folder_path": "",
