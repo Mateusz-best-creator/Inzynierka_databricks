@@ -31,7 +31,7 @@ resources:
           new_cluster:
             cluster_name: ""
             spark_version: 16.4.x-scala2.13
-            node_type_id: Standard_D4s_v3
+            node_type_id: Standard_D4ds_v4
             data_security_mode: DATA_SECURITY_MODE_AUTO
             runtime_engine: STANDARD
             kind: CLASSIC_PREVIEW

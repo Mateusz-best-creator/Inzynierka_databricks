@@ -1,5 +1,5 @@
 resource "azurerm_storage_account" "data" {
-  name                            = "ecommercevj4gm7"
+  name                            = "ecommerce4kllac"
   resource_group_name             = var.rg_name
   location                        = var.region
   account_tier                    = "Standard"
