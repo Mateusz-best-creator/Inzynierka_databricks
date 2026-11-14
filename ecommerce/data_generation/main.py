@@ -1234,6 +1234,11 @@ def write_parquet_file(destination, data):
     df.to_parquet(destination, index=False, engine="fastparquet")
 
 
+def write_excel_file(destination, data):
+    df = pd.DataFrame(data)
+    df.to_excel(destination, index=False)
+
+
 def main():
     os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
 
@@ -1281,15 +1286,18 @@ def main():
     }
 
     parquet_tables = {
-        "orders_table.parquet": ord_table,
-        "order_details_table.parquet": ord_details,
-        "order_status_history_table.parquet": ord_history,
-        "order_items_table.parquet": ord_items,
-        "order_item_pricing_table.parquet": ord_item_price,
         "payment_details_table.parquet": pay_details,
         "payment_status_history_table.parquet": pay_history,
         "session.parquet": sessions,
         "event_clickstream.parquet": clickstream,
+    }
+
+    excel_files = {
+        "orders_table.xlsx": ord_table,
+        "order_details_table.xlsx": ord_details,
+        "order_status_history_table.xlsx": ord_history,
+        "order_items_table.xlsx": ord_items,
+        "order_item_pricing_table.xlsx": ord_item_price,
     }
 
     csv_tables = {
@@ -1314,6 +1322,10 @@ def main():
     for filename, rows in csv_tables.items():
         write_csv_file(os.path.join(OUTPUT_DIRECTORY, filename), rows)
         print(f"[CSV] [{filename}]: {len(rows)} rows generated.")
+
+    for filename, rows in excel_files.items():
+        write_excel_file(os.path.join(OUTPUT_DIRECTORY, filename), rows)
+        print(f"[EXCEL] [{filename}]: {len(rows)} rows generated.")
 
 
 if __name__ == "__main__":

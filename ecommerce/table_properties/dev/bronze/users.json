@@ -13,7 +13,7 @@
         "container_name": "rawdatastorage",
         "file_format": "csv",
         "container_folder_path": "users_data",
-        "file_name": "location_table.csv",
+        "file_name": "user_location_table.csv",
         "partition_key": [],
 
         "schema": [
