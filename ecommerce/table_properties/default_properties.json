@@ -9,7 +9,7 @@
   "bronze": {
     "dev": {
       "catalog": "databricks_dev_domain",
-      "external_storage_account": "ecommercevj4gm7",
+      "external_storage_account": "ecommerce4kllac",
       "external_container": "bronzelayer"
     }
   },

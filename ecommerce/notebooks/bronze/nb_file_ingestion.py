@@ -32,7 +32,7 @@ config_filename = dbutils.widgets.get("config_filename")
 
 # COMMAND ----------
 
-storage_account = "ecommercevj4gm7"
+storage_account = "ecommerce4kllac"
 access_key = dbutils.secrets.get(scope="secret-keys", key="storageaccountaccesskey")
 
 spark.conf.set(
