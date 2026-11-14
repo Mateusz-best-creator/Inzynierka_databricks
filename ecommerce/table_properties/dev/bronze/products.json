@@ -9,9 +9,9 @@
         "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "json",
-        "container_folder_path": "",
+        "container_folder_path": "products",
         "file_name": "product_catalog_table.json",
-        "blob_name": "product_catalog_table.json",
+        "blob_name": "products/product_catalog_table.json",
         "partition_key": [],
         "schema": [
             {
@@ -73,7 +73,7 @@
         "file_format": "json",
         "container_folder_path": "",
         "file_name": "product_inventory_table.json",
-        "blob_name": "product_inventory_table.json",
+        "blob_name": "products/product_inventory_table.json",
         "partition_key": [],
         "schema": [
             {
@@ -135,7 +135,7 @@
         "file_format": "json",
         "container_folder_path": "",
         "file_name": "product_pricing_history_table.json",
-        "blob_name": "product_pricing_history_table.json",
+        "blob_name": "products/product_pricing_history_table.json",
         "partition_key": [],
         "schema": [
             {

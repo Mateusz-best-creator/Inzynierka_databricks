@@ -12,8 +12,8 @@
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "order_details.parquet",
-        "blob_name": "orders_data/order_details.parquet",
+        "file_name": "order_details_table.parquet",
+        "blob_name": "orders_data/order_details_table.parquet",
         "partition_key": [],
 
         "schema": [
@@ -45,8 +45,8 @@
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "order_item_pricing.parquet",
-        "blob_name": "orders_data/order_item_pricing.parquet",
+        "file_name": "order_item_pricing_table.parquet",
+        "blob_name": "orders_data/order_item_pricing_table.parquet",
         "partition_key": [],
 
         "schema": [
@@ -73,8 +73,8 @@
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "order_items.parquet",
-        "blob_name": "orders_data/order_items.parquet",
+        "file_name": "order_items_table.parquet",
+        "blob_name": "orders_data/order_items_table.parquet",
         "partition_key": [],
 
         "schema": [
@@ -111,8 +111,8 @@
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "order_status_history.parquet",
-        "blob_name": "orders_data/order_status_history.parquet",
+        "file_name": "order_status_history_table.parquet",
+        "blob_name": "orders_data/order_status_history_table.parquet",
         "partition_key": [],
 
         "schema": [
@@ -159,8 +159,8 @@
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "orders_data",
-        "file_name": "orders.parquet",
-        "blob_name": "orders_data/orders.parquet",
+        "file_name": "orders_table.parquet",
+        "blob_name": "orders_data/orders_table.parquet",
         "partition_key": [],
 
         "schema": [
