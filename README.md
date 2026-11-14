@@ -12,6 +12,7 @@ Steps to setup the entire project:
 8.2 Copy the resource group name and storage account name from terminal output and change it in the providers.tf ile in infrastructure folder
 8.3 Go to ecommerce\table_properties\dev\bronze directory and update storage_account_name value for the newly created storage account
 8.4. Then go to nb_file_ingestion notebook and update storage_account variable to have the latest value
+8.5. Then go to global_variables.yml and update notification_email to reveive notifations about main pipeline runs into you personal email.
 9. terraform init
 10. terraform plan -out terraform.plan
 11. terraform apply terraform.plan
@@ -22,10 +23,9 @@ Steps to setup the entire project:
 16. In databricks catalog create given catalog: "databricks_dev_domain" and within this catalog create 3 schemas: "ecommerce_bronze", "ecommerce_silver", "ecommerce_gold".
 17. Execute data_generation script that is located here: "ecommerce\data_generation\main.py" and paste files into appropriate virtual folders based on configuration in bronze table properties in created storage account in this container: "rawdatastorage".
 
-14. Install databricks cli
-14.2. Go to dev.yml file and update workspace id, copy workspace id from the deployed databrick workspace
-14.3. In the global_variables.yml file change notification email and atabricks repo_path variables to your ID.
-15. databricks auth login --host <databricks_url>
-16. databricks bundle deploy
-17. Go to Azure Key Vault, then go to access configuration, select vault access plicy and select go to access policies, you will be redirected to access policcies
-18. In the access policies, click add and select get, list for secret permissions, click next and then for application search for databricks and select your deployed databricks application.
+18. Install databricks cli
+18.2. Go to dev.yml file and update workspace id, copy workspace id from the deployed databrick workspace
+19. databricks auth login --host <databricks_url>
+20. databricks bundle deploy -t dev
+
+The pipeline should be deployed then and you should be able to run the entire pipeline.

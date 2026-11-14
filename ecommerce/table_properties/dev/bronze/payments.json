@@ -7,9 +7,9 @@
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "parquet",
+        "file_format": "csv",
         "container_folder_path": "payments_data",
-        "file_name": "payment_details_table.parquet",
+        "file_name": "payment_details_table.csv",
         "partition_key": [],
 
         "schema": [
@@ -26,7 +26,7 @@
             {
                 "source_col_name": "payment_sequential",
                 "target_col_name": "PAYMENT_SEQUENTIAL",
-                "target_datatype": "string"
+                "target_datatype": "integer"
             },
             {
                 "source_col_name": "payment_type",
@@ -49,9 +49,9 @@
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "parquet",
+        "file_format": "csv",
         "container_folder_path": "payments_data",
-        "file_name": "payment_status_history_table.parquet",
+        "file_name": "payment_status_history_table.csv",
         "partition_key": [],
 
         "schema": [

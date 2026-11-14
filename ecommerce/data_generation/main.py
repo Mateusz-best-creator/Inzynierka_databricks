@@ -1286,8 +1286,6 @@ def main():
     }
 
     parquet_tables = {
-        "payment_details_table.parquet": pay_details,
-        "payment_status_history_table.parquet": pay_history,
         "session.parquet": sessions,
         "event_clickstream.parquet": clickstream,
     }
@@ -1301,6 +1299,8 @@ def main():
     }
 
     csv_tables = {
+        "payment_status_history_table.csv": pay_history,
+        "payment_details_table.csv": pay_details,
         "users_table.csv": users,
         "user_profile_table.csv": profiles,
         "user_contact_table.csv": contacts,
