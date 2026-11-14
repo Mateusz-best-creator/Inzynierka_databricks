@@ -299,3 +299,8 @@ spark-warehouse/
 */.terraform.lock.hcl
 
 *.csv
+
+# Local environments & generated data
+.venv_spark/
+.hadoop/
+ecommerce/data_generation/generated_combined_data/
