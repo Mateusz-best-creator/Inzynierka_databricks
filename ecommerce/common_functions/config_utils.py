@@ -100,7 +100,7 @@ def get_bronze_config(
             blob_path = file_config[table_name]["blob_name"]
             excel_properties = {
                 "sheet_name": sheet_name,
-                "STORAGE_ACCOUNT_NAME": "ecommercevj4gm7",
+                "STORAGE_ACCOUNT_NAME": "ecommerce4kllac",
                 "CONTAINER_NAME": container_name,
                 "BLOB_NAME": blob_path,
             }

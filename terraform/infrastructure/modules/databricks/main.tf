@@ -46,11 +46,10 @@ resource "databricks_cluster" "cluster" {
   azure_attributes {
     availability = "SPOT_WITH_FALLBACK_AZURE"
   }
-  # To minimize costs we disable the option to run jobs, we will use job cluster for that,
-  # not this interactive cluster for that, job cluster is simply cheaper.
+  # We will use our cluster to run both notebooks and jobs.
   workload_type {
     clients {
-      jobs      = false
+      jobs      = true
       notebooks = true
     }
   }

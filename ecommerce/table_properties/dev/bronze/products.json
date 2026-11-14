@@ -6,12 +6,12 @@
     ],
     "product_catalog": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "json",
-        "container_folder_path": "",
+        "container_folder_path": "products",
         "file_name": "product_catalog_table.json",
-        "blob_name": "product_catalog_table.json",
+        "blob_name": "products/product_catalog_table.json",
         "partition_key": [],
         "schema": [
             {
@@ -68,12 +68,12 @@
     },
     "product_inventory": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "json",
-        "container_folder_path": "",
+        "container_folder_path": "products",
         "file_name": "product_inventory_table.json",
-        "blob_name": "product_inventory_table.json",
+        "blob_name": "products/product_inventory_table.json",
         "partition_key": [],
         "schema": [
             {
@@ -130,12 +130,12 @@
     },
     "product_pricing_history": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "json",
-        "container_folder_path": "",
+        "container_folder_path": "products",
         "file_name": "product_pricing_history_table.json",
-        "blob_name": "product_pricing_history_table.json",
+        "blob_name": "products/product_pricing_history_table.json",
         "partition_key": [],
         "schema": [
             {

@@ -5,11 +5,11 @@
     ],
     "payment_details": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "json",
+        "file_format": "csv",
         "container_folder_path": "payments_data",
-        "file_name": "payment_details.json",
+        "file_name": "payment_details_table.csv",
         "partition_key": [],
 
         "schema": [
@@ -26,7 +26,7 @@
             {
                 "source_col_name": "payment_sequential",
                 "target_col_name": "PAYMENT_SEQUENTIAL",
-                "target_datatype": "string"
+                "target_datatype": "integer"
             },
             {
                 "source_col_name": "payment_type",
@@ -47,11 +47,11 @@
     },
     "payment_status_history": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "json",
+        "file_format": "csv",
         "container_folder_path": "payments_data",
-        "file_name": "payment_status_history.json",
+        "file_name": "payment_status_history_table.csv",
         "partition_key": [],
 
         "schema": [

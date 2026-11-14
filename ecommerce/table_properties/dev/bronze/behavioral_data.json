@@ -5,7 +5,7 @@
     ],
     "sessions": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "behavioral_data",
@@ -52,7 +52,7 @@
     },
     "event_clickstream": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
         "file_format": "parquet",
         "container_folder_path": "behavioral_data",

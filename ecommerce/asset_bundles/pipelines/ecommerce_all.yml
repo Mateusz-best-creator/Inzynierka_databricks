@@ -15,6 +15,9 @@ resources:
         env: "${var.env}"
         log_level: "${{job.parameters.log_level}}"
 
+      cluster_id: &cluster_id
+        existing_cluster_id: 1112-130901-dv0t6xm0
+
       parameters:
         - name: run_id
           default: ""
@@ -25,17 +28,6 @@ resources:
 
       tags:
         product: "${var.ecommerce_product_tag}"
-
-      job_clusters:
-        - job_cluster_key: ecommerce_job_cluster
-          new_cluster:
-            cluster_name: ""
-            spark_version: 16.4.x-scala2.13
-            node_type_id: Standard_D4ds_v4
-            data_security_mode: DATA_SECURITY_MODE_AUTO
-            runtime_engine: STANDARD
-            kind: CLASSIC_PREVIEW
-            is_single_node: true
 
       email_notifications:
         on_failure:
@@ -57,8 +49,7 @@ resources:
 
         #BRONZE LAYER
         - task_key: pl_file_ingestion_orders
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
             base_parameters:
@@ -67,8 +58,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_file_ingestion_payments
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
             base_parameters:
@@ -77,8 +67,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_file_ingestion_users
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
             base_parameters:
@@ -87,8 +76,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_file_ingestion_categories
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
             base_parameters:
@@ -97,8 +85,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_file_ingestion_products
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
             base_parameters:
@@ -107,8 +94,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_file_ingestion_behavioral
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/bronze/nb_file_ingestion
             base_parameters:
@@ -116,11 +102,9 @@ resources:
               config_filename: behavioral_data.json
             source: WORKSPACE
 
-
         #SILVER LAYER
         - task_key: pl_categories_silver
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_file_ingestion_categories
           notebook_task:
@@ -130,8 +114,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_products_silver
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_file_ingestion_products
             - task_key: pl_categories_silver
@@ -142,8 +125,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_users_silver
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_file_ingestion_users
           notebook_task:
@@ -153,8 +135,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_orders_silver
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_file_ingestion_orders
             - task_key: pl_users_silver
@@ -165,8 +146,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_order_items_silver
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_file_ingestion_orders
             - task_key: pl_orders_silver
@@ -177,8 +157,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_payments_silver
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_file_ingestion_payments
             - task_key: pl_orders_silver
@@ -189,8 +168,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_sessions_silver
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_file_ingestion_behavioral
             - task_key: pl_users_silver
@@ -201,8 +179,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_event_clickstream_silver
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_file_ingestion_behavioral
           notebook_task:
@@ -214,8 +191,7 @@ resources:
 
         #GOLD LAYER (DIMENSIONS)
         - task_key: pl_dim_date
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_date
             base_parameters:
@@ -223,8 +199,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_dim_time
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           notebook_task:
             notebook_path: ${var.databricks_repo_path}/Inzynierka_databricks/ecommerce/notebooks/gold/nb_dim_time
             base_parameters:
@@ -232,8 +207,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_dim_geography
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_users_silver
           notebook_task:
@@ -243,8 +217,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_dim_user
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_users_silver
           notebook_task:
@@ -254,8 +227,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_dim_product
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_products_silver
           notebook_task:
@@ -265,8 +237,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_dim_session
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_sessions_silver
             - task_key: pl_event_clickstream_silver
@@ -277,7 +248,6 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_dim_event_type
-          job_cluster_key: ecommerce_job_cluster
           <<: *base_retry_parameters
           depends_on:
             - task_key: pl_event_clickstream_silver
@@ -288,8 +258,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_dim_payment_type
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_payments_silver
           notebook_task:
@@ -299,8 +268,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_dim_sales_context
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_orders_silver
           notebook_task:
@@ -312,8 +280,7 @@ resources:
 
         #GOLD LAYER (FACTS)
         - task_key: pl_fact_sales
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_orders_silver
             - task_key: pl_order_items_silver
@@ -333,8 +300,7 @@ resources:
             source: WORKSPACE
 
         - task_key: pl_fact_events
-          job_cluster_key: ecommerce_job_cluster
-          <<: *base_retry_parameters
+          <<: [*base_retry_parameters, *cluster_id]
           depends_on:
             - task_key: pl_event_clickstream_silver
             - task_key: pl_dim_date

@@ -8,12 +8,13 @@
     ],
     "order_details": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "parquet",
+        "file_format": "excel",
         "container_folder_path": "orders_data",
-        "file_name": "order_details.parquet",
-        "blob_name": "orders_data/order_details.parquet",
+        "file_name": "order_details_table.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/order_details_table.xlsx",
         "partition_key": [],
 
         "schema": [
@@ -41,12 +42,13 @@
     },
     "order_item_pricing": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "parquet",
+        "file_format": "excel",
         "container_folder_path": "orders_data",
-        "file_name": "order_item_pricing.parquet",
-        "blob_name": "orders_data/order_item_pricing.parquet",
+        "file_name": "order_item_pricing_table.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/order_item_pricing_table.xlsx",
         "partition_key": [],
 
         "schema": [
@@ -69,12 +71,13 @@
     },
     "order_items": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "parquet",
+        "file_format": "excel",
         "container_folder_path": "orders_data",
-        "file_name": "order_items.parquet",
-        "blob_name": "orders_data/order_items.parquet",
+        "file_name": "order_items_table.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/order_items_table.xlsx",
         "partition_key": [],
 
         "schema": [
@@ -107,12 +110,13 @@
     },
     "order_status_history": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "parquet",
+        "file_format": "excel",
         "container_folder_path": "orders_data",
-        "file_name": "order_status_history.parquet",
-        "blob_name": "orders_data/order_status_history.parquet",
+        "file_name": "order_status_history_table.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/order_status_history_table.xlsx",
         "partition_key": [],
 
         "schema": [
@@ -155,12 +159,13 @@
     },
     "orders": {
         "storage_type": "azure_storage_account",
-        "storage_account_name": "ecommercevj4gm7",
+        "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "parquet",
+        "file_format": "excel",
         "container_folder_path": "orders_data",
-        "file_name": "orders.parquet",
-        "blob_name": "orders_data/orders.parquet",
+        "file_name": "orders_table.xlsx",
+        "sheet_name": "Sheet1",
+        "blob_name": "orders_data/orders_table.xlsx",
         "partition_key": [],
 
         "schema": [
