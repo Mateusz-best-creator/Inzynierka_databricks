@@ -14,4 +14,4 @@ variables:
 
   databricks_repo_path:
     description: ""
-    default: "/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}/ecommerce"
+    default: "/Workspace/Users/s197743@student.pg.edu.pl"
