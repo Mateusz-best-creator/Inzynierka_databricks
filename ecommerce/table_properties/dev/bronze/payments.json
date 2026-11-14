@@ -7,9 +7,9 @@
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "json",
+        "file_format": "parquet",
         "container_folder_path": "payments_data",
-        "file_name": "payment_details_table.json",
+        "file_name": "payment_details_table.parquet",
         "partition_key": [],
 
         "schema": [
@@ -49,9 +49,9 @@
         "storage_type": "azure_storage_account",
         "storage_account_name": "ecommerce4kllac",
         "container_name": "rawdatastorage",
-        "file_format": "json",
+        "file_format": "parquet",
         "container_folder_path": "payments_data",
-        "file_name": "payment_status_history_table.json",
+        "file_name": "payment_status_history_table.parquet",
         "partition_key": [],
 
         "schema": [
