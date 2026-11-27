@@ -1,9 +1,12 @@
 from unittest.mock import patch
 import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.types import DoubleType, IntegerType, StringType
+from pyspark.sql.types import DoubleType, IntegerType, StringType, TimestampType
 
-from ecommerce.common_functions.file_ingestion import read_file
+from ecommerce.common_functions.file_ingestion import (
+    add_ingestion_timestamp_column,
+    read_file,
+)
 
 SCHEMA_CONFIG = [
     {
@@ -62,3 +65,16 @@ def test_read_file_invalid_format(spark: SparkSession) -> None:
             schema=SCHEMA_CONFIG,
             file_format="txt",
         )
+
+def test_add_ingestion_timestamp_column(spark: SparkSession) -> None:
+    """Checks that INGESTED_AT timestamp column is added without changing row count.
+    Args:
+        spark: Active SparkSession fixture.
+    """
+    df = spark.createDataFrame([("test_data",)], ["col1"])
+
+    result_df = add_ingestion_timestamp_column(df)
+
+    assert "INGESTED_AT" in result_df.columns
+    assert isinstance(result_df.schema["INGESTED_AT"].dataType, TimestampType)
+    assert result_df.count() == 1

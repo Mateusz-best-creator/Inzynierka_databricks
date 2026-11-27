@@ -1,6 +1,7 @@
 from pandas import read_excel as pd_read_excel
 import io
 from typing import Any
+from datetime import datetime, timezone
 
 from azure.storage.blob import BlobServiceClient
 
@@ -19,10 +20,19 @@ from ecommerce.common_functions.config_utils import get_config, set_logger
 from ecommerce.common_functions.delta_utils import (
     create_table,
     optimize_vacuum_table,
-    add_ingestion_timestamp_column,
 )
 
 from pyspark.sql.functions import lit
+
+
+def add_ingestion_timestamp_column(df: DataFrame) -> DataFrame:
+    """Appends a UTC INGESTED_AT timestamp column to the DataFrame.
+    Args:
+        df: Input DataFrame to stamp with the ingestion time.
+    Returns:
+        DataFrame with the INGESTED_AT column added.
+    """
+    return df.withColumn("INGESTED_AT", lit(datetime.now(tz=timezone.utc)))
 
 
 def read_csv_file(spark: SparkSession, schema: StructType, path: str) -> DataFrame:

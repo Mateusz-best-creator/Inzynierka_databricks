@@ -1,7 +1,6 @@
 from pyspark.sql import DataFrame, SparkSession
 from ecommerce.common_functions.config_utils import set_logger
 from delta.tables import DeltaTable
-from datetime import datetime, timezone
 
 from pyspark.sql.functions import lit
 
@@ -80,15 +79,3 @@ def optimize_vacuum_table(
     logger.info(
         f"Optimized and vacuumed table: {table_name_uc}, retention hours: {retention_hours}"
     )
-
-
-def add_ingestion_timestamp_column(df: DataFrame) -> DataFrame:
-    """Adds a UTC ingestion timestamp column named INGESTED_AT to a DataFrame.
-
-    Args:
-        df: Input PySpark DataFrame to enrich with an ingestion timestamp.
-
-    Returns:
-        DataFrame with the added INGESTED_AT column.
-    """
-    return df.withColumn("INGESTED_AT", lit(datetime.now(tz=timezone.utc)))
