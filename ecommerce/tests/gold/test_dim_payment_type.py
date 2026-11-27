@@ -20,7 +20,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_dim_payment_type_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks dim_payment_type output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_df = spark.createDataFrame([], schema=PAYMENTS_SCHEMA)
 
     result_df = prepare_dim_payment_type_data(silver_payments=empty_df)
@@ -30,7 +33,10 @@ def test_prepare_dim_payment_type_schema_and_empty_input(spark: SparkSession) ->
 
 
 def test_prepare_dim_payment_type_tiers_and_deduplication(spark: SparkSession) -> None:
-    # Verify installment tier bucketing, null installment fallback, and deduplication
+    """Checks installment tier bucketing, null fallback, and pair deduplication.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     payments_df = spark.createDataFrame(
         [
             ("CREDIT_CARD", 1),

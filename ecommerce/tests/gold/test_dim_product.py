@@ -67,7 +67,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_dim_product_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks dim_product output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_products = spark.createDataFrame([], schema=PRODUCTS_SCHEMA)
     empty_categories = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
 
@@ -80,7 +83,10 @@ def test_prepare_dim_product_schema_and_empty_input(spark: SparkSession) -> None
 
 
 def test_prepare_dim_product_tiers_and_hierarchy(spark: SparkSession) -> None:
-    # Verify price, margin, weight, volume, stock, and SCD2 tiers alongside category hierarchy
+    """Checks product analytical tiers, SCD2 status flags, and parent category flattening.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     categories_df = spark.createDataFrame(
         [
             (1, "CAT-1", "Electronics", None),
@@ -212,7 +218,10 @@ def test_prepare_dim_product_tiers_and_hierarchy(spark: SparkSession) -> None:
 def test_prepare_dim_product_missing_category_and_zero_price_safety(
     spark: SparkSession,
 ) -> None:
-    # Verify fallback values when category_id is missing or base_price is zero
+    """Checks fallback labels when category is missing and safe margin logic for zero price.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     categories_df = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
     products_df = spark.createDataFrame(
         [

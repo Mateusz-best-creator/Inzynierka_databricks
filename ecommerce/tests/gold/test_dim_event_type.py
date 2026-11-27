@@ -14,7 +14,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_dim_event_type_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks dim_event_type output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_df = spark.createDataFrame([], schema=EVENTS_SCHEMA)
 
     result_df = prepare_dim_event_type_data(silver_events=empty_df)
@@ -24,7 +27,10 @@ def test_prepare_dim_event_type_schema_and_empty_input(spark: SparkSession) -> N
 
 
 def test_prepare_dim_event_type_funnel_mapping(spark: SparkSession) -> None:
-    # Verify funnel step order and stage classification for standard event types
+    """Checks funnel step ordering and stage names for standard event types.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     events_df = spark.createDataFrame(
         [
             ("View",),
@@ -55,7 +61,10 @@ def test_prepare_dim_event_type_funnel_mapping(spark: SparkSession) -> None:
 def test_prepare_dim_event_type_generator_events_and_deduplication(
     spark: SparkSession,
 ) -> None:
-    # Verify snake_case generator event mapping, duplicate removal, and null filtering
+    """Checks snake_case event mapping, deduplication, and null event filtering.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     events_df = spark.createDataFrame(
         [
             ("page_view",),

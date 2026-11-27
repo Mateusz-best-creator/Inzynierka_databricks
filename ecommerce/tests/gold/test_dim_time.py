@@ -13,7 +13,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_dim_time_schema_and_total_seconds(spark: SparkSession) -> None:
-    # Verify output schema and full 24-hour grid generation (86,400 seconds)
+    """Checks dim_time output schema and full 86,400-second daily row generation.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     result_df = prepare_dim_time_data(spark=spark)
 
     assert result_df.columns == EXPECTED_COLUMNS
@@ -21,7 +24,10 @@ def test_prepare_dim_time_schema_and_total_seconds(spark: SparkSession) -> None:
 
 
 def test_prepare_dim_time_day_part_mapping(spark: SparkSession) -> None:
-    # Verify time-of-day bucket classification across boundary hours
+    """Checks day-part bucket labels and key ordering across sample hours.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     result_df = prepare_dim_time_data(spark=spark)
 
     sample_hours = result_df.filter(

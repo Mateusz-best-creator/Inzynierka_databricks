@@ -111,7 +111,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_fact_events_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks fact_events output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     result_df = prepare_fact_events_data(
         silver_events=spark.createDataFrame([], schema=SILVER_EVENTS_SCHEMA),
         silver_sessions=spark.createDataFrame([], schema=SILVER_SESSIONS_SCHEMA),
@@ -130,7 +133,10 @@ def test_prepare_fact_events_schema_and_empty_input(spark: SparkSession) -> None
 
 
 def test_prepare_fact_events_sequencing_and_scd2_joins(spark: SparkSession) -> None:
-    # Verify event sequence numbering, step duration, and SCD2 product lookup
+    """Checks intra-session event sequencing, step dwell time, and SCD2 product lookup.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     silver_events = spark.createDataFrame(
         [
             ("EVT-1", "SESS-1", "2025-01-01 10:00:00", "View", "PROD-1"),
@@ -202,7 +208,10 @@ def test_prepare_fact_events_sequencing_and_scd2_joins(spark: SparkSession) -> N
 def test_prepare_fact_events_no_fanout_on_zip_and_scd_boundary(
     spark: SparkSession,
 ) -> None:
-    # Verify exact SCD2 boundary timestamp and multiple zip codes per city do not duplicate rows
+    """Checks that SCD2 boundary timestamps and multiple zip codes do not multiply rows.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     silver_events = spark.createDataFrame(
         [("EVT-BOUNDARY", "SESS-1", "2025-01-01 10:00:30", "View", "PROD-1")],
         schema=SILVER_EVENTS_SCHEMA,

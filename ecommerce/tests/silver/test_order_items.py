@@ -41,7 +41,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_order_items_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks silver order_items output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_items = spark.createDataFrame([], schema=ORDER_ITEMS_SCHEMA)
     empty_pricing = spark.createDataFrame([], schema=ORDER_PRICING_SCHEMA)
 
@@ -54,7 +57,10 @@ def test_prepare_order_items_schema_and_empty_input(spark: SparkSession) -> None
 
 
 def test_prepare_order_items_mapping_and_pricing_join(spark: SparkSession) -> None:
-    # Verify joining order items with pricing data and mapping attributes
+    """Checks joining order items with pricing records and mapping line attributes.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     order_items_df = spark.createDataFrame(
         [
             ("ITEM-1", "ORD-100", 1, "PROD-A", 3),
@@ -87,7 +93,10 @@ def test_prepare_order_items_mapping_and_pricing_join(spark: SparkSession) -> No
 def test_prepare_order_items_sanitization_and_missing_pricing(
     spark: SparkSession,
 ) -> None:
-    # Verify negative value conversion, null product_id filtering, and left join preservation
+    """Checks negative value sanitization, null product filtering, and missing pricing preservation.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     order_items_df = spark.createDataFrame(
         [
             ("ITEM-1", "ORD-1", -1, "PROD-1", -2),

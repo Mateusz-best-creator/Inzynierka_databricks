@@ -26,7 +26,11 @@ SCHEMA_CONFIG = [
 
 @patch("ecommerce.common_functions.file_ingestion.read_csv_file")
 def test_read_file_schema_mapping(mock_read_csv, spark: SparkSession) -> None:
-    # Verify that string datatype definitions map to proper PySpark types during ingestion
+    """Checks that string datatype configs map to PySpark types during ingestion.
+    Args:
+        mock_read_csv: Mocked CSV reader function.
+        spark: Active SparkSession fixture.
+    """
     mock_read_csv.return_value = spark.createDataFrame([], schema="dummy_source STRING")
 
     read_file(
@@ -45,7 +49,11 @@ def test_read_file_schema_mapping(mock_read_csv, spark: SparkSession) -> None:
 
 
 def test_read_file_invalid_format(spark: SparkSession) -> None:
-    # Verify that an unsupported file format raises a ValueError
+    """Checks that an unsupported file format raises a ValueError.
+    Args:
+        spark: Active SparkSession fixture.
+    """
+    
     with pytest.raises(ValueError, match="Invalid file format specified: txt"):
         read_file(
             spark=spark,

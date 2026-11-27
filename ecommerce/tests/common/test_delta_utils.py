@@ -5,7 +5,11 @@ from ecommerce.common_functions.delta_utils import add_ingestion_timestamp_colum
 
 
 def test_add_ingestion_timestamp_column(spark: SparkSession) -> None:
-    # Verify that INGESTED_AT timestamp column is appended without altering row count
+    """Checks that INGESTED_AT timestamp column is added without changing row count.
+    Args:
+        spark: Active SparkSession fixture.
+    """
+    
     df = spark.createDataFrame([("test_data",)], ["col1"])
 
     result_df = add_ingestion_timestamp_column(df)

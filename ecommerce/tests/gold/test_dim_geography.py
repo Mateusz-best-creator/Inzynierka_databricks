@@ -22,7 +22,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_dim_geography_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks dim_geography output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_df = spark.createDataFrame([], schema=USERS_GEO_SCHEMA)
 
     result_df = prepare_dim_geography_data(silver_users=empty_df)
@@ -32,7 +35,10 @@ def test_prepare_dim_geography_schema_and_empty_input(spark: SparkSession) -> No
 
 
 def test_prepare_dim_geography_cleaning_and_deduplication(spark: SparkSession) -> None:
-    # Verify whitespace trimming, deduplication, null zip fallback, and invalid row filtering
+    """Checks trimming, deduplication, null zip fallback, and missing city/state filtering.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     users_df = spark.createDataFrame(
         [
             ("Warszawa  ", "Mazowieckie", "00-001", "Poland"),

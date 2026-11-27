@@ -29,7 +29,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_dim_sales_context_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks dim_sales_context output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_df = spark.createDataFrame([], schema=ORDERS_FULL_SCHEMA)
 
     result_df = prepare_dim_sales_context_data(silver_orders=empty_df)
@@ -39,7 +42,10 @@ def test_prepare_dim_sales_context_schema_and_empty_input(spark: SparkSession) -
 
 
 def test_prepare_dim_sales_context_with_optional_columns(spark: SparkSession) -> None:
-    # Verify discount status, delivery SLA evaluation, and duplicate context removal
+    """Checks discount status, delivery SLA evaluation, and context deduplication.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     orders_df = spark.createDataFrame(
         [
             ("Standard", 0.0, "2025-01-10", "2025-01-12"),
@@ -65,7 +71,10 @@ def test_prepare_dim_sales_context_with_optional_columns(spark: SparkSession) ->
 def test_prepare_dim_sales_context_missing_optional_columns(
     spark: SparkSession,
 ) -> None:
-    # Verify fallback to default statuses when optional discount and delivery columns are absent
+    """Checks default discount and SLA statuses when optional order columns are absent.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     orders_df = spark.createDataFrame([("Courier",)], schema=ORDERS_MINIMAL_SCHEMA)
 
     result_df = prepare_dim_sales_context_data(silver_orders=orders_df)

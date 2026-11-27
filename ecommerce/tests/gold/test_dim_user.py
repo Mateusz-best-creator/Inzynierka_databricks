@@ -41,7 +41,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_dim_user_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks dim_user output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_df = spark.createDataFrame([], schema=USERS_SCHEMA)
 
     result_df = prepare_dim_user_data(silver_users=empty_df)
@@ -51,7 +54,10 @@ def test_prepare_dim_user_schema_and_empty_input(spark: SparkSession) -> None:
 
 
 def test_prepare_dim_user_age_groups_and_scd_status(spark: SparkSession) -> None:
-    # Verify age bracket derivation and SCD2 record status classification
+    """Checks age group derivation from birth dates and SCD2 record status flags.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     users_df = spark.createDataFrame(
         [
             (

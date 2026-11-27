@@ -18,7 +18,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_dim_date_schema_and_range(spark: SparkSession) -> None:
-    # Verify output schema and row count for a specific date range
+    """Checks dim_date output schema and row count for a given date range.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     result_df = prepare_dim_date_data(
         spark=spark, start_date="2025-05-01", end_date="2025-05-07"
     )
@@ -28,7 +31,10 @@ def test_prepare_dim_date_schema_and_range(spark: SparkSession) -> None:
 
 
 def test_prepare_dim_date_iso_weekday_and_weekend_flags(spark: SparkSession) -> None:
-    # Verify ISO day of week shift (Monday=1, Sunday=7) and weekend flag calculation
+    """Checks ISO day-of-week numbering, quarter labels, and weekend flags.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     result_df = prepare_dim_date_data(
         spark=spark, start_date="2025-05-05", end_date="2025-05-11"
     )

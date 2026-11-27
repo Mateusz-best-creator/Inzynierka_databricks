@@ -161,7 +161,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_fact_sales_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks fact_sales output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     result_df = prepare_fact_sales_data(
         silver_orders=spark.createDataFrame([], schema=SILVER_ORDERS_SCHEMA),
         silver_order_items=spark.createDataFrame([], schema=SILVER_ORDER_ITEMS_SCHEMA),
@@ -184,7 +187,10 @@ def test_prepare_fact_sales_schema_and_empty_input(spark: SparkSession) -> None:
 def test_prepare_fact_sales_financial_metrics_and_aggregations(
     spark: SparkSession,
 ) -> None:
-    # Verify financial line calculations, profit margins, payment aggregations, and fulfillment times
+    """Checks line-item amounts, profit margin, payment aggregations, and fulfillment timings.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     silver_order_items = spark.createDataFrame(
         [("ORD-1", 1, "PROD-1", 2, 100.0, 10.0)],
         schema=SILVER_ORDER_ITEMS_SCHEMA,
@@ -282,7 +288,10 @@ def test_prepare_fact_sales_financial_metrics_and_aggregations(
 
 
 def test_prepare_fact_sales_no_fanout_and_physical_metrics(spark: SparkSession) -> None:
-    # Verify no row multiplication across multi-tier dimensions, plus physical and processing metrics
+    """Checks anti-fanout joins on multi-tier dimensions and weight, volume, and processing KPIs.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     silver_order_items = spark.createDataFrame(
         [("ORD-2", 1, "PROD-2", 3, 50.0, 0.0)],
         schema=SILVER_ORDER_ITEMS_SCHEMA,

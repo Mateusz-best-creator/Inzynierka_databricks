@@ -33,7 +33,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_payments_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks silver payments output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_df = spark.createDataFrame([], schema=PAYMENTS_SCHEMA)
 
     result_df = prepare_payments_data(payment_details=empty_df)
@@ -43,7 +46,10 @@ def test_prepare_payments_schema_and_empty_input(spark: SparkSession) -> None:
 
 
 def test_prepare_payments_transformations(spark: SparkSession) -> None:
-    # Verify standard payment mapping and surrogate key generation
+    """Checks standard payment attribute mapping and surrogate key generation.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     payments_df = spark.createDataFrame(
         [
             ("PAY-1", "ORD-1", 1, "CREDIT_CARD", 3, 150.0),
@@ -62,7 +68,10 @@ def test_prepare_payments_transformations(spark: SparkSession) -> None:
 
 
 def test_prepare_payments_sanitization_and_deduplication(spark: SparkSession) -> None:
-    # Verify negative value fix, null handling, sequence deduplication, and installment reset
+    """Checks negative value fixes, null fallbacks, sequence deduplication, and installment capping.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     payments_df = spark.createDataFrame(
         [
             ("PAY-1", "ORD-1", 1, "VOUCHER", 12, -99.50),

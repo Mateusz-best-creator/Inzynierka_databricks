@@ -82,7 +82,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_orders_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks silver orders output schema, empty input handling, and date column addition.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     joined_df = prepare_orders_data(
         orders=spark.createDataFrame([], schema=ORDERS_SCHEMA),
         order_details=spark.createDataFrame([], schema=DETAILS_SCHEMA),
@@ -100,7 +103,10 @@ def test_prepare_orders_schema_and_empty_input(spark: SparkSession) -> None:
 
 
 def test_prepare_orders_calculations_and_status_pivots(spark: SparkSession) -> None:
-    # Verify order total calculation, status timestamp pivoting, and SCD2 user lookup
+    """Checks order totals, milestone timestamp pivoting, and SCD2 user key lookup.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     orders_df = spark.createDataFrame(
         [("ORD-100", "USR-10", "SESS-10", "2025-03-10 12:00:00")],
         schema=ORDERS_SCHEMA,
@@ -158,7 +164,10 @@ def test_prepare_orders_calculations_and_status_pivots(spark: SparkSession) -> N
 
 
 def test_prepare_orders_sanitization_and_missing_details(spark: SparkSession) -> None:
-    # Verify anomaly healing (1900 date, swapped status times, negative prices) and missing detail defaults
+    """Checks corrupted date healing, swapped status realignment, negative sign fixes, and missing detail defaults.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     orders_df = spark.createDataFrame(
         [
             ("ORD-ERR", "USR-1", "SESS-1", "1900-01-01 00:00:00"),
@@ -216,7 +225,10 @@ def test_prepare_orders_sanitization_and_missing_details(spark: SparkSession) ->
 
 
 def test_add_date_columns_quarters_and_formatting(spark: SparkSession) -> None:
-    # Verify year, zero-padded month, and quarter derivation across all quarters and null dates
+    """Checks YEAR, zero-padded MONTH, and QUARTER derivation across all quarters and nulls.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     schema = StructType(
         [
             StructField("ORDER_ID", StringType(), True),
