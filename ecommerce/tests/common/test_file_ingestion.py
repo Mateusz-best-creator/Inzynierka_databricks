@@ -66,6 +66,7 @@ def test_read_file_invalid_format(spark: SparkSession) -> None:
             file_format="txt",
         )
 
+
 def test_add_ingestion_timestamp_column(spark: SparkSession) -> None:
     """Checks that INGESTED_AT timestamp column is added without changing row count.
     Args:
