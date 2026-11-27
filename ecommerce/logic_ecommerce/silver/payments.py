@@ -17,7 +17,12 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 
 def prepare_payments_data(payment_details: DataFrame) -> DataFrame:
-    # Sanitize payment attributes, fix invalid installment counts, and deduplicate sequences
+    """Sanitizes payment records, enforces installment rules, and deduplicates sequences.
+    Args:
+        payment_details: Raw bronze payment details DataFrame.
+    Returns:
+        Cleaned silver payments DataFrame with unique sequences per order and surrogate keys.
+    """
     cleaned_payments = (
         payment_details.filter(col("payment_id").isNotNull())
         .withColumn(
@@ -45,7 +50,6 @@ def prepare_payments_data(payment_details: DataFrame) -> DataFrame:
         )
     )
 
-    # Remove duplicate payment sequences within the same order
     dedup_window = Window.partitionBy("order_id", "seq_clean").orderBy("payment_id")
     deduped_payments = (
         cleaned_payments.withColumn("rn", row_number().over(dedup_window))
@@ -69,6 +73,12 @@ def prepare_payments_data(payment_details: DataFrame) -> DataFrame:
 
 
 def entry_point_payments(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the silver payments ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for silver payments table.")
 

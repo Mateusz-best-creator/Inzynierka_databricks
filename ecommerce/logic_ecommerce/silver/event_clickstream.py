@@ -7,7 +7,12 @@ from pyspark.sql.functions import col, monotonically_increasing_id
 
 
 def prepare_clickstream_data(event_clickstream: DataFrame) -> DataFrame:
-    """Prepare and transform clickstream events data."""
+    """Selects core clickstream event columns and generates distributed surrogate keys.
+    Args:
+        event_clickstream: Raw bronze clickstream events DataFrame.
+    Returns:
+        Silver clickstream DataFrame with EVENT_SURROGATE_KEY and standardized columns.
+    """
 
     clickstream_selected = event_clickstream.select(
         monotonically_increasing_id().alias("EVENT_SURROGATE_KEY"),
@@ -24,7 +29,12 @@ def prepare_clickstream_data(event_clickstream: DataFrame) -> DataFrame:
 def entry_point_event_clickstream(
     spark: SparkSession, env: str, log_level: int
 ) -> None:
-    """Entry point for silver events_clickstream table ETL."""
+    """Runs the silver event_clickstream ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level)
     logger.info("Running entry_point for silver events_clickstream table.")
 

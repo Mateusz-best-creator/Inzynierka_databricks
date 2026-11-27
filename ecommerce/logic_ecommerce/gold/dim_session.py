@@ -18,7 +18,14 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 def prepare_dim_session_data(
     silver_sessions: DataFrame, silver_events: DataFrame
 ) -> DataFrame:
-    # Identify sessions with conversion events across case formats
+    """Enriches browsing sessions with duration buckets and conversion status flags.
+    Args:
+        silver_sessions: Silver sessions DataFrame.
+        silver_events: Silver event_clickstream DataFrame used to detect conversions.
+    Returns:
+        Gold dim_session DataFrame with engagement buckets, conversion labels, and SESSION_SURROGATE_KEY.
+    """
+    
     norm_event = lower(regexp_replace(trim(col("EVENT_TYPE")), r"[_\s-]+", ""))
     converted_sessions = (
         silver_events.filter(norm_event.isin("purchase", "checkout", "complete"))
@@ -27,12 +34,10 @@ def prepare_dim_session_data(
         .withColumn("is_converted", lit(1))
     )
 
-    # Join sessions with conversion flags
     sessions_joined = silver_sessions.join(
         converted_sessions, on="SESSION_ID", how="left"
     )
-
-    # Calculate session duration in seconds
+    
     duration_sec = unix_timestamp(col("SESSION_END")) - unix_timestamp(
         col("SESSION_START")
     )
@@ -64,6 +69,13 @@ def prepare_dim_session_data(
 
 
 def entry_point_dim_session(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the gold dim_session ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
+    
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_session table.")
 

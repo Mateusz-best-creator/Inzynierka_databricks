@@ -12,7 +12,14 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 def prepare_order_items_data(
     order_items: DataFrame, order_item_pricing: DataFrame
 ) -> DataFrame:
-    """Prepare and transform order items data by joining with pricing information."""
+    """Filters valid order items, joins pricing data, and sanitizes negative values.
+    Args:
+        order_items: Raw bronze order items DataFrame.
+        order_item_pricing: Raw bronze order item pricing DataFrame.
+    Returns:
+        Silver order items DataFrame with sanitized numeric fields and surrogate keys.
+    """
+    
     valid_items = order_items.filter(
         col("ORDER_ITEM_ID").isNotNull()
         & col("ORDER_ID").isNotNull()
@@ -42,7 +49,12 @@ def prepare_order_items_data(
 
 
 def entry_point_order_items(spark: SparkSession, env: str, log_level: int) -> None:
-    """Entry point for silver order_items table ETL."""
+    """Runs the silver order_items ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level)
     logger.info("Running entry_point for silver order_items table.")
 

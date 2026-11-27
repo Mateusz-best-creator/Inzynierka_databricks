@@ -23,7 +23,18 @@ def join_users_data(
     user_status_history: DataFrame,
     users: DataFrame,
 ) -> DataFrame:
-    # Step 1: Collect all unique boundary dates from location history, status history, and user creation
+    """Builds a unified SCD2 user table from customer history tables and sanitizes contacts.
+    Args:
+        locations: Raw bronze locations dictionary DataFrame.
+        user_contacts: Raw bronze user email and phone DataFrame.
+        user_locations: Raw bronze user location history DataFrame.
+        user_profiles: Raw bronze user profile attributes DataFrame.
+        user_status_history: Raw bronze user account status history DataFrame.
+        users: Raw bronze core users DataFrame.
+    Returns:
+        Silver users DataFrame with continuous SCD2 validity intervals, cleaned contacts, and surrogate keys.
+    """
+    
     loc_from = user_locations.select(
         col("user_id"), col("valid_from").alias("timeline_point")
     )
@@ -49,7 +60,6 @@ def join_users_data(
         .distinct()
     )
 
-    # Step 2: Create continuous, non-overlapping time intervals per user
     timeline_window = Window.partitionBy("user_id").orderBy("timeline_point")
     ordered_user_timelines = user_timelines.select(
         col("user_id"),
@@ -57,7 +67,6 @@ def join_users_data(
         lead("timeline_point").over(timeline_window).alias("valid_to"),
     )
 
-    # Sanitize email and phone expressions
     email_cleaned = trim(regexp_replace(col("co.email"), "@+", "@"))
     valid_email_expr = when(
         email_cleaned.rlike(r"^[^@\s]+@[^@\s]+\.[^@\s]+$"), email_cleaned
@@ -69,7 +78,6 @@ def join_users_data(
         lit(None)
     )
 
-    # Step 3: Join user tables and match location and status active in each time window
     surrogate_window = Window.orderBy(col("ot.user_id"), col("ot.valid_from"))
 
     joined_users_df = (
@@ -139,6 +147,13 @@ def join_users_data(
 
 
 def entry_point_users(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the silver users ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
+    
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for silver users table.")
 

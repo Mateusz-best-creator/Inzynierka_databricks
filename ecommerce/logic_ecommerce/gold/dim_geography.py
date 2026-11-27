@@ -7,7 +7,12 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 
 def prepare_dim_geography_data(silver_users: DataFrame) -> DataFrame:
-    # Filter valid locations and deduplicate unique geographic combinations
+    """Extracts deduplicated customer locations and assigns geographic surrogate keys.
+    Args:
+        silver_users: Silver users DataFrame containing address columns.
+    Returns:
+        Gold dim_geography DataFrame with unique location combinations and GEOGRAPHY_KEY.
+    """
     unique_locations = (
         silver_users.filter(col("CITY").isNotNull() & col("STATE").isNotNull())
         .select(
@@ -33,6 +38,12 @@ def prepare_dim_geography_data(silver_users: DataFrame) -> DataFrame:
 
 
 def entry_point_dim_geography(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the gold dim_geography ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_geography table.")
 

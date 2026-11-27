@@ -7,6 +7,12 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 
 def prepare_dim_payment_type_data(silver_payments: DataFrame) -> DataFrame:
+    """Groups payment records into installment tiers and builds unique payment type pairs.
+    Args:
+        silver_payments: Silver payments DataFrame.
+    Returns:
+        Gold dim_payment_type DataFrame with payment methods, installment tiers, and PAYMENT_TYPE_KEY.
+    """
     payment_with_tier = silver_payments.withColumn(
         "installment_tier",
         when(coalesce(col("PAYMENT_INSTALLMENTS"), lit(1)) <= 1, lit("Single Payment"))
@@ -14,7 +20,6 @@ def prepare_dim_payment_type_data(silver_payments: DataFrame) -> DataFrame:
         .otherwise(lit("4+ Installments")),
     )
 
-    # Extract distinct combinations of payment types and their respective installment tiers
     unique_payments = payment_with_tier.select(
         col("PAYMENT_TYPE").alias("payment_type_name"), col("installment_tier")
     ).dropDuplicates(["payment_type_name", "installment_tier"])
@@ -29,6 +34,12 @@ def prepare_dim_payment_type_data(silver_payments: DataFrame) -> DataFrame:
 
 
 def entry_point_dim_payment_type(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the gold dim_payment_type ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_payment_type table.")
 

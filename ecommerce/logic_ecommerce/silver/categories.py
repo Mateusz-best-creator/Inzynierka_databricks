@@ -7,7 +7,12 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 
 def prepare_categories_data(categories: DataFrame) -> DataFrame:
-    # Filter out missing primary keys, trim identifiers, and deduplicate categories
+    """Cleans category records, removes orphaned parent references, and assigns surrogate keys.
+    Args:
+        categories: Raw bronze categories DataFrame.
+    Returns:
+        Cleaned silver categories DataFrame with validated parent links and surrogate keys.
+    """
     cleaned_categories = (
         categories.filter(col("category_id").isNotNull())
         .withColumn("category_id_clean", trim(col("category_id")))
@@ -22,7 +27,6 @@ def prepare_categories_data(categories: DataFrame) -> DataFrame:
         .dropDuplicates(["category_id_clean"])
     )
 
-    # Verify that parent_category_id exists as a valid category_id to remove orphan links
     valid_parents = cleaned_categories.select(
         col("category_id_clean").alias("valid_parent_id")
     )
@@ -44,6 +48,12 @@ def prepare_categories_data(categories: DataFrame) -> DataFrame:
 
 
 def entry_point_categories(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the silver categories ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for silver categories table.")
 

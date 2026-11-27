@@ -31,7 +31,22 @@ def prepare_fact_events_data(
     dim_product: DataFrame,
     dim_event_type: DataFrame,
 ) -> DataFrame:
-    # 1. Calculate event sequence and non-negative time spent on step using window functions
+    """Builds the clickstream fact table with session sequencing, dwell times, and dimension keys.
+    Args:
+        silver_events: Silver event_clickstream DataFrame.
+        silver_sessions: Silver sessions DataFrame.
+        silver_users: Silver users DataFrame used for geography lookup.
+        dim_date: Gold dim_date DataFrame.
+        dim_time: Gold dim_time DataFrame.
+        dim_session: Gold dim_session DataFrame.
+        dim_user: Gold dim_user DataFrame.
+        dim_geography: Gold dim_geography DataFrame.
+        dim_product: Gold SCD2 dim_product DataFrame.
+        dim_event_type: Gold dim_event_type DataFrame.
+    Returns:
+        Gold fact_events DataFrame with foreign keys, step timing, and point-in-time product attributes.
+    """
+    
     window_session = Window.partitionBy("SESSION_ID").orderBy("EVENT_TIME", "EVENT_ID")
 
     raw_step_diff = (
@@ -49,7 +64,6 @@ def prepare_fact_events_data(
         .withColumn("event_second", second("EVENT_TIME"))
     )
 
-    # 2. Enrich events with user surrogate key and geography mapping from sessions and users
     has_user_zip = "ZIP_CODE" in silver_users.columns
     has_geo_zip = "ZIP_CODE" in dim_geography.columns
 
@@ -78,7 +92,6 @@ def prepare_fact_events_data(
         .select(*user_select_cols)
     )
 
-    # Prepare geography join condition without multiplying rows across zip codes
     if has_user_zip and has_geo_zip:
         geo_dedup = dim_geography.dropDuplicates(
             ["CITY", "STATE", "COUNTRY", "ZIP_CODE"]
@@ -100,7 +113,6 @@ def prepare_fact_events_data(
             & (trim(col("f.COUNTRY")) == trim(col("dg.COUNTRY")))
         )
 
-    # 3. Join with all dimension tables to fetch surrogate keys
     fact_df = (
         events_enriched.alias("f")
         .join(dim_date.alias("dd"), col("f.event_date") == col("dd.FULL_DATE"), "left")
@@ -140,7 +152,6 @@ def prepare_fact_events_data(
         )
     )
 
-    # 4. Select and map columns for the final fact table
     return fact_df.select(
         col("dd.DATE_KEY").alias("EVENT_DATE_KEY"),
         col("dt.TIME_KEY").alias("EVENT_TIME_KEY"),
@@ -159,6 +170,13 @@ def prepare_fact_events_data(
 
 
 def entry_point_fact_events(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the gold fact_events ETL pipeline and writes the partitioned Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
+    
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold fact_events table.")
 
@@ -168,7 +186,6 @@ def entry_point_fact_events(spark: SparkSession, env: str, log_level: int) -> No
     )
     partition_key = config.get("partition_key", [])
 
-    # Load Source Tables
     silver_events_df = spark.read.table(
         f"databricks_{env}_domain.ecommerce_silver.event_clickstream"
     )
@@ -179,7 +196,6 @@ def entry_point_fact_events(spark: SparkSession, env: str, log_level: int) -> No
         f"databricks_{env}_domain.ecommerce_silver.users"
     )
 
-    # Load Dimensions
     dim_date_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_date")
     dim_time_df = spark.read.table(f"databricks_{env}_domain.ecommerce_gold.dim_time")
     dim_session_df = spark.read.table(
