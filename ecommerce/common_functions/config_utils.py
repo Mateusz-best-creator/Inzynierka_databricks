@@ -6,14 +6,28 @@ from pathlib import Path
 
 
 def read_json(config_filename: str) -> dict:
-    """"""
+    """Reads and parses a JSON file into a dictionary.
+
+    Args:
+        config_filename: Path to the JSON file to read.
+
+    Returns:
+        Parsed JSON content as a dictionary.
+    """
     with open(config_filename) as f:
         content = json.load(f)
     return content
 
 
 def set_logger(log_level: int = logging.INFO) -> logging.Logger:
-    """"""
+    """Configures and returns a module-level logger with a stream handler.
+
+    Args:
+        log_level: Logging threshold level to apply to the logger and console handler.
+
+    Returns:
+        Configured logging.Logger instance.
+    """
     logger = logging.getLogger(__name__)
     logger.setLevel(log_level)
     logging.getLogger("py4j").setLevel(logging.WARN)
@@ -35,6 +49,19 @@ def set_logger(log_level: int = logging.INFO) -> logging.Logger:
 
 
 def get_root_path(start_path: str, marker: str = "databricks.yml") -> str:
+    """Finds the project root directory containing the specified marker file.
+
+    Args:
+        start_path: Starting file or directory path from which to search upward.
+        marker: Target file or directory name identifying the project root.
+
+    Returns:
+        Resolved path to the project root directory as a string.
+
+    Raises:
+        ValueError: If marker is not found in start_path or any parent
+            directory.
+    """
     path = Path(start_path).resolve()
     while not (path / marker).exists():
         if path.parent == path:
@@ -44,12 +71,32 @@ def get_root_path(start_path: str, marker: str = "databricks.yml") -> str:
 
 
 def get_config_path(root_path: str, layer: str, env: str, config_filename: str):
+    """Builds the file path to a layer and environment specific table config.
+
+    Args:
+        root_path: Path to the project root directory.
+        layer: Data lakehouse layer name (for example bronze, silver or gold).
+        env: Target deployment environment (for example dev, test or prod).
+        config_filename: Name of the configuration file.
+
+    Returns:
+        Full path to the environment and layer specific configuration file.
+    """
     return os.path.join(
         root_path, "ecommerce", "table_properties", env, layer, config_filename
     )
 
 
 def get_default_config_path(root_path: str, config_filename: str):
+    """Builds the file path to a shared default table properties config.
+
+    Args:
+        root_path: Path to the project root directory.
+        config_filename: Name of the default configuration file.
+
+    Returns:
+        Full path to the default configuration file.
+    """
     return os.path.join(root_path, "ecommerce", "table_properties", config_filename)
 
 
@@ -60,7 +107,23 @@ def get_bronze_config(
     default_config: dict,
     logger: logging.Logger,
 ) -> list[dict]:
-    """"""
+    """Builds Unity Catalog and cloud storage configurations for bronze tables.
+
+    Args:
+        env: Target deployment environment key used in default_config.
+        layer: Data lakehouse layer key used in default_config.
+        file_config: Dictionary containing table definitions and source storage settings.
+        default_config: Dictionary containing shared schema, endpoint, and environment storage settings.
+        logger: Logger instance used to record configuration progress.
+
+    Returns:
+        List of dictionaries containing Unity Catalog table names, source and
+        target cloud locations, partition keys, schemas, file formats, Excel
+        properties, and source filenames.
+
+    Raises:
+        ValueError: If a table'ss file_format is not one of csv, json, parquet, or excel.
+    """
     table_list = file_config["table_list"]
     config = []
 
@@ -136,7 +199,18 @@ def get_silver_gold_config(
     default_json_configuration: dict,
     logger: logging.Logger,
 ) -> list[dict]:
-    """"""
+    """Builds Unity Catalog table configuration for a silver or gold layer.
+
+    Args:
+        env: Target deployment environment key used in default_json_configuration.
+        layer: Data lakehouse layer name (such as silver or gold).
+        json_configuration: Dictionary containing target table settings and optional partition key.
+        default_json_configuration: Dictionary containing catalog and schema defaults by layer and environment.
+        logger: Logger instance used to record configuration progress.
+
+    Returns:
+        Single element list containing a dictionary with table_name_uc and partition_key.
+    """
 
     catalog = default_json_configuration[layer][env]["catalog"]
     schema = default_json_configuration["all_layers"][f"{layer}_schema"]
@@ -145,18 +219,22 @@ def get_silver_gold_config(
 
     logger.info(f"Processing configuration for {layer} table: {table_name}")
 
-    # if json_configuration.get("table_name", None):
-    #     object_name = json_configuration["table_name"]
-    # else:
-    #     object_name = json_configuration["view_name"]
-
     table_name_uc = f"{catalog}.{schema}.{table_name}"
 
     return [{"table_name_uc": table_name_uc, "partition_key": partition_key}]
 
 
 def get_config(env: str, layer: str, config_filename: str) -> list[dict]:
-    """"""
+    """Loads table configurations for the requested environment and layer.
+
+    Args:
+        env: Target deployment environment (for example, dev or prod).
+        layer: Data lakehouse layer name (for example, bronze, silver or gold).
+        config_filename: Name of the layer configuration JSON file.
+
+    Returns:
+        List of configuration dictionaries generated for the specified layer.
+    """
 
     logger = set_logger()
     root_project_path = get_root_path(__name__)
