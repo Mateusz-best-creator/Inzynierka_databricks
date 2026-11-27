@@ -34,7 +34,7 @@ def join_users_data(
     Returns:
         Silver users DataFrame with continuous SCD2 validity intervals, cleaned contacts, and surrogate keys.
     """
-    
+
     loc_from = user_locations.select(
         col("user_id"), col("valid_from").alias("timeline_point")
     )
@@ -153,7 +153,7 @@ def entry_point_users(spark: SparkSession, env: str, log_level: int) -> None:
         env: Target deployment environment (for example dev or prod).
         log_level: Logging threshold level.
     """
-    
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for silver users table.")
 

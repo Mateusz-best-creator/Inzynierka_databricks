@@ -75,7 +75,7 @@ def entry_point_dim_sales_context(
         env: Target deployment environment (for example dev or prod).
         log_level: Logging threshold level.
     """
-    
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_sales_context table.")
 

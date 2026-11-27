@@ -25,7 +25,7 @@ def prepare_dim_session_data(
     Returns:
         Gold dim_session DataFrame with engagement buckets, conversion labels, and SESSION_SURROGATE_KEY.
     """
-    
+
     norm_event = lower(regexp_replace(trim(col("EVENT_TYPE")), r"[_\s-]+", ""))
     converted_sessions = (
         silver_events.filter(norm_event.isin("purchase", "checkout", "complete"))
@@ -37,7 +37,7 @@ def prepare_dim_session_data(
     sessions_joined = silver_sessions.join(
         converted_sessions, on="SESSION_ID", how="left"
     )
-    
+
     duration_sec = unix_timestamp(col("SESSION_END")) - unix_timestamp(
         col("SESSION_START")
     )
@@ -75,7 +75,7 @@ def entry_point_dim_session(spark: SparkSession, env: str, log_level: int) -> No
         env: Target deployment environment (for example dev or prod).
         log_level: Logging threshold level.
     """
-    
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_session table.")
 

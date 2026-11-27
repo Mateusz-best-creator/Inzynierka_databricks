@@ -32,7 +32,7 @@ def prepare_dim_date_data(
     Returns:
         Gold dim_date DataFrame with ISO day-of-week values, weekend flags, and DATE_KEY.
     """
-    
+
     dates_df = spark.sql(
         f"SELECT explode(sequence(to_date('{start_date}'), to_date('{end_date}'), interval 1 day)) AS full_date"
     )

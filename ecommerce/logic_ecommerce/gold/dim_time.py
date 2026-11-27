@@ -14,7 +14,7 @@ def prepare_dim_time_data(spark: SparkSession) -> DataFrame:
     Returns:
         Gold dim_time DataFrame with hour, minute, second, DAY_PART, and TIME_KEY.
     """
-    
+
     hours_df = spark.range(0, 24).select(col("id").cast(IntegerType()).alias("hour"))
     minutes_df = spark.range(0, 60).select(
         col("id").cast(IntegerType()).alias("minute")
@@ -50,7 +50,7 @@ def entry_point_dim_time(spark: SparkSession, env: str, log_level: int) -> None:
         env: Target deployment environment (for example dev or prod).
         log_level: Logging threshold level.
     """
-    
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_time table.")
 

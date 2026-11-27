@@ -46,7 +46,7 @@ def prepare_fact_events_data(
     Returns:
         Gold fact_events DataFrame with foreign keys, step timing, and point-in-time product attributes.
     """
-    
+
     window_session = Window.partitionBy("SESSION_ID").orderBy("EVENT_TIME", "EVENT_ID")
 
     raw_step_diff = (
@@ -176,7 +176,7 @@ def entry_point_fact_events(spark: SparkSession, env: str, log_level: int) -> No
         env: Target deployment environment (for example dev or prod).
         log_level: Logging threshold level.
     """
-    
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold fact_events table.")
 

@@ -32,7 +32,7 @@ def add_date_columns(
     Returns:
         DataFrame extended with YEAR, MONTH, and QUARTER columns.
     """
-    
+
     timestamp_column = month(col(timestamp_column_name))
 
     df_year_month = df.withColumn(
@@ -95,7 +95,7 @@ def prepare_orders_data(
             ).alias("ITEMS_TOTAL")
         )
     )
-    
+
     status_dedup = (
         order_status_history.filter(
             col("ORDER_ID").isNotNull()

@@ -19,7 +19,7 @@ def prepare_order_items_data(
     Returns:
         Silver order items DataFrame with sanitized numeric fields and surrogate keys.
     """
-    
+
     valid_items = order_items.filter(
         col("ORDER_ITEM_ID").isNotNull()
         & col("ORDER_ID").isNotNull()

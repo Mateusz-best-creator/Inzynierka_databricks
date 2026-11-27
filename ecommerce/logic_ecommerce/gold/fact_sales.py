@@ -50,7 +50,7 @@ def prepare_fact_sales_data(
     Returns:
         Gold fact_sales DataFrame with surrogate foreign keys, revenue, margin, weight, volume, and SLA timings.
     """
-    
+
     payments_agg = (
         silver_payments.groupBy("ORDER_ID")
         .agg(
@@ -365,7 +365,7 @@ def entry_point_fact_sales(spark: SparkSession, env: str, log_level: int) -> Non
         env: Target deployment environment (for example dev or prod).
         log_level: Logging threshold level.
     """
-    
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold fact_sales table.")
 

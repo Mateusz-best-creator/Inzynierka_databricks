@@ -9,7 +9,7 @@ def test_add_ingestion_timestamp_column(spark: SparkSession) -> None:
     Args:
         spark: Active SparkSession fixture.
     """
-    
+
     df = spark.createDataFrame([("test_data",)], ["col1"])
 
     result_df = add_ingestion_timestamp_column(df)

@@ -12,7 +12,7 @@ def prepare_dim_user_data(silver_users: DataFrame) -> DataFrame:
     Returns:
         Gold dim_user DataFrame with AGE_GROUP, SCD_RECORD_STATUS, and existing user surrogate keys.
     """
-    
+
     age_in_years = floor(months_between(current_date(), col("BIRTH_DATE")) / 12)
 
     age_group_logic = (
@@ -54,7 +54,7 @@ def entry_point_dim_user(spark: SparkSession, env: str, log_level: int) -> None:
         env: Target deployment environment (for example dev or prod).
         log_level: Logging threshold level.
     """
-    
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_user table.")
 

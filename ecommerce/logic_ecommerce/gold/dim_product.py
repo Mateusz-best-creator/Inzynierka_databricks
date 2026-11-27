@@ -16,7 +16,7 @@ def prepare_dim_product_data(
     Returns:
         Gold dim_product DataFrame with parent categories, tier flags, and PRODUCT_SURROGATE_KEY.
     """
-    
+
     cat_df = silver_categories.alias("c")
     parent_cat_df = silver_categories.alias("p")
 
@@ -141,7 +141,7 @@ def entry_point_dim_product(spark: SparkSession, env: str, log_level: int) -> No
         env: Target deployment environment (for example dev or prod).
         log_level: Logging threshold level.
     """
-    
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_product table.")
 

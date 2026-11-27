@@ -53,7 +53,7 @@ def test_read_file_invalid_format(spark: SparkSession) -> None:
     Args:
         spark: Active SparkSession fixture.
     """
-    
+
     with pytest.raises(ValueError, match="Invalid file format specified: txt"):
         read_file(
             spark=spark,
