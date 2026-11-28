@@ -9,7 +9,14 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 def prepare_dim_product_data(
     silver_products: DataFrame, silver_categories: DataFrame
 ) -> DataFrame:
-    # Prepare categories with parent category names via self-join
+    """Flattens category hierarchies and enriches SCD2 products with analytical tiers.
+    Args:
+        silver_products: Silver SCD2 products DataFrame.
+        silver_categories: Silver categories DataFrame.
+    Returns:
+        Gold dim_product DataFrame with parent categories, tier flags, and PRODUCT_SURROGATE_KEY.
+    """
+
     cat_df = silver_categories.alias("c")
     parent_cat_df = silver_categories.alias("p")
 
@@ -22,12 +29,10 @@ def prepare_dim_product_data(
         col("p.CATEGORY_NAME").alias("PARENT_CATEGORY_NAME"),
     )
 
-    # Join products with enriched categories
     products_joined = silver_products.alias("sp").join(
         categories_enriched.alias("ce"), on="CATEGORY_ID", how="left"
     )
 
-    # Calculate margin safely to avoid division by zero
     base_price_clean = coalesce(col("sp.BASE_PRICE"), lit(0.0))
     cost_price_clean = coalesce(col("sp.COST_PRICE"), lit(0.0))
 
@@ -36,7 +41,6 @@ def prepare_dim_product_data(
         (base_price_clean - cost_price_clean) / base_price_clean,
     ).otherwise(lit(0.0))
 
-    # Calculate package volume
     volume_expr = (
         coalesce(col("sp.LENGTH_CM"), lit(0.0))
         * coalesce(col("sp.WIDTH_CM"), lit(0.0))
@@ -131,6 +135,13 @@ def prepare_dim_product_data(
 
 
 def entry_point_dim_product(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the gold dim_product ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_product table.")
 

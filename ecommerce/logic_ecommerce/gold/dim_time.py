@@ -8,7 +8,13 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 
 def prepare_dim_time_data(spark: SparkSession) -> DataFrame:
-    # Generate all 86,400 seconds of the day via cross join of ranges
+    """Generates a time dimension covering all 86,400 seconds of a day with day parts.
+    Args:
+        spark: Active SparkSession instance.
+    Returns:
+        Gold dim_time DataFrame with hour, minute, second, DAY_PART, and TIME_KEY.
+    """
+
     hours_df = spark.range(0, 24).select(col("id").cast(IntegerType()).alias("hour"))
     minutes_df = spark.range(0, 60).select(
         col("id").cast(IntegerType()).alias("minute")
@@ -38,6 +44,13 @@ def prepare_dim_time_data(spark: SparkSession) -> DataFrame:
 
 
 def entry_point_dim_time(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the gold dim_time ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_time table.")
 

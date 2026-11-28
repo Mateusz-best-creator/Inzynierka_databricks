@@ -1,9 +1,12 @@
 from unittest.mock import patch
 import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.types import DoubleType, IntegerType, StringType
+from pyspark.sql.types import DoubleType, IntegerType, StringType, TimestampType
 
-from ecommerce.common_functions.file_ingestion import read_file
+from ecommerce.common_functions.file_ingestion import (
+    add_ingestion_timestamp_column,
+    read_file,
+)
 
 SCHEMA_CONFIG = [
     {
@@ -26,7 +29,11 @@ SCHEMA_CONFIG = [
 
 @patch("ecommerce.common_functions.file_ingestion.read_csv_file")
 def test_read_file_schema_mapping(mock_read_csv, spark: SparkSession) -> None:
-    # Verify that string datatype definitions map to proper PySpark types during ingestion
+    """Checks that string datatype configs map to PySpark types during ingestion.
+    Args:
+        mock_read_csv: Mocked CSV reader function.
+        spark: Active SparkSession fixture.
+    """
     mock_read_csv.return_value = spark.createDataFrame([], schema="dummy_source STRING")
 
     read_file(
@@ -45,7 +52,11 @@ def test_read_file_schema_mapping(mock_read_csv, spark: SparkSession) -> None:
 
 
 def test_read_file_invalid_format(spark: SparkSession) -> None:
-    # Verify that an unsupported file format raises a ValueError
+    """Checks that an unsupported file format raises a ValueError.
+    Args:
+        spark: Active SparkSession fixture.
+    """
+
     with pytest.raises(ValueError, match="Invalid file format specified: txt"):
         read_file(
             spark=spark,
@@ -54,3 +65,17 @@ def test_read_file_invalid_format(spark: SparkSession) -> None:
             schema=SCHEMA_CONFIG,
             file_format="txt",
         )
+
+
+def test_add_ingestion_timestamp_column(spark: SparkSession) -> None:
+    """Checks that INGESTED_AT timestamp column is added without changing row count.
+    Args:
+        spark: Active SparkSession fixture.
+    """
+    df = spark.createDataFrame([("test_data",)], ["col1"])
+
+    result_df = add_ingestion_timestamp_column(df)
+
+    assert "INGESTED_AT" in result_df.columns
+    assert isinstance(result_df.schema["INGESTED_AT"].dataType, TimestampType)
+    assert result_df.count() == 1

@@ -71,7 +71,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_products_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks silver products output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     result_df = prepare_products_data(
         product_catalog=spark.createDataFrame([], schema=CATALOG_SCHEMA),
         product_pricing_history=spark.createDataFrame([], schema=PRICING_SCHEMA),
@@ -83,7 +86,10 @@ def test_prepare_products_schema_and_empty_input(spark: SparkSession) -> None:
 
 
 def test_prepare_products_scd2_time_slicing(spark: SparkSession) -> None:
-    # Verify SCD2 time-slicing across overlapping pricing and inventory changes
+    """Checks SCD2 timeline slicing across asynchronous pricing and inventory changes.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     catalog_df = spark.createDataFrame(
         [("PROD-1", "CAT-1", "Mouse", "Logi", "Wireless", 1, "2025-01-01 00:00:00")],
         schema=CATALOG_SCHEMA,
@@ -158,7 +164,10 @@ def test_prepare_products_scd2_time_slicing(spark: SparkSession) -> None:
 
 
 def test_prepare_products_sanitization_and_gap_healing(spark: SparkSession) -> None:
-    # Verify negative value sanitization, empty name fallback, and 2-day SCD2 pricing gap healing
+    """Checks negative metric fixes, blank name fallback, and SCD2 pricing gap healing.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     catalog_df = spark.createDataFrame(
         [("PROD-2", "CAT-1", "", "Keychron", "Mech", 1, "2025-01-01 00:00:00")],
         schema=CATALOG_SCHEMA,

@@ -38,7 +38,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_sessions_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks silver sessions output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_sessions = spark.createDataFrame([], schema=SESSIONS_SCHEMA)
     empty_users = spark.createDataFrame([], schema=SILVER_USERS_SCHEMA)
 
@@ -49,7 +52,10 @@ def test_prepare_sessions_schema_and_empty_input(spark: SparkSession) -> None:
 
 
 def test_prepare_sessions_user_scd2_lookup(spark: SparkSession) -> None:
-    # Verify session mapping and temporal user surrogate key resolution
+    """Checks session column mapping and point-in-time user surrogate key resolution.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     sessions_df = spark.createDataFrame(
         [
             (
@@ -96,7 +102,10 @@ def test_prepare_sessions_user_scd2_lookup(spark: SparkSession) -> None:
 
 
 def test_prepare_sessions_missing_user_handling(spark: SparkSession) -> None:
-    # Verify that sessions with unknown users are preserved with a null surrogate key
+    """Checks that sessions without a matching user keep a null USER_SURROGATE_KEY.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     sessions_df = spark.createDataFrame(
         [
             (

@@ -26,11 +26,26 @@ from pyspark.sql.functions import lit
 
 
 def add_ingestion_timestamp_column(df: DataFrame) -> DataFrame:
-    """"""
+    """Appends a UTC INGESTED_AT timestamp column to the DataFrame.
+    Args:
+        df: Input DataFrame to stamp with the ingestion time.
+    Returns:
+        DataFrame with the INGESTED_AT column added.
+    """
     return df.withColumn("INGESTED_AT", lit(datetime.now(tz=timezone.utc)))
 
 
 def read_csv_file(spark: SparkSession, schema: StructType, path: str) -> DataFrame:
+    """Reads a comma-separated CSV file into a DataFrame using the given schema.
+
+    Args:
+        spark: Active SparkSession used to read the file.
+        schema: PySpark StructType schema applied to the CSV data.
+        path: File path or cloud URI of the CSV file.
+
+    Returns:
+        DataFrame containing the loaded CSV data.
+    """
     return (
         spark.read.format("csv")
         .option("header", "true")
@@ -41,12 +56,32 @@ def read_csv_file(spark: SparkSession, schema: StructType, path: str) -> DataFra
 
 
 def read_json_file(spark: SparkSession, schema: StructType, path: str) -> DataFrame:
+    """Reads a multiline JSON file into a DataFrame using the given schema.
+
+    Args:
+        spark: Active SparkSession used to read the file.
+        schema: PySpark StructType schema applied to the JSON data.
+        path: File path or cloud URI of the JSON file.
+
+    Returns:
+        DataFrame containing the loaded JSON data.
+    """
     return (
         spark.read.format("json").option("multiline", "true").schema(schema).load(path)
     )
 
 
 def read_parquet_file(spark: SparkSession, schema: StructType, path: str) -> DataFrame:
+    """Reads a Parquet file into a DataFrame using the given schema.
+
+    Args:
+        spark: Active SparkSession used to read the file.
+        schema: PySpark StructType schema applied to the Parquet data.
+        path: File path or cloud URI of the Parquet file.
+
+    Returns:
+        DataFrame containing the loaded Parquet data.
+    """
     return spark.read.format("parquet").schema(schema).load(path)
 
 
@@ -56,7 +91,17 @@ def read_excel_file(
     schema: StructType,
     excel_properties: dict,
 ) -> DataFrame:
-    """"""
+    """Downloads an Excel blob from Azure Blob Storage and converts it to a DataFrame.
+
+    Args:
+        spark: Active SparkSession used to create the DataFrame.
+        dbutils: Databricks utility object used to retrieve the storage account access key.
+        schema: PySpark StructType schema applied to the Excel data.
+        excel_properties: Dictionary containing storage account, container, and blob details.
+
+    Returns:
+        DataFrame containing the parsed Excel data.
+    """
 
     STORAGE_ACCOUNT_NAME = excel_properties["STORAGE_ACCOUNT_NAME"]
     ACCESS_KEY = dbutils.secrets.get(scope="secret-keys", key="storageaccountaccesskey")
@@ -89,7 +134,22 @@ def read_file(
     file_format: str,
     excel_properties: dict | None = None,
 ) -> DataFrame:
-    """"""
+    """Reads a source file in a supported format and renames columns to target names.
+
+    Args:
+        spark: Active SparkSession used to read the data.
+        dbutils: Databricks utility object required when reading Excel files from blob storage.
+        file_cloud_loc: Cloud storage path of the source file.
+        schema: Column mapping definitions specifying source column names, target column names, and target data types.
+        file_format: Input file format such as csv, json, parquet, or excel.
+        excel_properties: Optional dictionary with Azure Blob Storage settings required for excel format.
+
+    Returns:
+        DataFrame with columns renamed according to the schema mapping.
+
+    Raises:
+        ValueError: If a target data type or file format is invalid, or if excel_properties is missing for excel files.
+    """
     final_schema = StructType()
     for struct in schema:
         if struct["target_datatype"] == "string":
@@ -138,7 +198,18 @@ def read_file(
 def entry_point_file_ingestion(
     spark: SparkSession, dbutils: Any, env: str, layer: str, config_filename: str
 ) -> None:
-    """"""
+    """Ingests configured source files into Delta tables and runs table maintenance.
+
+    Args:
+        spark: Active SparkSession used for reading, writing, and maintaining tables.
+        dbutils: Databricks utility object passed to file readers when needed.
+        env: Target deployment environment name.
+        layer: Data lakehouse layer name.
+        config_filename: Name of the configuration file defining tables to ingest.
+
+    Returns:
+        None.
+    """
     logger = set_logger()
 
     env = env.lower()

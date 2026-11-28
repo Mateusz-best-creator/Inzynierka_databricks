@@ -20,7 +20,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_categories_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks silver categories output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_df = spark.createDataFrame([], schema=CATEGORIES_SCHEMA)
 
     result_df = prepare_categories_data(categories=empty_df)
@@ -30,7 +33,10 @@ def test_prepare_categories_schema_and_empty_input(spark: SparkSession) -> None:
 
 
 def test_prepare_categories_hierarchy_mapping(spark: SparkSession) -> None:
-    # Verify valid parent-child category hierarchy mapping
+    """Checks parent-child category hierarchy resolution for valid links.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     categories_df = spark.createDataFrame(
         [
             ("CAT-1", "Electronics", None),
@@ -50,7 +56,10 @@ def test_prepare_categories_hierarchy_mapping(spark: SparkSession) -> None:
 def test_prepare_categories_sanitization_and_deduplication(
     spark: SparkSession,
 ) -> None:
-    # Verify key trimming, deduplication, null key filtering, and orphan parent removal
+    """Checks ID trimming, deduplication, null key filtering, and orphan parent removal.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     categories_df = spark.createDataFrame(
         [
             (" CAT-1 ", "Electronics", None),

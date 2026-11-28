@@ -85,7 +85,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_join_users_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks silver users output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     result_df = join_users_data(
         locations=spark.createDataFrame([], schema=LOCATIONS_SCHEMA),
         user_contacts=spark.createDataFrame([], schema=CONTACTS_SCHEMA),
@@ -100,7 +103,10 @@ def test_join_users_schema_and_empty_input(spark: SparkSession) -> None:
 
 
 def test_join_users_scd2_timeline_slicing(spark: SparkSession) -> None:
-    # Verify SCD2 timeline slicing when a user changes location over time
+    """Checks SCD2 timeline slicing and active flags when a user changes location.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     locations_df = spark.createDataFrame(
         [
             ("LOC-1", "Gdansk", "Pomorskie", "80-001", "Poland"),
@@ -155,7 +161,10 @@ def test_join_users_scd2_timeline_slicing(spark: SparkSession) -> None:
 
 
 def test_join_users_contact_sanitization(spark: SparkSession) -> None:
-    # Verify email and phone cleaning and invalid pattern nullification
+    """Checks email and phone cleanup and nullification of invalid contact values.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     users_df = spark.createDataFrame(
         [
             ("USR-1", "C-1", "2025-01-01 00:00:00"),

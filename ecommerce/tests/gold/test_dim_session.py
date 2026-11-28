@@ -35,7 +35,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_dim_session_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks dim_session output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_sessions = spark.createDataFrame([], schema=SESSIONS_SCHEMA)
     empty_events = spark.createDataFrame([], schema=EVENTS_SCHEMA)
 
@@ -50,7 +53,10 @@ def test_prepare_dim_session_schema_and_empty_input(spark: SparkSession) -> None
 def test_prepare_dim_session_duration_buckets_and_conversion(
     spark: SparkSession,
 ) -> None:
-    # Verify session duration bucketing and case-insensitive conversion status detection
+    """Checks session duration buckets and case-insensitive conversion status detection.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     sessions_df = spark.createDataFrame(
         [
             (

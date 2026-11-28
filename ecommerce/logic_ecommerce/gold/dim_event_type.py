@@ -15,7 +15,12 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 
 def prepare_dim_event_type_data(silver_events: DataFrame) -> DataFrame:
-    # Filter out null or blank event types and deduplicate raw names
+    """Extracts unique clickstream event types and maps them to funnel steps and stages.
+    Args:
+        silver_events: Silver event_clickstream DataFrame.
+    Returns:
+        Gold dim_event_type DataFrame with funnel ordering, stage labels, and EVENT_TYPE_KEY.
+    """
     unique_events = (
         silver_events.filter(
             col("EVENT_TYPE").isNotNull() & (trim(col("EVENT_TYPE")) != "")
@@ -24,7 +29,6 @@ def prepare_dim_event_type_data(silver_events: DataFrame) -> DataFrame:
         .dropDuplicates(["event_type_name"])
     )
 
-    # Normalize event name to match both snake_case and PascalCase formats
     norm_event = lower(regexp_replace(col("event_type_name"), r"[_\s-]+", ""))
 
     mapped_events = unique_events.withColumn(
@@ -68,6 +72,13 @@ def prepare_dim_event_type_data(silver_events: DataFrame) -> DataFrame:
 
 
 def entry_point_dim_event_type(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the gold dim_event_type ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_event_type table.")
 

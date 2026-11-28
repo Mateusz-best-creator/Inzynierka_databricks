@@ -4,6 +4,14 @@ import sys
 
 
 def get_project_root_directory(path: str):
+    """Finds the workspace root directory above the ecommerce folder.
+    Args:
+        path: Databricks notebook workspace path.
+    Returns:
+        Parent directory path containing the ecommerce folder.
+    Raises:
+        Exception: If the ecommerce folder is not found in path.
+    """
     folders = path.split(os.sep)
     root_directory = "ecommerce"
 

@@ -24,7 +24,10 @@ EXPECTED_COLUMNS = [
 
 
 def test_prepare_clickstream_schema_and_empty_input(spark: SparkSession) -> None:
-    # Verify output schema and empty dataframe handling
+    """Checks silver event_clickstream output schema and empty input handling.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     empty_df = spark.createDataFrame([], schema=EVENTS_SCHEMA)
 
     result_df = prepare_clickstream_data(event_clickstream=empty_df)
@@ -34,7 +37,10 @@ def test_prepare_clickstream_schema_and_empty_input(spark: SparkSession) -> None
 
 
 def test_prepare_clickstream_transformations_and_keys(spark: SparkSession) -> None:
-    # Verify attribute mapping and unique surrogate key generation across events
+    """Checks column mapping and unique surrogate key generation for clickstream events.
+    Args:
+        spark: Active SparkSession fixture.
+    """
     events_df = spark.createDataFrame(
         [
             ("EVT-10", "VIEW", "2025-03-10 12:00:00", "SESS-10", "PROD-100"),

@@ -7,12 +7,16 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 
 def prepare_dim_sales_context_data(silver_orders: DataFrame) -> DataFrame:
-    # Check if optional columns exist to prevent crashes during dataframe evaluation
+    """Builds a junk dimension of unique shipping, discount, and delivery SLA combinations.
+    Args:
+        silver_orders: Silver orders DataFrame.
+    Returns:
+        Gold dim_sales_context DataFrame with distinct context combinations and SALES_CONTEXT_KEY.
+    """
     has_discount = "DISCOUNT_AMOUNT" in silver_orders.columns
     has_actual_delivery = "ACTUAL_DELIVERY_DATE" in silver_orders.columns
     has_estimated_delivery = "ESTIMATED_DELIVERY_DATE" in silver_orders.columns
 
-    # Define discount status logic
     if has_discount:
         discount_logic = when(
             coalesce(col("DISCOUNT_AMOUNT"), lit(0)) > 0, lit("Discounted")
@@ -20,7 +24,6 @@ def prepare_dim_sales_context_data(silver_orders: DataFrame) -> DataFrame:
     else:
         discount_logic = lit("Full Price")
 
-    # Define delivery SLA status logic
     if has_actual_delivery and has_estimated_delivery:
         sla_logic = (
             when(
@@ -37,7 +40,6 @@ def prepare_dim_sales_context_data(silver_orders: DataFrame) -> DataFrame:
     else:
         sla_logic = lit("On-Time Delivery")
 
-    # Extract unique context combinations
     context_df = (
         silver_orders.withColumn(
             "shipping_method_clean", coalesce(col("SHIPPING_METHOD"), lit("Standard"))
@@ -67,6 +69,13 @@ def prepare_dim_sales_context_data(silver_orders: DataFrame) -> DataFrame:
 def entry_point_dim_sales_context(
     spark: SparkSession, env: str, log_level: int
 ) -> None:
+    """Runs the gold dim_sales_context ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_sales_context table.")
 

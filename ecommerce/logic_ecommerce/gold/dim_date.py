@@ -24,13 +24,19 @@ def prepare_dim_date_data(
     start_date: str = "2022-01-01",
     end_date: str = "2026-12-31",
 ) -> DataFrame:
-    # Generate a continuous daily date sequence without reading source tables
+    """Generates a continuous daily date dimension table with calendar attributes.
+    Args:
+        spark: Active SparkSession instance.
+        start_date: Inclusive start date in YYYY-MM-DD format.
+        end_date: Inclusive end date in YYYY-MM-DD format.
+    Returns:
+        Gold dim_date DataFrame with ISO day-of-week values, weekend flags, and DATE_KEY.
+    """
+
     dates_df = spark.sql(
         f"SELECT explode(sequence(to_date('{start_date}'), to_date('{end_date}'), interval 1 day)) AS full_date"
     )
 
-    # Spark dayofweek returns 1 for Sunday and 7 for Saturday.
-    # Shift values so Monday = 1 and Sunday = 7 to match SQL SET DATEFIRST 1 logic.
     iso_day_of_week = ((dayofweek(col("full_date")) + 5) % 7) + 1
     surrogate_window = Window.orderBy(col("full_date"))
 
@@ -51,6 +57,12 @@ def prepare_dim_date_data(
 
 
 def entry_point_dim_date(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the gold dim_date ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold dim_date table.")
 

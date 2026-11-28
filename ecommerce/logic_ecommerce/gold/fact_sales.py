@@ -33,7 +33,24 @@ def prepare_fact_sales_data(
     dim_payment_type: DataFrame,
     dim_sales_context: DataFrame,
 ) -> DataFrame:
-    # 1. Aggregate payments to order grain and compute installment tier
+    """Builds the line-item sales fact table with dimension keys and financial and fulfillment metrics.
+    Args:
+        silver_orders: Silver orders header DataFrame.
+        silver_order_items: Silver order items DataFrame defining the table grain.
+        silver_payments: Silver payments DataFrame aggregated to order level before joining.
+        silver_users: Silver users DataFrame used for geography lookup.
+        dim_date: Gold dim_date DataFrame used across four order date roles.
+        dim_time: Gold dim_time DataFrame.
+        dim_session: Gold dim_session DataFrame.
+        dim_user: Gold dim_user DataFrame.
+        dim_geography: Gold dim_geography DataFrame.
+        dim_product: Gold SCD2 dim_product DataFrame.
+        dim_payment_type: Gold dim_payment_type DataFrame.
+        dim_sales_context: Gold dim_sales_context DataFrame.
+    Returns:
+        Gold fact_sales DataFrame with surrogate foreign keys, revenue, margin, weight, volume, and SLA timings.
+    """
+
     payments_agg = (
         silver_payments.groupBy("ORDER_ID")
         .agg(
@@ -59,7 +76,6 @@ def prepare_fact_sales_data(
     has_user_zip = "ZIP_CODE" in silver_users.columns
     has_geo_zip = "ZIP_CODE" in dim_geography.columns
 
-    # 2. Join base order data and explicitly select columns to avoid ambiguity
     base_select_cols = [
         col("soi.ORDER_ID"),
         col("soi.ITEM_SEQUENCE"),
@@ -106,7 +122,6 @@ def prepare_fact_sales_data(
         .select(*base_select_cols)
     )
 
-    # 3. Calculate item-level measures and dates
     sales_measures = (
         sales_base.withColumn("gross_item_amount", col("QUANTITY") * col("UNIT_PRICE"))
         .withColumn(
@@ -125,7 +140,6 @@ def prepare_fact_sales_data(
         .withColumn("order_second", second("CREATED_AT_TIMESTAMP"))
     )
 
-    # Prepare dimension join conditions to prevent row multiplication
     if has_user_zip and has_geo_zip:
         geo_dedup = dim_geography.dropDuplicates(
             ["CITY", "STATE", "COUNTRY", "ZIP_CODE"]
@@ -160,7 +174,6 @@ def prepare_fact_sales_data(
 
     dsc_dedup = dim_sales_context.dropDuplicates(["SHIPPING_METHOD"])
 
-    # 4. Join with Dimensions to get Surrogate Keys
     fact_df = (
         sales_measures.alias("sm")
         .join(
@@ -227,7 +240,6 @@ def prepare_fact_sales_data(
         )
     )
 
-    # 5. Finalize financial, physical, and fulfillment calculations
     unit_cost_price = coalesce(
         col("dp.COST_PRICE"),
         col("dp.BASE_PRICE") * lit(0.7),
@@ -347,6 +359,13 @@ def prepare_fact_sales_data(
 
 
 def entry_point_fact_sales(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the gold fact_sales ETL pipeline and writes the partitioned Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
+
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for gold fact_sales table.")
 

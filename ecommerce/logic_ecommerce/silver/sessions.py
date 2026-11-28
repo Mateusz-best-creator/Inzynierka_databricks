@@ -6,7 +6,13 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 
 
 def prepare_sessions_data(sessions: DataFrame, silver_users: DataFrame) -> DataFrame:
-    """Prepare and join sessions data with silver users to resolve user surrogate keys."""
+    """Joins browsing sessions with silver users to resolve point-in-time user surrogate keys.
+    Args:
+        sessions: Raw bronze sessions DataFrame.
+        silver_users: Silver SCD2 users DataFrame.
+    Returns:
+        Silver sessions DataFrame with session surrogate keys and matched user keys.
+    """
 
     joined_sessions = (
         sessions.alias("s")
@@ -36,7 +42,12 @@ def prepare_sessions_data(sessions: DataFrame, silver_users: DataFrame) -> DataF
 
 
 def entry_point_sessions(spark: SparkSession, env: str, log_level: int) -> None:
-    """Entry point for silver sessions table ETL."""
+    """Runs the silver sessions ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level)
     logger.info("Running entry_point for silver sessions table.")
 

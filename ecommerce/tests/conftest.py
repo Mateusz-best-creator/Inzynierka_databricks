@@ -3,14 +3,16 @@ import sys
 import pytest
 from pyspark.sql import SparkSession
 
-# Ensure Spark worker uses the active Python interpreter
 os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
 
 @pytest.fixture(scope="session")
 def spark():
-    # Initialize lightweight local Spark session for unit tests
+    """Initializes a lightweight local SparkSession for the test session.
+    Yields:
+        Configured local SparkSession instance.
+    """
     spark = (
         SparkSession.builder.master("local[1]")
         .appName("pytest-pyspark-suite")

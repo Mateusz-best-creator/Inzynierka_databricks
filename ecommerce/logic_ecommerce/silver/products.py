@@ -22,7 +22,14 @@ def prepare_products_data(
     product_pricing_history: DataFrame,
     product_inventory: DataFrame,
 ) -> DataFrame:
-    # Heal potential SCD2 gaps in pricing and inventory timelines
+    """Merges product catalog, pricing, and inventory histories into a unified SCD2 timeline.
+    Args:
+        product_catalog: Raw bronze product catalog DataFrame.
+        product_pricing_history: Raw bronze product pricing history DataFrame.
+        product_inventory: Raw bronze product inventory and dimensions DataFrame.
+    Returns:
+        Silver products DataFrame with continuous validity intervals, sanitized metrics, and surrogate keys.
+    """
     price_win = Window.partitionBy("product_id").orderBy("valid_from")
     pricing_healed = product_pricing_history.withColumn(
         "valid_to", coalesce(lead("valid_from").over(price_win), col("valid_to"))
@@ -47,7 +54,6 @@ def prepare_products_data(
             "product_created_at", col("valid_from")
         )
 
-    # Step 1: Collect all unique boundary timestamps across product tables
     pricing_from = pricing_healed.select(
         col("product_id"), col("valid_from").alias("timeline_point")
     )
@@ -78,7 +84,6 @@ def prepare_products_data(
         col("timeline_point").isNotNull()
     ).distinct()
 
-    # Step 2: Create continuous, non-overlapping time intervals per product
     timeline_window = Window.partitionBy("product_id").orderBy("timeline_point")
     ordered_timelines = product_timelines.select(
         col("product_id"),
@@ -86,7 +91,6 @@ def prepare_products_data(
         lead("timeline_point").over(timeline_window).alias("valid_to"),
     )
 
-    # Step 3: Join catalog, active price window, and active inventory window
     surrogate_window = Window.orderBy(col("ot.product_id"), col("ot.valid_from"))
 
     if has_catalog_valid_to:
@@ -155,6 +159,12 @@ def prepare_products_data(
 
 
 def entry_point_products(spark: SparkSession, env: str, log_level: int) -> None:
+    """Runs the silver products ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level=log_level)
     logger.info("Running entry_point for silver products table.")
 

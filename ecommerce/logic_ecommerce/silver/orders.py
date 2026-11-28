@@ -25,6 +25,14 @@ from ecommerce.common_functions.delta_utils import create_table, optimize_vacuum
 def add_date_columns(
     df: DataFrame, timestamp_column_name: str = "CREATED_AT_TIMESTAMP"
 ) -> DataFrame:
+    """Extracts YEAR, zero-padded MONTH, and QUARTER columns from a timestamp column.
+    Args:
+        df: Input DataFrame containing the source timestamp column.
+        timestamp_column_name: Name of the timestamp column used to derive date parts.
+    Returns:
+        DataFrame extended with YEAR, MONTH, and QUARTER columns.
+    """
+
     timestamp_column = month(col(timestamp_column_name))
 
     df_year_month = df.withColumn(
@@ -55,8 +63,18 @@ def prepare_orders_data(
     order_item_pricing: DataFrame,
     silver_users: DataFrame,
 ) -> DataFrame:
-    """Prepare and pivot orders data matching the silver relational logic."""
-    # Sanitize negative prices, discounts, and quantities when calculating order totals
+    """Consolidates order tables, heals status and creation timestamps, and resolves user keys.
+    Args:
+        orders: Raw bronze orders header DataFrame.
+        order_details: Raw bronze order details DataFrame with shipping info.
+        order_status_history: Raw bronze order status transition history DataFrame.
+        order_items: Raw bronze order items DataFrame.
+        order_item_pricing: Raw bronze order item pricing DataFrame.
+        silver_users: Silver SCD2 users DataFrame used for point-in-time key lookup.
+    Returns:
+        Silver orders DataFrame with healed milestone timestamps, totals, and surrogate keys.
+    """
+
     item_totals = (
         order_items.alias("oi")
         .filter(col("oi.ORDER_ID").isNotNull())
@@ -78,7 +96,6 @@ def prepare_orders_data(
         )
     )
 
-    # Heal inverted status timestamps by aligning lifecycle stage rank with chronological order
     status_dedup = (
         order_status_history.filter(
             col("ORDER_ID").isNotNull()
@@ -140,7 +157,6 @@ def prepare_orders_data(
         )
     )
 
-    # Join orders with status history first to repair corrupted CREATED_AT dates
     orders_with_status = (
         orders.filter(col("ORDER_ID").isNotNull())
         .alias("o")
@@ -149,7 +165,7 @@ def prepare_orders_data(
             upper(trim(col("o.ORDER_ID"))) == upper(trim(col("osh.ORDER_ID"))),
             how="left",
         )
-        .drop(col("osh.ORDER_ID"))  # Drop to prevent ambiguity downstream
+        .drop(col("osh.ORDER_ID"))
         .withColumn(
             "effective_created_at",
             when(
@@ -213,7 +229,12 @@ def prepare_orders_data(
 
 
 def entry_point_orders(spark: SparkSession, env: str, log_level: int) -> None:
-    """Entry point for silver orders table ETL."""
+    """Runs the silver orders ETL pipeline and writes the target Delta table.
+    Args:
+        spark: Active SparkSession instance.
+        env: Target deployment environment (for example dev or prod).
+        log_level: Logging threshold level.
+    """
     logger = set_logger(log_level)
     logger.info("Running entry_point for silver orders table.")
 
